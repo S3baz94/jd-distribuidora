@@ -35,7 +35,7 @@ export const ADMIN_USERS: (AdminUserProfile & { passwordHash: string })[] = [
 
 export class AdminAuthService {
   static getCurrentSession(): AdminUserProfile | null {
-    if (typeof window === "undefined") return ADMIN_USERS[0];
+    if (typeof window === "undefined") return null;
     try {
       const stored = localStorage.getItem(ADMIN_AUTH_KEY);
       if (stored) {
