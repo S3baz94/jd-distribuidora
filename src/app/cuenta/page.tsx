@@ -420,7 +420,7 @@ export default function AccountPage() {
         </div>
 
         <a
-          href="https://wa.me/573133923080?text=Hola%20JD%20Distribuidora,%20necesito%20ayuda%20para%20configurar%20la%20direcci%C3%B3n%20de%20mi%20negocio"
+          href="https://wa.me/573233218831?text=Hola%20JD%20Distribuidora,%20necesito%20ayuda%20para%20configurar%20la%20direcci%C3%B3n%20de%20mi%20negocio"
           target="_blank"
           rel="noopener noreferrer"
           className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 flex-shrink-0"

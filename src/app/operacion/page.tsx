@@ -512,7 +512,7 @@ export default function OperacionPage() {
               </a>
 
               <a
-                href={`https://wa.me/573124567890?text=${encodeURIComponent(
+                href={`https://wa.me/573233218831?text=${encodeURIComponent(
                   `Hola ${nextStop.customerName}, soy ${activeRoute?.driverName || "Carlos Pérez"} de JD Distribuidora. Ya voy en camino con su pedido de carne (${nextStop.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0)} kg).`
                 )}`}
                 target="_blank"
@@ -887,7 +887,7 @@ export default function OperacionPage() {
 
                           {/* WhatsApp / Call Button */}
                           <a
-                            href={`https://wa.me/573124567890?text=${encodeURIComponent(
+                            href={`https://wa.me/573233218831?text=${encodeURIComponent(
                               `Hola ${order.customerName}, soy ${activeRoute?.driverName || "Carlos Pérez"} de JD Distribuidora. Ya estoy afuera con su pedido de carne (${orderKg} kg).`
                             )}`}
                             target="_blank"

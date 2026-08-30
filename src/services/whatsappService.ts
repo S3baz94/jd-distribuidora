@@ -4,7 +4,7 @@ import { priceService } from "./priceService";
 
 export const whatsappService = {
   // Generate WhatsApp link for Client sending order to Distributor
-  getClientOrderLink: (order: Order, distributorPhone: string = "573133923080") => {
+  getClientOrderLink: (order: Order, distributorPhone: string = "573233218831") => {
     const itemsList = order.items
       .map(
         (i, idx) =>

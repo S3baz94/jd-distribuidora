@@ -14,7 +14,7 @@ export const DEFAULT_LICENSE_CONFIG: LicenseConfig = {
   monthlyFee: 1500000,
   isLocked: false,
   lockReason: "Servicio suspendido por mora en licenciamiento o acuerdo de desarrollo. Para reactivar el software de forma inmediata, comuníquese con el desarrollador del sistema.",
-  contactDeveloperPhone: "+57 312 456 7890",
+  contactDeveloperPhone: "+57 323 321 8831",
   contactDeveloperEmail: "sebastiansachezramos@gmail.com",
   masterPin: MASTER_PIN,
   updatedAt: new Date().toISOString(),

@@ -9,7 +9,7 @@ export const DEFAULT_BILLING_SETTINGS: BillingSettings = {
   nit: "901.884.220-1",
   address: "Carrera 68D # 13-40, Frigorífico Central de Desposte",
   city: "Bogotá D.C., Colombia",
-  phone: "+57 (1) 745-8900 / 312 456 7890",
+  phone: "+57 323 321 8831 / (1) 745-8900",
   email: "facturacion@jddistribuidora.com",
   resolutionNumber: "18764002981240",
   resolutionDate: "2026-01-15",

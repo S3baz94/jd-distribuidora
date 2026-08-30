@@ -5,8 +5,8 @@ export const DEMO_COMPANY = {
   name: "JD Distribuidora y Gourmet Ahumados",
   shortName: "JD Distribuidora & Gourmet",
   tagline: "Proveedor directo de cortes de cerdo crudo y línea gourmet ahumados para famas, asaderos y restaurantes",
-  phone: "+57 313 392 3080",
-  whatsapp: "+57 320 494 8435",
+  phone: "+57 323 321 8831",
+  whatsapp: "+57 323 321 8831",
   address: "Central de Carnes, Bodega Frigorífica JD, Bogotá D.C.",
   sanitaryRegistry: "Certificación Sanitaria INVIMA No. DESP-JD-9821",
 };
