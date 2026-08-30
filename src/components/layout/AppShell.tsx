@@ -8,6 +8,7 @@ import { FloatingCartBar } from "@/components/layout/FloatingCartBar";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { ToastContainer } from "@/components/common/ToastContainer";
 import { LicenseLockScreen } from "@/components/common/LicenseLockScreen";
+import { PWAInstaller } from "@/components/common/PWAInstaller";
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
@@ -20,6 +21,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   if (isAdmin || isOperacion) {
     return (
       <>
+        <PWAInstaller />
         <LicenseLockScreen />
         <ToastContainer />
         <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-brand-500 selection:text-white">

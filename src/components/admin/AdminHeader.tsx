@@ -114,14 +114,12 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             {/* Install Desktop App Button */}
             <button
               onClick={() => {
-                if (typeof window !== "undefined") {
-                  alert(
-                    "💻 INSTALACIÓN EN COMPUTADOR (WINDOWS):\n\nPara instalar el software como aplicación nativa en este computador:\n1. En Google Chrome o Microsoft Edge, haz clic en el icono de 'Instalar' (📥) que aparece al final de la barra de direcciones.\n2. Haz clic en 'Instalar'.\n\nEl software se abrirá en su propia ventana de escritorio independiente con su icono en el Escritorio de Windows."
-                  );
+                if (typeof window !== "undefined" && window.__triggerPWAInstall) {
+                  window.__triggerPWAInstall();
                 }
               }}
-              className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-500 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-md shadow-brand-950/40"
-              title="Descargar e instalar como software de escritorio en Windows"
+              className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shadow-md shadow-brand-950/40"
+              title="Instalar como software nativo de escritorio en Windows"
             >
               <Download className="w-3.5 h-3.5 stroke-[2.5]" />
               <span className="hidden xl:inline">Instalar en Computador</span>
