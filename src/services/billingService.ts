@@ -316,6 +316,42 @@ export class BillingService {
     }
   }
 
+  static processRefund(
+    invoiceId: string,
+    refundData: {
+      type: "total" | "parcial";
+      refundedAmount: number;
+      refundedKg: number;
+      reason: string;
+      refundedItems?: {
+        productId: string;
+        productName: string;
+        quantityKg: number;
+        amount: number;
+      }[];
+    }
+  ): Invoice | null {
+    const invoices = this.getInvoices();
+    const index = invoices.findIndex((i) => i.id === invoiceId);
+    if (index === -1) return null;
+
+    const target = invoices[index];
+    const newStatus = refundData.type === "total" ? "devuelta_total" : "devuelta_parcial";
+
+    const updated: Invoice = {
+      ...target,
+      status: newStatus,
+      refundDetails: {
+        ...refundData,
+        refundedAt: new Date().toISOString(),
+      },
+    };
+
+    invoices[index] = updated;
+    this.saveInvoices(invoices);
+    return updated;
+  }
+
   static getSettings(): BillingSettings {
     if (typeof window === "undefined") return DEFAULT_BILLING_SETTINGS;
     try {

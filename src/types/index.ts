@@ -239,7 +239,7 @@ export interface PickingSummaryItem {
 // ==========================================
 
 export type InvoicePaymentType = "efectivo" | "banco" | "credito" | "mixto";
-export type InvoiceStatus = "pagada" | "pendiente" | "anulada";
+export type InvoiceStatus = "pagada" | "pendiente" | "anulada" | "devuelta_total" | "devuelta_parcial";
 export type InvoiceOrigin = "mostrador" | "despacho" | "pedido_web";
 
 export interface InvoiceItem {
@@ -253,6 +253,20 @@ export interface InvoiceItem {
   subtotal: number;
   taxRate: number; // 0% carnes frescas exentas, o 19%
   discountPercent?: number;
+}
+
+export interface InvoiceRefundDetails {
+  type: "total" | "parcial";
+  refundedAmount: number;
+  refundedKg: number;
+  reason: string;
+  refundedAt: string;
+  refundedItems?: {
+    productId: string;
+    productName: string;
+    quantityKg: number;
+    amount: number;
+  }[];
 }
 
 export interface Invoice {
@@ -288,6 +302,7 @@ export interface Invoice {
   notes?: string;
   issuedAt: string;
   sellerName: string;
+  refundDetails?: InvoiceRefundDetails;
 }
 
 export interface BillingSettings {

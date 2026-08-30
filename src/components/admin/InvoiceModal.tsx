@@ -43,20 +43,32 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
     switch (status) {
       case "pagada":
         return (
-          <span className="inline-flex items-center gap-1 text-emerald-600 font-black text-xs uppercase px-2.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
+          <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-xs uppercase px-2.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
             <CheckCircle2 className="w-3.5 h-3.5" /> Pagada
           </span>
         );
       case "pendiente":
         return (
-          <span className="inline-flex items-center gap-1 text-amber-700 font-black text-xs uppercase px-2.5 py-0.5 rounded-md bg-amber-50 border border-amber-200">
+          <span className="inline-flex items-center gap-1 text-amber-700 font-bold text-xs uppercase px-2.5 py-0.5 rounded-md bg-amber-50 border border-amber-200">
             <Clock className="w-3.5 h-3.5" /> A Crédito / Cartera
           </span>
         );
       case "anulada":
         return (
-          <span className="inline-flex items-center gap-1 text-rose-700 font-black text-xs uppercase px-2.5 py-0.5 rounded-md bg-rose-50 border border-rose-200">
+          <span className="inline-flex items-center gap-1 text-rose-700 font-bold text-xs uppercase px-2.5 py-0.5 rounded-md bg-rose-50 border border-rose-200">
             <Ban className="w-3.5 h-3.5" /> Anulada
+          </span>
+        );
+      case "devuelta_total":
+        return (
+          <span className="inline-flex items-center gap-1 text-purple-700 font-bold text-xs uppercase px-2.5 py-0.5 rounded-md bg-purple-50 border border-purple-200">
+            <Ban className="w-3.5 h-3.5" /> Devolución Total (100%)
+          </span>
+        );
+      case "devuelta_parcial":
+        return (
+          <span className="inline-flex items-center gap-1 text-indigo-700 font-bold text-xs uppercase px-2.5 py-0.5 rounded-md bg-indigo-50 border border-indigo-200">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Devolución Parcial
           </span>
         );
     }

@@ -119,6 +119,21 @@ interface AppContextType {
     paymentType: InvoicePaymentType,
     paymentDetails: Invoice["paymentDetails"]
   ) => void;
+  processInvoiceRefund: (
+    invoiceId: string,
+    refundData: {
+      type: "total" | "parcial";
+      refundedAmount: number;
+      refundedKg: number;
+      reason: string;
+      refundedItems?: {
+        productId: string;
+        productName: string;
+        quantityKg: number;
+        amount: number;
+      }[];
+    }
+  ) => void;
   updateBillingSettings: (settings: BillingSettings) => void;
   exportInvoicesCSV: () => void;
 
@@ -793,6 +808,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast("Pago de factura registrado", "success");
   };
 
+  const processInvoiceRefund = (
+    invoiceId: string,
+    refundData: {
+      type: "total" | "parcial";
+      refundedAmount: number;
+      refundedKg: number;
+      reason: string;
+      refundedItems?: {
+        productId: string;
+        productName: string;
+        quantityKg: number;
+        amount: number;
+      }[];
+    }
+  ) => {
+    const updated = BillingService.processRefund(invoiceId, refundData);
+    if (updated) {
+      const allInvs = BillingService.getInvoices();
+      setInvoices(allInvs);
+
+      // Restore inventory kg for refunded items
+      if (refundData.refundedItems && refundData.refundedItems.length > 0) {
+        refundData.refundedItems.forEach((item) => {
+          if (item.quantityKg > 0) {
+            inventoryService.addBatchStock(
+              item.productId,
+              item.quantityKg,
+              `Reintegro por Devolución ${refundData.type === "total" ? "Total" : "Parcial"}`
+            );
+          }
+        });
+        setInventory(inventoryService.getInventory());
+      }
+
+      showToast(
+        refundData.type === "total"
+          ? `Devolución total procesada: $${refundData.refundedAmount.toLocaleString()} COP reintegrados al stock e inventario`
+          : `Devolución parcial procesada: $${refundData.refundedAmount.toLocaleString()} COP y ${refundData.refundedKg} kg reintegrados al inventario`,
+        "info"
+      );
+    }
+  };
+
   const updateBillingSettings = (settings: BillingSettings) => {
     setBillingSettings(settings);
     BillingService.saveSettings(settings);
@@ -915,6 +973,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createInvoice,
         cancelInvoice,
         updateInvoicePayment,
+        processInvoiceRefund,
         updateBillingSettings,
         exportInvoicesCSV,
         license,

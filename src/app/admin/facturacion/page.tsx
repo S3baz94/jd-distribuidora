@@ -36,6 +36,8 @@ import {
   Coins,
   ArrowRight,
   Sparkles,
+  RotateCcw,
+  Landmark,
 } from "lucide-react";
 
 export default function FacturacionPage() {
@@ -45,6 +47,7 @@ export default function FacturacionPage() {
     createInvoice,
     cancelInvoice,
     updateInvoicePayment,
+    processInvoiceRefund,
     exportInvoicesCSV,
     allCustomers,
     products,
@@ -57,8 +60,15 @@ export default function FacturacionPage() {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | InvoiceStatus>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | InvoiceStatus | "devolucion">("all");
   const [paymentFilter, setPaymentFilter] = useState<"all" | InvoicePaymentType>("all");
+
+  // Refund / Devolución State
+  const [refundInvoice, setRefundInvoice] = useState<Invoice | null>(null);
+  const [refundType, setRefundType] = useState<"total" | "parcial">("total");
+  const [refundReason, setRefundReason] = useState<string>("Rechazo de calidad / Merma en pesaje");
+  const [refundItemsKg, setRefundItemsKg] = useState<{ [productId: string]: number }>({});
+  const [bankEntity, setBankEntity] = useState<string>("Bancolombia (QR / Transferencia)");
 
   // New Invoice Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("c1");
@@ -83,7 +93,7 @@ export default function FacturacionPage() {
   // Financial Metrics
   const metrics = useMemo(() => {
     const totalFacturado = invoices
-      .filter((i) => i.status !== "anulada")
+      .filter((i) => i.status !== "anulada" && i.status !== "devuelta_total")
       .reduce((sum, i) => sum + i.total, 0);
 
     const totalEfectivo = invoices
@@ -99,7 +109,7 @@ export default function FacturacionPage() {
       .reduce((sum, i) => sum + (i.paymentDetails.creditAmount || i.total), 0);
 
     const totalKilos = invoices
-      .filter((i) => i.status !== "anulada")
+      .filter((i) => i.status !== "anulada" && i.status !== "devuelta_total")
       .reduce((sum, i) => sum + i.totalKg, 0);
 
     return {
@@ -120,7 +130,12 @@ export default function FacturacionPage() {
         inv.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         inv.customerNit.includes(searchQuery);
 
-      const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "devolucion"
+          ? inv.status === "devuelta_total" || inv.status === "devuelta_parcial"
+          : inv.status === statusFilter);
+
       const matchesPayment = paymentFilter === "all" || inv.paymentType === paymentFilter;
 
       return matchesSearch && matchesStatus && matchesPayment;
@@ -201,6 +216,11 @@ export default function FacturacionPage() {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + creditDays);
 
+    const formattedBankRef =
+      paymentType === "banco"
+        ? `${bankEntity}${bankReference ? ` - Ref: ${bankReference}` : " - Transferencia Aprobada"}`
+        : undefined;
+
     const newInv = createInvoice({
       customerId: isCounterSale ? "counter" : currentCustomer.id,
       customerName: isCounterSale ? counterCustomerName : currentCustomer.businessName,
@@ -220,7 +240,7 @@ export default function FacturacionPage() {
         cashGiven: paymentType === "efectivo" ? cashGiven || newInvoiceSubtotal : undefined,
         cashChange: paymentType === "efectivo" ? cashChange : undefined,
         bankAmount: paymentType === "banco" ? newInvoiceSubtotal : undefined,
-        bankReference: paymentType === "banco" ? bankReference || "QR Bancolombia" : undefined,
+        bankReference: formattedBankRef,
         creditAmount: paymentType === "credito" ? newInvoiceSubtotal : undefined,
         creditDays: paymentType === "credito" ? creditDays : undefined,
         creditDueDate: paymentType === "credito" ? dueDate.toISOString().slice(0, 10) : undefined,
@@ -242,6 +262,79 @@ export default function FacturacionPage() {
     ]);
     setCashGiven(0);
     setBankReference("");
+  };
+
+  // Open Refund Modal
+  const handleOpenRefundModal = (inv: Invoice) => {
+    setRefundInvoice(inv);
+    setRefundType("total");
+    setRefundReason("Rechazo de calidad / Merma en pesaje");
+    const initialMap: { [productId: string]: number } = {};
+    inv.items.forEach((it) => {
+      initialMap[it.productId] = it.quantityKg;
+    });
+    setRefundItemsKg(initialMap);
+  };
+
+  // Process Refund Submit
+  const handleProcessRefundSubmit = () => {
+    if (!refundInvoice) return;
+
+    if (refundType === "total") {
+      processInvoiceRefund(refundInvoice.id, {
+        type: "total",
+        refundedAmount: refundInvoice.total,
+        refundedKg: refundInvoice.totalKg,
+        reason: refundReason,
+        refundedItems: refundInvoice.items.map((it) => ({
+          productId: it.productId,
+          productName: it.productName,
+          quantityKg: it.quantityKg,
+          amount: it.subtotal,
+        })),
+      });
+      setRefundInvoice(null);
+    } else {
+      // Parcial
+      const refundedItems: {
+        productId: string;
+        productName: string;
+        quantityKg: number;
+        amount: number;
+      }[] = [];
+
+      let totalRefundAmount = 0;
+      let totalRefundKg = 0;
+
+      refundInvoice.items.forEach((it) => {
+        const kg = refundItemsKg[it.productId] || 0;
+        if (kg > 0) {
+          const itemAmount = kg * it.unitPrice;
+          refundedItems.push({
+            productId: it.productId,
+            productName: it.productName,
+            quantityKg: kg,
+            amount: itemAmount,
+          });
+          totalRefundAmount += itemAmount;
+          totalRefundKg += kg;
+        }
+      });
+
+      if (refundedItems.length === 0 || totalRefundAmount <= 0) {
+        showToast("Selecciona al menos un corte y los kilos a devolver", "warning");
+        return;
+      }
+
+      processInvoiceRefund(refundInvoice.id, {
+        type: "parcial",
+        refundedAmount: totalRefundAmount,
+        refundedKg: totalRefundKg,
+        reason: refundReason,
+        refundedItems,
+      });
+      setRefundInvoice(null);
+    }
   };
 
   return (
@@ -361,7 +454,7 @@ export default function FacturacionPage() {
             <button
               onClick={() => setStatusFilter("all")}
               className={`px-3 py-1 rounded-lg font-bold transition-all ${
-                statusFilter === "all" ? "bg-brand-600 text-white" : "text-slate-400 hover:text-white"
+                statusFilter === "all" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
               Todas ({invoices.length})
@@ -370,7 +463,7 @@ export default function FacturacionPage() {
               onClick={() => setStatusFilter("pagada")}
               className={`px-3 py-1 rounded-lg font-bold transition-all ${
                 statusFilter === "pagada"
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-emerald-950/60 text-emerald-400 border border-emerald-800/60"
                   : "text-slate-400 hover:text-white"
               }`}
             >
@@ -380,17 +473,27 @@ export default function FacturacionPage() {
               onClick={() => setStatusFilter("pendiente")}
               className={`px-3 py-1 rounded-lg font-bold transition-all ${
                 statusFilter === "pendiente"
-                  ? "bg-amber-600 text-white"
+                  ? "bg-amber-950/60 text-amber-400 border border-amber-800/60"
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              Cartera
+              A Crédito
+            </button>
+            <button
+              onClick={() => setStatusFilter("devolucion")}
+              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                statusFilter === "devolucion"
+                  ? "bg-indigo-950/60 text-indigo-400 border border-indigo-800/60"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Devoluciones
             </button>
             <button
               onClick={() => setStatusFilter("anulada")}
               className={`px-3 py-1 rounded-lg font-bold transition-all ${
                 statusFilter === "anulada"
-                  ? "bg-rose-600 text-white"
+                  ? "bg-rose-950/60 text-rose-400 border border-rose-800/60"
                   : "text-slate-400 hover:text-white"
               }`}
             >
@@ -401,19 +504,19 @@ export default function FacturacionPage() {
       </div>
 
       {/* Invoices Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-950 text-slate-400 text-[11px] uppercase tracking-wider border-b border-slate-800">
-                <th className="p-4">Factura #</th>
-                <th className="p-4">Fecha & Hora</th>
-                <th className="p-4">Cliente / Adquiriente</th>
-                <th className="p-4 text-right">Kilos (KG)</th>
-                <th className="p-4 text-right">Total Liquidado</th>
-                <th className="p-4 text-center">Medio de Pago</th>
-                <th className="p-4 text-center">Estado</th>
-                <th className="p-4 text-right">Acciones</th>
+                <th className="p-3.5">Factura #</th>
+                <th className="p-3.5">Fecha & Hora</th>
+                <th className="p-3.5">Cliente / Adquiriente</th>
+                <th className="p-3.5 text-right">Kilos (KG)</th>
+                <th className="p-3.5 text-right">Total Liquidado</th>
+                <th className="p-3.5 text-center">Medio de Pago</th>
+                <th className="p-3.5 text-center">Estado</th>
+                <th className="p-3.5 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80 text-xs">
@@ -425,12 +528,12 @@ export default function FacturacionPage() {
                 </tr>
               ) : (
                 filteredInvoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="p-4">
-                      <div className="font-mono font-black text-white text-sm">{inv.number}</div>
+                  <tr key={inv.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="p-3.5">
+                      <div className="font-mono font-bold text-white text-xs">{inv.number}</div>
                       <span className="text-[10px] text-slate-500 uppercase">{inv.origin}</span>
                     </td>
-                    <td className="p-4 text-slate-300">
+                    <td className="p-3.5 text-slate-300">
                       <div>{new Date(inv.issuedAt).toLocaleDateString("es-CO")}</div>
                       <div className="text-[10px] text-slate-500">
                         {new Date(inv.issuedAt).toLocaleTimeString("es-CO", {
@@ -439,58 +542,67 @@ export default function FacturacionPage() {
                         })}
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className="font-bold text-white text-sm">{inv.customerName}</div>
+                    <td className="p-3.5">
+                      <div className="font-semibold text-white text-xs">{inv.customerName}</div>
                       <div className="text-[11px] text-slate-400">NIT: {inv.customerNit}</div>
                     </td>
-                    <td className="p-4 text-right font-mono font-bold text-slate-200">
+                    <td className="p-3.5 text-right font-mono text-slate-200">
                       {inv.totalKg.toFixed(1)} kg
                     </td>
-                    <td className="p-4 text-right font-mono font-black text-emerald-400 text-sm">
+                    <td className="p-3.5 text-right font-mono font-bold text-slate-100 text-xs">
                       ${inv.total.toLocaleString()}
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="p-3.5 text-center">
                       <span
-                        className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border inline-block ${
+                        className={`text-[10px] font-medium uppercase px-2 py-0.5 rounded-md border inline-block ${
                           inv.paymentType === "efectivo"
-                            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                            ? "bg-slate-800 text-slate-300 border-slate-700"
                             : inv.paymentType === "banco"
-                            ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30"
-                            : "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                            ? "bg-cyan-950/40 text-cyan-400 border-cyan-800/40"
+                            : "bg-amber-950/40 text-amber-400 border-amber-800/40"
                         }`}
                       >
                         {inv.paymentType === "efectivo"
                           ? "💵 Efectivo"
                           : inv.paymentType === "banco"
                           ? "🏦 Banco / QR"
-                          : "📝 Crédito 30D"}
+                          : `📝 Crédito ${inv.paymentDetails.creditDays || 30}D`}
                       </span>
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="p-3.5 text-center">
                       {inv.status === "pagada" ? (
-                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-emerald-950/40 text-emerald-400 border border-emerald-800/40">
                           ✓ Pagada
                         </span>
                       ) : inv.status === "pendiente" ? (
-                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          ⏳ En Cartera
+                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-amber-950/40 text-amber-400 border border-amber-800/40">
+                          ⏳ A Crédito
+                        </span>
+                      ) : inv.status === "devuelta_total" ? (
+                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-purple-950/40 text-purple-400 border border-purple-800/40">
+                          ↩ Devuelta (Total)
+                        </span>
+                      ) : inv.status === "devuelta_parcial" ? (
+                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-indigo-950/40 text-indigo-400 border border-indigo-800/40">
+                          ↩ Dev. Parcial
                         </span>
                       ) : (
-                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-rose-950/40 text-rose-400 border border-rose-800/40">
                           ✕ Anulada
                         </span>
                       )}
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-3.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => {
                             setSelectedInvoice(inv);
                             setIsInvoiceModalOpen(true);
                           }}
-                          className="py-1.5 px-3 rounded-lg bg-brand-600/20 hover:bg-brand-600 text-brand-300 hover:text-white text-xs font-bold flex items-center gap-1 transition-all"
+                          className="py-1 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white text-xs font-medium border border-slate-700 flex items-center gap-1 transition-all"
                         >
-                          <Printer className="w-3.5 h-3.5" /> Tirilla
+                          <Printer className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Tirilla</span>
                         </button>
 
                         {inv.status === "pendiente" && (
@@ -501,17 +613,27 @@ export default function FacturacionPage() {
                                 bankReference: "Pago Recibido",
                               })
                             }
-                            className="py-1.5 px-2.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-bold transition-all"
+                            className="py-1 px-2 rounded-lg bg-emerald-950/50 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/50 text-xs font-medium transition-all"
                             title="Marcar Pagada"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5" />
                           </button>
                         )}
 
+                        {inv.status !== "anulada" && inv.status !== "devuelta_total" && (
+                          <button
+                            onClick={() => handleOpenRefundModal(inv)}
+                            className="py-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border border-slate-700 text-xs font-medium transition-all"
+                            title="Gestionar Devolución (Total o Parcial)"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
                         {inv.status !== "anulada" && (
                           <button
                             onClick={() => cancelInvoice(inv.id)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
                             title="Anular Factura"
                           >
                             <Ban className="w-3.5 h-3.5" />
@@ -693,40 +815,40 @@ export default function FacturacionPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentType("efectivo")}
-                    className={`py-3 px-3 rounded-xl border text-xs font-black flex flex-col items-center gap-1 transition-all ${
+                    className={`py-3 px-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
                       paymentType === "efectivo"
-                        ? "bg-emerald-600/30 border-emerald-500 text-emerald-300 shadow-lg"
-                        : "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800"
+                        ? "bg-slate-800 border-slate-600 text-white shadow-sm"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-850"
                     }`}
                   >
-                    <Coins className="w-5 h-5" />
-                    <span>💵 EFECTIVO</span>
+                    <Coins className="w-4 h-4 text-slate-300" />
+                    <span>💵 Efectivo</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentType("banco")}
-                    className={`py-3 px-3 rounded-xl border text-xs font-black flex flex-col items-center gap-1 transition-all ${
+                    className={`py-3 px-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
                       paymentType === "banco"
-                        ? "bg-cyan-600/30 border-cyan-500 text-cyan-300 shadow-lg"
-                        : "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800"
+                        ? "bg-slate-800 border-slate-600 text-white shadow-sm"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-850"
                     }`}
                   >
-                    <CreditCard className="w-5 h-5" />
-                    <span>🏦 BANCO / QR</span>
+                    <CreditCard className="w-4 h-4 text-slate-300" />
+                    <span>🏦 Banco / QR</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentType("credito")}
-                    className={`py-3 px-3 rounded-xl border text-xs font-black flex flex-col items-center gap-1 transition-all ${
+                    className={`py-3 px-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
                       paymentType === "credito"
-                        ? "bg-amber-600/30 border-amber-500 text-amber-300 shadow-lg"
-                        : "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800"
+                        ? "bg-slate-800 border-slate-600 text-white shadow-sm"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-850"
                     }`}
                   >
-                    <Clock className="w-5 h-5" />
-                    <span>📝 CRÉDITO</span>
+                    <Clock className="w-4 h-4 text-slate-300" />
+                    <span>📝 Crédito</span>
                   </button>
                 </div>
 
@@ -740,7 +862,7 @@ export default function FacturacionPage() {
                         value={cashGiven || ""}
                         onChange={(e) => setCashGiven(parseFloat(e.target.value) || 0)}
                         placeholder={`$${newInvoiceSubtotal.toLocaleString()}`}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white text-xs focus:outline-none focus:border-brand-500"
+                        className="w-full bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-xl px-3 py-2 font-mono text-white text-xs focus:outline-none"
                       />
                     </div>
                     <div>
@@ -753,46 +875,74 @@ export default function FacturacionPage() {
                 )}
 
                 {paymentType === "banco" && (
-                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs">
-                    <label className="text-slate-400 block mb-1">Código de Comprobante / Ref:</label>
-                    <input
-                      type="text"
-                      value={bankReference}
-                      onChange={(e) => setBankReference(e.target.value)}
-                      placeholder="Ej. Transferencia Bancolombia #98421"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white text-xs focus:outline-none focus:border-brand-500"
-                    />
+                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-slate-400 block mb-1">Entidad / Canal Bancario:</label>
+                      <select
+                        value={bankEntity}
+                        onChange={(e) => setBankEntity(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-xl px-3 py-2 text-white text-xs focus:outline-none"
+                      >
+                        <option value="Bancolombia (QR / Transferencia)">Bancolombia (QR / Transferencia)</option>
+                        <option value="Nequi / Daviplata">Nequi / Daviplata</option>
+                        <option value="Davivienda">Davivienda</option>
+                        <option value="BBVA Colombia">BBVA Colombia</option>
+                        <option value="Banco de Bogotá">Banco de Bogotá</option>
+                        <option value="Datafono POS Tarjeta">Datáfono POS Tarjeta</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-slate-400 block mb-1">Código de Comprobante / Ref:</label>
+                      <input
+                        type="text"
+                        value={bankReference}
+                        onChange={(e) => setBankReference(e.target.value)}
+                        placeholder="Ej. Aprobación #98421"
+                        className="w-full bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-xl px-3 py-2 font-mono text-white text-xs focus:outline-none"
+                      />
+                    </div>
                   </div>
                 )}
 
                 {paymentType === "credito" && (
-                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center gap-3 text-xs">
-                    <label className="text-slate-400">Plazo de Cartera:</label>
-                    <select
-                      value={creditDays}
-                      onChange={(e) => setCreditDays(parseInt(e.target.value, 10))}
-                      className="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none font-bold"
-                    >
-                      <option value={8}>8 Días</option>
-                      <option value={15}>15 Días</option>
-                      <option value={30}>30 Días</option>
-                      <option value={45}>45 Días</option>
-                    </select>
+                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <label className="text-slate-400">Plazo de Cartera:</label>
+                      <span className="text-amber-400 font-mono font-medium text-[11px]">
+                        Vence: {new Date(Date.now() + creditDays * 24 * 60 * 60 * 1000).toLocaleDateString("es-CO")}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[8, 15, 30, 45].map((d) => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setCreditDays(d)}
+                          className={`py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                            creditDays === d
+                              ? "bg-slate-800 border-slate-600 text-white shadow-sm"
+                              : "bg-slate-950 border-slate-850 text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          {d} Días
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Total Summary Footer */}
-              <div className="p-4 rounded-2xl bg-brand-950/40 border border-brand-800/40 flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 block">Kilos Totales a Despachar:</span>
-                  <span className="text-lg font-black text-white font-mono">
+                  <span className="text-base font-bold text-slate-100 font-mono">
                     {newInvoiceTotalKg.toFixed(2)} kg
                   </span>
                 </div>
                 <div className="text-right">
                   <span className="text-xs text-slate-400 block">Total Liquidado a Facturar:</span>
-                  <span className="text-2xl font-black text-emerald-400 font-mono">
+                  <span className="text-xl font-bold text-emerald-400 font-mono">
                     ${newInvoiceSubtotal.toLocaleString()}
                   </span>
                 </div>
@@ -803,18 +953,202 @@ export default function FacturacionPage() {
                 <button
                   type="button"
                   onClick={() => setIsNewInvoiceOpen(false)}
-                  className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-300 font-medium text-xs border border-slate-800 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-2 py-3 px-6 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-black text-sm shadow-xl shadow-brand-950/60 flex items-center justify-center gap-2"
+                  className="flex-2 py-2.5 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 shadow-sm flex items-center justify-center gap-2 transition-all"
                 >
-                  <Printer className="w-4 h-4" /> GENERAR & IMPRIMIR FACTURA
+                  <Printer className="w-4 h-4 text-slate-300" />
+                  <span>EMITIR FACTURA POS</span>
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL DE DEVOLUCIÓN DE FACTURA (TOTAL O PARCIAL)
+          ========================================================= */}
+      {refundInvoice && (
+        <div className="fixed inset-0 z-[9996] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto font-sans">
+          <div className="max-w-xl w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-6 text-white my-auto flex flex-col space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-700 text-amber-500 flex items-center justify-center font-bold">
+                  <RotateCcw className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-100">
+                    Gestionar Devolución / Nota Crédito
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Factura N° {refundInvoice.number} • {refundInvoice.customerName}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setRefundInvoice(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Selector: Devolución Total vs Devolución Parcial */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setRefundType("total")}
+                className={`p-3 rounded-xl border text-left transition-all ${
+                  refundType === "total"
+                    ? "bg-slate-800 border-slate-600 text-white shadow-sm"
+                    : "bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-200">Devolución Total</span>
+                  <span className="text-[10px] font-mono text-amber-400 font-bold">100%</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 leading-tight">
+                  Devuelve ${refundInvoice.total.toLocaleString()} COP e ingresa {refundInvoice.totalKg} kg al inventario.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRefundType("parcial")}
+                className={`p-3 rounded-xl border text-left transition-all ${
+                  refundType === "parcial"
+                    ? "bg-slate-800 border-slate-600 text-white shadow-sm"
+                    : "bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-200">Devolución Parcial</span>
+                  <span className="text-[10px] font-mono text-slate-400">Por Cortes</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 leading-tight">
+                  Digita los kilos devueltos de cortes específicos para liquidar el saldo proporcional.
+                </p>
+              </button>
+            </div>
+
+            {/* Motivo */}
+            <div>
+              <label className="text-xs font-medium text-slate-300 block mb-1.5">
+                Motivo de la Devolución:
+              </label>
+              <select
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+              >
+                <option value="Rechazo de calidad / Merma en pesaje">Rechazo de calidad / Merma en pesaje</option>
+                <option value="Devolución voluntaria del cliente">Devolución voluntaria del cliente</option>
+                <option value="Ajuste de báscula en punto de entrega">Ajuste de báscula en punto de entrega</option>
+                <option value="Error en digitación de pedido / Facturación">Error en digitación de pedido / Facturación</option>
+                <option value="Cierre imprevisto de establecimiento">Cierre imprevisto de establecimiento</option>
+              </select>
+            </div>
+
+            {/* If Parcial, Cut selector with Kg inputs */}
+            {refundType === "parcial" && (
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2 max-h-52 overflow-y-auto">
+                <span className="text-[11px] font-semibold text-slate-300 block">
+                  Indica los kilos a devolver por cada corte:
+                </span>
+
+                {refundInvoice.items.map((it) => {
+                  const currentRefundKg = refundItemsKg[it.productId] ?? 0;
+                  const itemRefundSubtotal = currentRefundKg * it.unitPrice;
+
+                  return (
+                    <div
+                      key={it.productId}
+                      className="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-2 text-xs"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-200 truncate">{it.productName}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">
+                          Facturado: {it.quantityKg} kg • ${it.unitPrice.toLocaleString()}/kg
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-[10px] text-slate-400">Devolver:</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max={it.quantityKg}
+                          step="0.5"
+                          value={currentRefundKg}
+                          onChange={(e) => {
+                            const val = Math.min(it.quantityKg, Math.max(0, parseFloat(e.target.value) || 0));
+                            setRefundItemsKg((prev) => ({ ...prev, [it.productId]: val }));
+                          }}
+                          className="w-16 bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-lg px-2 py-1 text-right font-mono text-white text-xs"
+                        />
+                        <span className="text-slate-500 font-mono text-xs">kg</span>
+                      </div>
+
+                      <div className="w-20 text-right font-mono font-bold text-amber-400 text-xs">
+                        ${itemRefundSubtotal.toLocaleString()}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Resumen de la Devolución */}
+            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+              <div>
+                <span className="text-slate-400 block">Total a Reintegrar al Cliente:</span>
+                <strong className="text-sm sm:text-base font-bold text-amber-400 font-mono">
+                  {refundType === "total"
+                    ? `$${refundInvoice.total.toLocaleString()} COP`
+                    : `$${refundInvoice.items
+                        .reduce((sum, it) => sum + (refundItemsKg[it.productId] || 0) * it.unitPrice, 0)
+                        .toLocaleString()} COP`}
+                </strong>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-400 block">Kilos que reingresan al Stock:</span>
+                <strong className="text-slate-200 font-mono">
+                  {refundType === "total"
+                    ? `${refundInvoice.totalKg} kg`
+                    : `${refundInvoice.items
+                        .reduce((sum, it) => sum + (refundItemsKg[it.productId] || 0), 0)
+                        .toFixed(1)} kg`}
+                </strong>
+              </div>
+            </div>
+
+            {/* Botones de Acción */}
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setRefundInvoice(null)}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800 transition-colors"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={handleProcessRefundSubmit}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-amber-400 border border-slate-700 text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Procesar Devolución</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
