@@ -119,11 +119,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                 }
               }}
               className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-sm"
-              title="Instalar como software nativo de escritorio en Windows"
+              title="Descargar e instalar como software de escritorio en Windows"
             >
-              <Download className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden xl:inline">Instalar en PC</span>
-              <span className="xl:hidden">Instalar</span>
+              <Download className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden xl:inline">Descargar para PC</span>
+              <span className="xl:hidden">Descargar</span>
             </button>
 
             {/* Reset Demo button */}
