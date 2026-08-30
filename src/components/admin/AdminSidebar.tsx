@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
@@ -14,7 +14,10 @@ import {
   Truck,
   FileSpreadsheet,
   ShieldCheck,
+  Receipt,
+  KeyRound,
 } from "lucide-react";
+import { LicenseMasterModal } from "./LicenseMasterModal";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -23,7 +26,8 @@ interface AdminSidebarProps {
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
-  const { allOrders, inventory, routes, adminRole } = useApp();
+  const { allOrders, inventory, routes, adminRole, license } = useApp();
+  const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
 
   const pendingOrders = allOrders.filter(
     (o) => o.status === "pending" || o.status === "confirmed" || o.status === "preparing"
@@ -72,7 +76,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
       role: "all",
     },
     {
-      label: "Auditoría & Facturación",
+      label: "Facturación & POS",
+      href: "/admin/facturacion",
+      icon: Receipt,
+      badge: "POS",
+      badgeColor: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
+      role: "all",
+    },
+    {
+      label: "Auditoría & Arqueo",
       href: "/admin/movimientos",
       icon: FileSpreadsheet,
       badge: "Arqueo",
@@ -184,11 +196,26 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
         </nav>
 
         {/* Footer Info */}
-        <div className="p-4 border-t border-slate-800 text-xs text-slate-500">
-          <p className="font-bold text-slate-300 uppercase tracking-wider">ADMINISTRACIÓN</p>
-          <p className="text-[11px] mt-0.5 text-slate-400">JD Distribuidora & Gourmet Ahumados</p>
+        <div className="p-4 border-t border-slate-800 text-xs text-slate-500 flex items-center justify-between">
+          <div>
+            <p className="font-bold text-slate-300 uppercase tracking-wider">ADMINISTRACIÓN</p>
+            <p className="text-[11px] mt-0.5 text-slate-400">JD Distribuidora & Gourmet Ahumados</p>
+          </div>
+          <button
+            onClick={() => setIsLicenseModalOpen(true)}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-brand-400 hover:bg-slate-800 transition-colors"
+            title="Llave Maestra de Licenciamiento (Sebastián)"
+          >
+            <KeyRound className="w-4 h-4" />
+          </button>
         </div>
       </aside>
+
+      {/* License Master Modal */}
+      <LicenseMasterModal
+        isOpen={isLicenseModalOpen}
+        onClose={() => setIsLicenseModalOpen(false)}
+      />
     </>
   );
 };

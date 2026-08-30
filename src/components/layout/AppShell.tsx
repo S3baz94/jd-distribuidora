@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { FloatingCartBar } from "@/components/layout/FloatingCartBar";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { ToastContainer } from "@/components/common/ToastContainer";
+import { LicenseLockScreen } from "@/components/common/LicenseLockScreen";
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
@@ -19,6 +20,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   if (isAdmin || isOperacion) {
     return (
       <>
+        <LicenseLockScreen />
         <ToastContainer />
         <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-brand-500 selection:text-white">
           {children}
@@ -29,6 +31,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   return (
     <>
+      <LicenseLockScreen />
       <ToastContainer />
       <Header />
       <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-4 pb-28 md:pb-12">

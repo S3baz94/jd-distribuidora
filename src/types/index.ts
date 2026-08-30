@@ -233,3 +233,101 @@ export interface PickingSummaryItem {
   orderCount: number;
   orderNumbers: string[];
 }
+
+// ==========================================
+// SISTEMA DE FACTURACIÓN CÁRNICA & POS
+// ==========================================
+
+export type InvoicePaymentType = "efectivo" | "banco" | "credito" | "mixto";
+export type InvoiceStatus = "pagada" | "pendiente" | "anulada";
+export type InvoiceOrigin = "mostrador" | "despacho" | "pedido_web";
+
+export interface InvoiceItem {
+  id: string;
+  productId: string;
+  sku: string;
+  productName: string;
+  brand: BrandType;
+  quantityKg: number;
+  unitPrice: number;
+  subtotal: number;
+  taxRate: number; // 0% carnes frescas exentas, o 19%
+  discountPercent?: number;
+}
+
+export interface Invoice {
+  id: string;
+  number: string; // ej. "FAC-2026-0001"
+  prefix: string; // ej. "FAC"
+  orderId?: string;
+  customerId: string;
+  customerName: string;
+  customerNit: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  customerZone?: string;
+  items: InvoiceItem[];
+  totalKg: number;
+  subtotal: number;
+  discountTotal: number;
+  taxTotal: number;
+  total: number;
+  paymentType: InvoicePaymentType;
+  paymentDetails: {
+    cashAmount?: number;
+    cashGiven?: number;
+    cashChange?: number;
+    bankAmount?: number;
+    bankReference?: string;
+    creditAmount?: number;
+    creditDays?: number;
+    creditDueDate?: string;
+  };
+  status: InvoiceStatus;
+  origin: InvoiceOrigin;
+  notes?: string;
+  issuedAt: string;
+  sellerName: string;
+}
+
+export interface BillingSettings {
+  companyName: string;
+  tradeName: string;
+  nit: string;
+  address: string;
+  city: string;
+  phone: string;
+  email: string;
+  resolutionNumber: string;
+  resolutionDate: string;
+  prefix: string;
+  fromNumber: number;
+  toNumber: number;
+  currentNumber: number;
+  regime: string;
+  posFooterNote: string;
+}
+
+// ==========================================
+// LICENCIAMIENTO & MASTER KILL-SWITCH
+// ==========================================
+
+export type LicenseState = "active" | "grace_period" | "suspended";
+
+export interface LicenseConfig {
+  status: LicenseState;
+  clientName: string;
+  licensedTo: string;
+  planName: string;
+  validUntil: string;
+  gracePeriodDays: number;
+  lastPaymentDate: string;
+  monthlyFee: number;
+  isLocked: boolean;
+  lockReason: string;
+  contactDeveloperPhone: string;
+  contactDeveloperEmail: string;
+  masterPin: string;
+  updatedAt: string;
+}
+

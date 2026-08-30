@@ -1,14 +1,16 @@
 {
-  "name": "JD Distribuidora y Gourmet Ahumados",
-  "short_name": "JD B2B",
-  "description": "Portal mayorista móvil de compras de cortes de cerdo crudo y gourmet ahumados para famas, salsamentarias y restaurantes",
-  "start_url": "/",
+  "name": "JD Distribuidora — Software de Administración, Facturación & Operación",
+  "short_name": "JD Distribuidora",
+  "description": "Sistema integral de escritorio para gestión administrativa, facturación POS, despacho cárnico y logística en frío.",
+  "start_url": "/admin",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#020617",
   "theme_color": "#0f172a",
   "lang": "es-CO",
+  "categories": ["business", "finance", "productivity"],
   "icons": [
     {
       "src": "/images/products/bondiola.jpg",
@@ -25,14 +27,19 @@
   ],
   "shortcuts": [
     {
-      "name": "Comprar Cortes de Cerdo",
-      "url": "/comprar",
-      "description": "Catálogo de cortes de cerdo crudo y gourmet"
+      "name": "Facturación POS & Venta",
+      "url": "/admin/facturacion",
+      "description": "Emisión de facturas por kilos y tirillas térmicas"
     },
     {
-      "name": "Mis Pedidos",
-      "url": "/pedidos",
-      "description": "Seguimiento en tiempo real de pedidos"
+      "name": "Centro de Control & Despacho",
+      "url": "/admin",
+      "description": "Báscula, inventario y gestión de flota"
+    },
+    {
+      "name": "Portal de Clientes",
+      "url": "/",
+      "description": "Catálogo y pedidos de clientes"
     }
   ]
 }

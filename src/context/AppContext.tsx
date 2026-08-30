@@ -13,6 +13,12 @@ import {
   DeliveryRoute,
   RepeatOrderValidationResult,
   DriverExpense,
+  Invoice,
+  InvoiceItem,
+  BillingSettings,
+  InvoicePaymentType,
+  LicenseConfig,
+  LicenseState,
 } from "@/types";
 import { customerService } from "@/services/customerService";
 import { inventoryService } from "@/services/inventoryService";
@@ -22,6 +28,8 @@ import { productService } from "@/services/productService";
 import { routeService } from "@/services/routeService";
 import { soundService } from "@/services/soundService";
 import { INITIAL_EXPENSES } from "@/services/serverState";
+import { BillingService, DEFAULT_BILLING_SETTINGS } from "@/services/billingService";
+import { LicenseService, DEFAULT_LICENSE_CONFIG } from "@/services/licenseService";
 
 interface ToastInfo {
   id: string;
@@ -98,6 +106,29 @@ interface AppContextType {
   expenses: DriverExpense[];
   addDriverExpense: (expense: Omit<DriverExpense, "id" | "createdAt">) => void;
   resetAllDemoData: () => void;
+
+  // Facturación & POS
+  invoices: Invoice[];
+  billingSettings: BillingSettings;
+  createInvoice: (
+    newInvoice: Omit<Invoice, "id" | "number" | "prefix" | "issuedAt"> & { customNumber?: string }
+  ) => Invoice;
+  cancelInvoice: (invoiceId: string) => void;
+  updateInvoicePayment: (
+    invoiceId: string,
+    paymentType: InvoicePaymentType,
+    paymentDetails: Invoice["paymentDetails"]
+  ) => void;
+  updateBillingSettings: (settings: BillingSettings) => void;
+  exportInvoicesCSV: () => void;
+
+  // Licenciamiento & Master Kill-Switch
+  license: LicenseConfig;
+  updateLicenseConfig: (updates: Partial<LicenseConfig>) => void;
+  toggleRemoteLock: (locked: boolean, reason?: string) => void;
+  verifyDeveloperPin: (pin: string) => boolean;
+  extendLicenseDays: (days: number) => void;
+
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
 }
@@ -117,6 +148,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [routes, setRoutes] = useState<DeliveryRoute[]>([]);
   const [expenses, setExpenses] = useState<DriverExpense[]>(INITIAL_EXPENSES);
+  const [invoices, setInvoices] = useState<Invoice[]>(() => BillingService.getInvoices());
+  const [billingSettings, setBillingSettings] = useState<BillingSettings>(() => BillingService.getSettings());
+  const [license, setLicense] = useState<LicenseConfig>(() => LicenseService.getConfig());
   const [selectedBrand, setSelectedBrand] = useState<BrandType>("jd_distribuidora");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [adminRole, setAdminRole] = useState<AdminRole>("admin");
@@ -706,6 +740,101 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast("Datos de demostración reiniciados", "success");
   };
 
+  // ==========================================
+  // FACTURACIÓN CÁRNICA & POS
+  // ==========================================
+  const createInvoice = (
+    newInvoiceData: Omit<Invoice, "id" | "number" | "prefix" | "issuedAt"> & { customNumber?: string }
+  ): Invoice => {
+    const { number, nextSeq } = BillingService.getNextInvoiceNumber();
+    const invoiceNumber = newInvoiceData.customNumber || number;
+    const newInvoice: Invoice = {
+      ...newInvoiceData,
+      id: `inv-${Date.now()}`,
+      number: invoiceNumber,
+      prefix: billingSettings.prefix,
+      issuedAt: new Date().toISOString(),
+    };
+
+    const updatedInvoices = [newInvoice, ...invoices];
+    setInvoices(updatedInvoices);
+    BillingService.saveInvoices(updatedInvoices);
+
+    const updatedSettings = { ...billingSettings, currentNumber: nextSeq };
+    setBillingSettings(updatedSettings);
+    BillingService.saveSettings(updatedSettings);
+
+    showToast(`🧾 Factura ${invoiceNumber} generada exitosamente`, "success");
+    soundService.playStatusUpdated();
+    return newInvoice;
+  };
+
+  const cancelInvoice = (invoiceId: string) => {
+    const updated = invoices.map((inv) =>
+      inv.id === invoiceId ? { ...inv, status: "anulada" as const } : inv
+    );
+    setInvoices(updated);
+    BillingService.saveInvoices(updated);
+    showToast("Factura anulada correctamente", "warning");
+  };
+
+  const updateInvoicePayment = (
+    invoiceId: string,
+    paymentType: InvoicePaymentType,
+    paymentDetails: Invoice["paymentDetails"]
+  ) => {
+    const updated = invoices.map((inv) =>
+      inv.id === invoiceId
+        ? { ...inv, paymentType, paymentDetails, status: "pagada" as const }
+        : inv
+    );
+    setInvoices(updated);
+    BillingService.saveInvoices(updated);
+    showToast("Pago de factura registrado", "success");
+  };
+
+  const updateBillingSettings = (settings: BillingSettings) => {
+    setBillingSettings(settings);
+    BillingService.saveSettings(settings);
+    showToast("Configuración de facturación actualizada", "success");
+  };
+
+  const exportInvoicesCSV = () => {
+    BillingService.exportToCSV(invoices);
+    showToast("Libro de facturación exportado en .CSV", "success");
+  };
+
+  // ==========================================
+  // LICENCIAMIENTO & MASTER KILL-SWITCH
+  // ==========================================
+  const updateLicenseConfig = (updates: Partial<LicenseConfig>) => {
+    const current = LicenseService.getConfig();
+    const updated = { ...current, ...updates };
+    LicenseService.saveConfig(updated);
+    setLicense(updated);
+    showToast("Configuración de licencia actualizada", "success");
+  };
+
+  const toggleRemoteLock = (locked: boolean, reason?: string) => {
+    const updated = LicenseService.setLockStatus(locked, reason);
+    setLicense(updated);
+    if (locked) {
+      showToast("🔒 ACCESO SUSPENDIDO: Software bloqueado por licencia", "error");
+    } else {
+      showToast("🔓 ACCESO RESTABLECIDO: Software 100% activo", "success");
+    }
+  };
+
+  const verifyDeveloperPin = (pin: string): boolean => {
+    return LicenseService.verifyMasterPin(pin);
+  };
+
+  const extendLicenseDays = (days: number) => {
+    const updated = LicenseService.extendValidity(days);
+    setLicense(updated);
+    showToast(`Licencia extendida por ${days} días`, "success");
+  };
+
   const cartTotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
   }, [cart]);
@@ -781,6 +910,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         expenses,
         addDriverExpense,
         resetAllDemoData,
+        invoices,
+        billingSettings,
+        createInvoice,
+        cancelInvoice,
+        updateInvoicePayment,
+        updateBillingSettings,
+        exportInvoicesCSV,
+        license,
+        updateLicenseConfig,
+        toggleRemoteLock,
+        verifyDeveloperPin,
+        extendLicenseDays,
         isCartOpen,
         setIsCartOpen,
       }}

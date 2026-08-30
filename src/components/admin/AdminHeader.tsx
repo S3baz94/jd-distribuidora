@@ -11,6 +11,8 @@ import {
   Truck,
   UserCheck,
   Menu,
+  Receipt,
+  Download,
 } from "lucide-react";
 
 interface AdminHeaderProps {
@@ -97,6 +99,34 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                 <span>{pendingOrdersCount} en curso</span>
               </Link>
             )}
+
+            {/* POS Facturación shortcut */}
+            <Link
+              href="/admin/facturacion"
+              className="flex items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm"
+              title="Módulo de Facturación & POS"
+            >
+              <Receipt className="w-3.5 h-3.5" />
+              <span className="hidden lg:inline">Facturación POS</span>
+              <span className="lg:hidden">POS</span>
+            </Link>
+
+            {/* Install Desktop App Button */}
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  alert(
+                    "💻 INSTALACIÓN EN COMPUTADOR (WINDOWS):\n\nPara instalar el software como aplicación nativa en este computador:\n1. En Google Chrome o Microsoft Edge, haz clic en el icono de 'Instalar' (📥) que aparece al final de la barra de direcciones.\n2. Haz clic en 'Instalar'.\n\nEl software se abrirá en su propia ventana de escritorio independiente con su icono en el Escritorio de Windows."
+                  );
+                }
+              }}
+              className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-500 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-md shadow-brand-950/40"
+              title="Descargar e instalar como software de escritorio en Windows"
+            >
+              <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="hidden xl:inline">Instalar en Computador</span>
+              <span className="xl:hidden">Instalar</span>
+            </button>
 
             {/* Reset Demo button */}
             <button
