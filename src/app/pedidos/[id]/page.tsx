@@ -22,6 +22,11 @@ import {
   Truck,
   ShieldCheck,
   MessageCircle,
+  Edit3,
+  XCircle,
+  CheckCircle2,
+  AlertTriangle,
+  PhoneCall,
 } from "lucide-react";
 
 export default function OrderDetailPage() {
@@ -29,7 +34,7 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const orderId = params.id as string;
 
-  const { orders, repeatOrder, setIsCartOpen, showToast } = useApp();
+  const { orders, repeatOrder, setIsCartOpen, updateOrderStatus, showToast } = useApp();
 
   const order = orders.find(
     (o) =>
@@ -41,6 +46,11 @@ export default function OrderDetailPage() {
   const [validationResult, setValidationResult] = useState<RepeatOrderValidationResult | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Cancellation Modal State
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("Error en cantidades o cortes");
+  const [otherReason, setOtherReason] = useState("");
 
   if (!order) {
     return (
@@ -77,6 +87,29 @@ export default function OrderDetailPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleModifyOrder = async () => {
+    setIsProcessing(true);
+    try {
+      await repeatOrder(order);
+      showToast("Puedes ajustar los kilos o cortes en el carrito para actualizar tu pedido", "info");
+      setIsCartOpen(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleConfirmCancellation = () => {
+    const finalReason = cancelReason === "Otro" ? otherReason : cancelReason;
+    updateOrderStatus(order.id, "cancelled");
+    setShowCancelModal(false);
+    showToast(`Pedido ${order.orderNumber} anulado correctamente (${finalReason})`, "info");
+  };
+
+  const isCancellable = order.status === "pending" || order.status === "confirmed";
+  const isModifiable = order.status === "pending" || order.status === "confirmed";
 
   const waLink = whatsappService.getClientOrderLink(order);
   const totalKgTheoretical = order.items.reduce((acc, i) => acc + i.quantity, 0);
@@ -116,6 +149,71 @@ export default function OrderDetailPage() {
           </a>
         </div>
       </div>
+
+      {/* Client Quick Action Banner (Confirm / Modify / Cancel) */}
+      {isCancellable && (
+        <div className="bg-gradient-to-r from-amber-500/10 via-brand-500/10 to-amber-500/10 border border-brand-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-600/20 text-brand-700 flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-brand-600" />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-black text-slate-900">
+                ¿Deseas gestionar o cambiar este pedido?
+              </h3>
+              <p className="text-[11px] text-slate-600">
+                Tu pedido está en etapa previa al pesaje en báscula. Puedes modificar cortes o anularlo sin costo.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {isModifiable && (
+              <button
+                type="button"
+                onClick={handleModifyOrder}
+                className="flex-1 sm:flex-none px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-brand-600" />
+                <span>Modificar</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowCancelModal(true)}
+              className="flex-1 sm:flex-none px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
+            >
+              <XCircle className="w-3.5 h-3.5 text-rose-600" />
+              <span>Anular Pedido</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* If Order is in Transit / Preparing notice */}
+      {(order.status === "ready" || order.status === "dispatched") && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-200">
+          <div className="flex items-center gap-2.5">
+            <Truck className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <div>
+              <strong className="text-white">Pedido en alistamiento en frío o en furgón refrigerado.</strong>
+              <p className="text-[11px] text-slate-400">
+                Si requieres un cambio urgente, comunícate directamente con la central de despachos.
+              </p>
+            </div>
+          </div>
+          <a
+            href="https://wa.me/573233218831?text=Hola%20JD%20Distribuidora,%20necesito%20coordinar%20un%20cambio%20urgente%20en%20mi%20pedido"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
+          >
+            <PhoneCall className="w-3.5 h-3.5" />
+            <span>Contactar Despacho</span>
+          </a>
+        </div>
+      )}
 
       {/* Main Order Header Card */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
@@ -318,6 +416,70 @@ export default function OrderDetailPage() {
           Ir al Catálogo
         </Link>
       </div>
+
+      {/* Cancellation Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 text-slate-900 animate-in fade-in">
+          <div className="max-w-md w-full bg-white rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">¿Anular este Pedido?</h3>
+                <p className="text-xs text-slate-500">Pedido #{order.orderNumber}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600">
+              Al confirmar, el pedido quedará cancelado inmediatamente y el inventario reservado volverá a estar disponible en planta.
+            </p>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-700">
+                Selecciona el motivo de anulación:
+              </label>
+              <select
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500"
+              >
+                <option value="Error en cantidades o cortes">Error en cantidades o cortes</option>
+                <option value="Cambio de fecha / horario">Cambio de fecha u horario de entrega</option>
+                <option value="Cancelación de evento / cierre">Cancelación de evento o cierre de local</option>
+                <option value="Otro">Otro motivo...</option>
+              </select>
+
+              {cancelReason === "Otro" && (
+                <input
+                  type="text"
+                  value={otherReason}
+                  onChange={(e) => setOtherReason(e.target.value)}
+                  placeholder="Escribe brevemente el motivo..."
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 mt-2"
+                />
+              )}
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+              >
+                No, Mantener Pedido
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCancellation}
+                className="flex-1 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md transition-colors"
+              >
+                Sí, Anular Pedido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Repeat Order Warning Modal */}
       {validationResult && (

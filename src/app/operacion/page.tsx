@@ -314,24 +314,24 @@ export default function OperacionPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-24 font-sans">
       {/* Top Driver Header */}
-      <div className="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 px-4 py-3 shadow-xl">
+      <div className="bg-slate-950 border-b border-slate-800 sticky top-0 z-30 px-4 py-3 shadow-sm">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-lg font-black shadow-lg flex-shrink-0">
-              🚚
+            <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-500 font-bold shadow-sm flex-shrink-0">
+              <Truck className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-500/40 tracking-wider shadow-sm">
-                  OPERACIÓN
+                <span className="text-[10px] font-semibold uppercase text-slate-300 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700 tracking-wide">
+                  Operación
                 </span>
-                <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">
-                  📱 En Cabina de Furgón
+                <span className="text-[10px] font-medium text-slate-400">
+                  Despacho en Ruta
                 </span>
               </div>
-              <h1 className="text-base sm:text-lg font-black text-white leading-tight mt-1 flex items-center gap-2">
+              <h1 className="text-sm sm:text-base font-semibold text-slate-100 leading-tight mt-0.5 flex items-center gap-2">
                 <span>{activeRoute?.driverName || "Carlos Pérez"}</span>
-                <span className="text-xs text-emerald-400 font-mono font-bold bg-slate-950 px-2 py-0.5 rounded-md border border-slate-800">
+                <span className="text-xs text-slate-400 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
                   {activeRoute?.vehiclePlate || "KLP-541"}
                 </span>
               </h1>
@@ -343,7 +343,7 @@ export default function OperacionPage() {
             <select
               value={selectedDriverId}
               onChange={(e) => setSelectedDriverId(e.target.value)}
-              className="bg-slate-950 border border-slate-700 text-xs font-bold text-slate-200 rounded-2xl px-3 py-2 focus:outline-none focus:border-brand-500 shadow-inner"
+              className="bg-slate-900 border border-slate-800 text-xs font-medium text-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-slate-600 transition-colors"
             >
               {routes.map((r) => (
                 <option key={r.driverId} value={r.driverId}>
@@ -356,35 +356,35 @@ export default function OperacionPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
-        {/* Prominent Assigned Route Details Card (Matching Slide 4) */}
+        {/* Prominent Assigned Route Details Card */}
         {activeRoute && (
-          <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 rounded-3xl p-5 border border-slate-800 shadow-2xl space-y-3.5 glow-emerald-card">
+          <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
                     {activeRoute.zone}
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400 font-bold">
+                  <span className="text-[10px] font-mono text-slate-400">
                     Salida: {activeRoute.departureTime || "07:00 AM"}
                   </span>
                 </div>
-                <h2 className="text-base sm:text-lg font-black text-white mt-1">
+                <h2 className="text-base font-bold text-slate-100 mt-1">
                   {activeRoute.name}
                 </h2>
                 <p className="text-xs text-slate-400">
-                  Frigorífico Central JD ➔ <strong className="text-emerald-400 font-mono">{routeOrders.length} Paradas Conectadas</strong>
+                  Frigorífico Central JD ➔ <strong className="text-slate-200 font-mono">{routeOrders.length} Paradas</strong>
                 </p>
               </div>
 
               <div className="text-right flex-shrink-0">
                 <span
-                  className={`text-[11px] font-black px-3 py-1 rounded-full uppercase inline-flex items-center gap-1.5 shadow-sm ${
+                  className={`text-[10px] font-semibold px-2.5 py-1 rounded-md uppercase inline-flex items-center gap-1.5 ${
                     activeRoute.status === "in_transit"
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                      ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/40"
                       : activeRoute.status === "completed"
-                      ? "bg-slate-700 text-slate-300"
-                      : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                      ? "bg-slate-800 text-slate-300 border border-slate-700"
+                      : "bg-amber-950/40 text-amber-400 border border-amber-800/40"
                   }`}
                 >
                   <span

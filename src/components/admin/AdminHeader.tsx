@@ -41,7 +41,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
   ).length;
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-900 text-white border-b border-slate-800 shadow-md">
+    <header className="sticky top-0 z-40 bg-slate-950 text-white border-b border-slate-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo & Title */}
@@ -49,27 +49,27 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             {onToggleSidebar && (
               <button
                 onClick={onToggleSidebar}
-                className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none"
+                className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 focus:outline-none"
               >
                 <Menu className="w-5 h-5" />
               </button>
             )}
 
             <Link href="/admin" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 flex items-center justify-center font-black text-slate-950 text-lg tracking-tighter shadow-lg shadow-amber-950/40">
+              <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center font-black text-amber-500 text-base tracking-tight shadow-sm">
                 JD
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-black text-base sm:text-lg tracking-tight text-white uppercase bg-gradient-to-r from-white via-slate-100 to-amber-200 bg-clip-text text-transparent">
-                    ADMINISTRACIÓN
+                  <span className="font-bold text-base sm:text-lg tracking-tight text-white uppercase">
+                    Administración
                   </span>
-                  <span className="bg-emerald-500/20 text-emerald-300 text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full border border-emerald-500/40 shadow-sm">
-                    COMMAND CENTER
+                  <span className="bg-slate-800 text-slate-300 text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md border border-slate-700">
+                    Planta Central
                   </span>
                 </div>
-                <p className="text-[11px] text-amber-400/90 font-bold hidden sm:block">
-                  JD Distribuidora & Gourmet Ahumados • Planta Central
+                <p className="text-[11px] text-slate-400 font-normal hidden sm:block">
+                  JD Distribuidora & Gourmet Ahumados
                 </p>
               </div>
             </Link>
@@ -79,11 +79,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Active User Profile Badge */}
             {currentUser && (
-              <div className="hidden md:flex items-center gap-2 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-xl text-xs">
-                <span className="text-sm">{currentUser.avatar}</span>
+              <div className="hidden md:flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
                 <div className="text-left">
-                  <p className="font-bold text-white leading-tight">{currentUser.name}</p>
-                  <p className="text-[10px] text-slate-400 font-mono leading-tight">{currentUser.username}</p>
+                  <p className="font-semibold text-slate-200 leading-tight">{currentUser.name}</p>
+                  <p className="text-[10px] text-slate-400 font-mono leading-tight">{currentUser.roleTitle}</p>
                 </div>
               </div>
             )}
@@ -92,10 +92,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             {pendingOrdersCount > 0 && (
               <Link
                 href="/admin/pedidos"
-                className="flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-amber-500/30 transition-colors"
+                className="flex items-center gap-1.5 bg-slate-900 text-slate-200 border border-slate-800 hover:border-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors"
                 title="Pedidos pendientes de atención"
               >
-                <Truck className="w-3.5 h-3.5" />
+                <Truck className="w-3.5 h-3.5 text-amber-500" />
                 <span>{pendingOrdersCount} en curso</span>
               </Link>
             )}
@@ -103,10 +103,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             {/* POS Facturación shortcut */}
             <Link
               href="/admin/facturacion"
-              className="flex items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm"
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-850 text-slate-200 hover:text-white border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-sm"
               title="Módulo de Facturación & POS"
             >
-              <Receipt className="w-3.5 h-3.5" />
+              <Receipt className="w-3.5 h-3.5 text-slate-400" />
               <span className="hidden lg:inline">Facturación POS</span>
               <span className="lg:hidden">POS</span>
             </Link>
@@ -118,19 +118,19 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                   window.__triggerPWAInstall();
                 }
               }}
-              className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shadow-md shadow-brand-950/40"
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-sm"
               title="Instalar como software nativo de escritorio en Windows"
             >
-              <Download className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="hidden xl:inline">Instalar en Computador</span>
+              <Download className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden xl:inline">Instalar en PC</span>
               <span className="xl:hidden">Instalar</span>
             </button>
 
             {/* Reset Demo button */}
             <button
               onClick={resetAllDemoData}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
-              title="Reiniciar datos de prueba"
+              className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-xl transition-colors"
+              title="Reiniciar datos"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -138,7 +138,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-rose-600/20 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-500/40 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
               title="Cerrar sesión administrativa"
             >
               <LogOut className="w-3.5 h-3.5" />
