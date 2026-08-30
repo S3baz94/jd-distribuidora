@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #090d16;
+    --foreground: #f8fafc;
+  }
+
+  /* Prevent horizontal overflow on mobile devices */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    color: var(--foreground);
+    background: #090d16;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Ensure inputs on mobile (iOS) don't zoom automatically by setting min 16px */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Executive Glassmorphism & Neon Glow Utilities */
+.bg-executive-dark {
+  background: radial-gradient(circle at 50% 0%, #064e3b 0%, #090d16 65%, #020617 100%);
+}
+
+.bg-glass-card {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+.glow-emerald-card {
+  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25), inset 0 1px 0 rgba(16, 185, 129, 0.3);
+}
+
+.glow-cyan-card {
+  box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(6, 182, 212, 0.3);
+}
+
+.glow-amber-card {
+  box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.25), inset 0 1px 0 rgba(245, 158, 11, 0.3);
+}
+
+.glow-master-btn {
+  box-shadow: 0 4px 30px rgba(16, 185, 129, 0.4), 0 0 15px rgba(6, 182, 212, 0.3);
+}
+
+/* Digital LED Segment Display Effect */
+.font-digital {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  letter-spacing: 1px;
+}
+
+/* Hide scrollbar for category tabs on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area insets for iOS notches and modern Android navigation bars */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Touch active scale effect */
+.touch-press:active {
+  transform: scale(0.97);
+}
