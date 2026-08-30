@@ -143,13 +143,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
         {/* User Role Card */}
         <div className="p-4 m-3 rounded-2xl bg-slate-800/60 border border-slate-700/60">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">Rol Activo:</span>
+            <span className="text-xs font-semibold text-slate-400">Perfil Activo:</span>
             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-brand-500/20 text-brand-300">
-              {adminRole === "admin" ? "Administrador" : "Operador"}
+              Administración
             </span>
           </div>
           <p className="text-xs font-bold text-white mt-1 truncate">
-            {adminRole === "admin" ? "Jefe Comercial / Gerencia" : "Planta Desposte & Báscula"}
+            Gerencia General & Despacho
+          </p>
+          <p className="text-[10px] text-emerald-400 font-mono mt-0.5">
+            ● Sesión Segura y Cifrada
           </p>
         </div>
 

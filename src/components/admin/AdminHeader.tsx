@@ -1,18 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
+import { AdminAuthService, AdminUserProfile } from "@/services/authService";
 import {
   ShieldAlert,
-  Store,
   RefreshCw,
   Truck,
   UserCheck,
   Menu,
   Receipt,
   Download,
+  LogOut,
+  User,
 } from "lucide-react";
 
 interface AdminHeaderProps {
@@ -21,7 +23,18 @@ interface AdminHeaderProps {
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
   const pathname = usePathname();
-  const { adminRole, setAdminRole, resetAllDemoData, allOrders } = useApp();
+  const { resetAllDemoData, allOrders, showToast } = useApp();
+  const [currentUser, setCurrentUser] = useState<AdminUserProfile | null>(null);
+
+  useEffect(() => {
+    setCurrentUser(AdminAuthService.getCurrentSession());
+  }, []);
+
+  const handleLogout = () => {
+    AdminAuthService.logout();
+    showToast("Sesión administrativa cerrada", "info");
+    window.location.reload();
+  };
 
   const pendingOrdersCount = allOrders.filter(
     (o) => o.status === "pending" || o.status === "confirmed" || o.status === "preparing"
@@ -62,31 +75,18 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             </Link>
           </div>
 
-          {/* Right: Controls & Role Switcher */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Role Switcher */}
-            <div className="hidden sm:flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs">
-              <button
-                onClick={() => setAdminRole("admin")}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                  adminRole === "admin"
-                    ? "bg-brand-600 text-white shadow-sm"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Administrador
-              </button>
-              <button
-                onClick={() => setAdminRole("operador_bodega")}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                  adminRole === "operador_bodega"
-                    ? "bg-amber-600 text-white shadow-sm"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Operador Planta / Báscula
-              </button>
-            </div>
+          {/* Right: Controls & Profile */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Active User Profile Badge */}
+            {currentUser && (
+              <div className="hidden md:flex items-center gap-2 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-xl text-xs">
+                <span className="text-sm">{currentUser.avatar}</span>
+                <div className="text-left">
+                  <p className="font-bold text-white leading-tight">{currentUser.name}</p>
+                  <p className="text-[10px] text-slate-400 font-mono leading-tight">{currentUser.username}</p>
+                </div>
+              </div>
+            )}
 
             {/* Pending orders quick badge */}
             {pendingOrdersCount > 0 && (
@@ -137,15 +137,15 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
               <RefreshCw className="w-4 h-4" />
             </button>
 
-            {/* Switch to Client Portal button */}
-            <Link
-              href="/"
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:border-slate-600"
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-rose-600/20 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-500/40 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+              title="Cerrar sesión administrativa"
             >
-              <Store className="w-3.5 h-3.5 text-brand-400" />
-              <span className="hidden md:inline">Ver Portal Cliente</span>
-              <span className="md:hidden">Cliente</span>
-            </Link>
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Salir</span>
+            </button>
           </div>
         </div>
       </div>
