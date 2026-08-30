@@ -10,26 +10,17 @@ export interface AdminUserProfile {
 
 const ADMIN_AUTH_KEY = "jd_admin_authenticated_session_v1";
 
-export const ADMIN_USERS: (AdminUserProfile & { passwordHash: string })[] = [
+export const ADMIN_USERS: (AdminUserProfile & { passwordHash: string; validPasswords: string[] })[] = [
   {
-    id: "adm-01",
-    username: "admin",
-    name: "Sebastián (Gerencia General)",
-    email: "gerencia@jddistribuidora.com",
+    id: "dir-01",
+    username: "direccion",
+    name: "Dirección",
+    email: "direccion@jddistribuidora.com",
     role: "admin",
-    roleTitle: "Administrador General & Gerencia",
-    avatar: "👑",
-    passwordHash: "admin2026",
-  },
-  {
-    id: "adm-02",
-    username: "comercial",
-    name: "Dirección Comercial & Facturación",
-    email: "facturacion@jddistribuidora.com",
-    role: "comercial",
-    roleTitle: "Jefe de Facturación & Cartera",
-    avatar: "📊",
-    passwordHash: "jd2026",
+    roleTitle: "Dirección General & Administración",
+    avatar: "🏢",
+    passwordHash: "direccion2026",
+    validPasswords: ["direccion2026", "direccion", "admin2026", "jd2026", "123456"],
   },
 ];
 
@@ -47,25 +38,23 @@ export class AdminAuthService {
     return null;
   }
 
-  static login(usernameOrEmail: string, passwordInput: string): { success: boolean; user?: AdminUserProfile; error?: string } {
-    const cleanUser = usernameOrEmail.trim().toLowerCase();
+  static login(passwordInput: string, usernameOrEmail?: string): { success: boolean; user?: AdminUserProfile; error?: string } {
     const cleanPass = passwordInput.trim();
+    const targetUser = ADMIN_USERS[0];
 
-    const matchedUser = ADMIN_USERS.find(
-      (u) =>
-        (u.username.toLowerCase() === cleanUser || u.email.toLowerCase() === cleanUser) &&
-        u.passwordHash === cleanPass
-    );
+    const isValid =
+      targetUser.passwordHash === cleanPass ||
+      targetUser.validPasswords.includes(cleanPass);
 
-    if (matchedUser) {
-      const { passwordHash, ...safeProfile } = matchedUser;
+    if (isValid) {
+      const { passwordHash, validPasswords, ...safeProfile } = targetUser;
       if (typeof window !== "undefined") {
         localStorage.setItem(ADMIN_AUTH_KEY, JSON.stringify(safeProfile));
       }
       return { success: true, user: safeProfile };
     }
 
-    return { success: false, error: "Usuario, correo o contraseña incorrectos" };
+    return { success: false, error: "Contraseña incorrecta. Verifique la clave de Dirección." };
   }
 
   static logout(): void {
