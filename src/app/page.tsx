@@ -4,7 +4,9 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { priceService } from "@/services/priceService";
+import { QuantityStepper } from "@/components/common/QuantityStepper";
 import { RepeatOrderModal } from "@/components/catalog/RepeatOrderModal";
+import { BrandSwitcher } from "@/components/layout/BrandSwitcher";
 import { RepeatOrderValidationResult, Product } from "@/types";
 import {
   RotateCcw,
@@ -18,6 +20,7 @@ import {
   Layers,
   Truck,
   ArrowRight,
+  Package,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -82,152 +85,182 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 space-y-4 pb-28">
-      {/* 1. Cabecera Simple de Bienvenida & Destino */}
-      <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 space-y-5 pb-28">
+      {/* 1. Header con Colores Vivos y Glassmorphism */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 text-white rounded-3xl p-5 md:p-6 shadow-2xl border border-slate-800 space-y-3.5 glow-emerald-card">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-              Ventas B2B
+            <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-md shadow-amber-950/40">
+              VENTAS • CLIENTES
             </span>
-            <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              Stock en Frío Disponible
+            <span className="text-[11px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded border border-slate-700">
+              JD & Gourmet Ahumados
             </span>
           </div>
-          <h1 className="text-base sm:text-lg font-bold text-slate-100 mt-1">
-            Hola, {customer.contactName} • <span className="text-slate-400 font-normal">{customer.businessName}</span>
+          <span className="text-emerald-400 font-black text-xs flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Stock en Frío Disponible</span>
+          </span>
+        </div>
+
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-white leading-tight">
+            Hola, {customer.contactName.split(" ")[0]} 👋 ({customer.businessName})
           </h1>
-          <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-            <MapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-            <span>Entrega en: {customer.address} ({customer.zone})</span>
+          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            Cortes en canal, piezas despostadas y costillas ahumadas con entrega directa en tu local.
           </p>
         </div>
 
-        <Link
-          href="/pedidos"
-          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-medium border border-slate-700 text-center transition-colors flex-shrink-0"
-        >
-          Mis Pedidos Anteriores
-        </Link>
-      </div>
-
-      {/* 2. Pedido Activo en Camino (Si existe) */}
-      {activeOrder && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-300 flex-shrink-0">
-              <Truck className="w-4 h-4 text-emerald-400" />
+        {/* Dirección de Entrega */}
+        <div className="bg-slate-950/80 rounded-2xl p-3 border border-slate-800 flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center text-sm font-black border border-emerald-500/30 flex-shrink-0">
+              📍
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-100">
-                  Pedido {activeOrder.orderNumber} en camino
-                </span>
-                <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 font-mono">
-                  {activeOrder.deliveryDate}
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Total: <strong className="text-slate-200 font-mono">{priceService.formatCurrency(activeOrder.total)}</strong>
-                {activeOrder.driverName && ` • Chofer: ${activeOrder.driverName}`}
+            <div className="min-w-0">
+              <p className="font-bold text-white text-xs sm:text-sm truncate">
+                {customer.businessName}
+              </p>
+              <p className="text-[11px] sm:text-xs text-emerald-300 font-bold truncate">
+                {customer.address} • <span className="text-slate-400">{customer.zone}</span>
               </p>
             </div>
           </div>
 
           <Link
-            href={`/pedidos/${activeOrder.id}`}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-medium border border-slate-700 text-center transition-colors flex items-center justify-center gap-1"
+            href="/pedidos"
+            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs whitespace-nowrap flex-shrink-0 transition-colors border border-slate-700 active:scale-95 flex items-center gap-1.5"
           >
-            <span>Ver Estado</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <Package className="w-3.5 h-3.5 text-amber-400" />
+            <span>Mis Pedidos</span>
           </Link>
         </div>
-      )}
+      </div>
 
-      {/* 3. Botón Directo: Repetir Último Pedido en 1 Clic */}
-      {lastOrder && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4 space-y-3 shadow-sm">
+      {/* 2. Pedido Activo en Camino (Si existe) */}
+      {activeOrder && (
+        <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border-2 border-emerald-500/50 rounded-3xl p-4 sm:p-5 shadow-2xl space-y-3 glow-emerald-card text-white">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
-                <span>¿Pedir lo mismo de la semana pasada?</span>
-              </h2>
-              <p className="text-xs text-slate-400">
-                Pedido {lastOrder.orderNumber} ({lastOrder.deliveryDate})
-              </p>
-            </div>
-
-            <span className="text-xs font-mono font-bold text-slate-200 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
-              {priceService.formatCurrency(lastOrder.total)}
+            <span className="text-xs font-black uppercase text-emerald-400 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+              <span>Tu Pedido en Ruta de Frío</span>
+            </span>
+            <span className="text-xs font-black bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">
+              {activeOrder.deliveryDate}
             </span>
           </div>
 
-          {/* Resumen de cortes del último pedido */}
-          <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs flex flex-wrap gap-2">
-            {lastOrder.items.map((it, idx) => (
-              <span key={idx} className="bg-slate-900 px-2 py-1 rounded-md border border-slate-800 text-slate-300 text-[11px]">
-                {it.productName}: <strong className="text-slate-100 font-mono">{it.quantity} kg</strong>
-              </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800">
+            <div>
+              <p className="font-black text-white text-base">
+                Pedido {activeOrder.orderNumber}
+              </p>
+              <p className="text-xs text-slate-300 font-medium mt-0.5">
+                Total: <strong className="text-emerald-400 font-black">{priceService.formatCurrency(activeOrder.total)}</strong>
+                {activeOrder.driverName && ` • Chofer: ${activeOrder.driverName}`}
+              </p>
+            </div>
+
+            <Link
+              href={`/pedidos/${activeOrder.id}`}
+              className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 flex-shrink-0"
+            >
+              <span>VER DETALLE EN VIVO</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Recompra en 1 Clic (Tarjeta Dorada / Ámbar Vibrante) */}
+      {lastOrder && (
+        <div className="bg-gradient-to-br from-slate-900 to-slate-850 rounded-3xl border-2 border-amber-500/40 p-4 sm:p-5 shadow-2xl space-y-3.5 glow-amber-card">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+                <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                  <span>¿Pedir lo mismo de la semana pasada?</span>
+                </h2>
+              </div>
+              <p className="text-xs text-slate-400 font-bold mt-0.5">
+                Pedido anterior ({lastOrder.orderNumber}) del {lastOrder.deliveryDate}
+              </p>
+            </div>
+
+            <span className="text-sm sm:text-base font-black text-amber-400 bg-amber-500/10 px-3 py-1 rounded-xl border border-amber-500/30 self-start sm:self-auto">
+              Total: {priceService.formatCurrency(lastOrder.total)}
+            </span>
+          </div>
+
+          {/* Cortes en pastillas claras */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 bg-slate-950/80 p-2.5 rounded-2xl border border-slate-800">
+            {lastOrder.items.map((item, idx) => (
+              <div key={idx} className="flex justify-between items-center text-xs p-1.5 bg-slate-900 rounded-xl border border-slate-800">
+                <span className="font-bold text-slate-200 truncate pr-2">• {item.productName}</span>
+                <span className="font-extrabold text-amber-400 flex-shrink-0">{item.quantity} kg</span>
+              </div>
             ))}
           </div>
 
+          {/* Botón Maestro de Repetir Pedido */}
           <button
             type="button"
             onClick={handleRepeatLastOrder}
             disabled={isRepeating}
-            className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-100 font-semibold text-xs border border-slate-700 flex items-center justify-center gap-2 transition-colors active:scale-98 shadow-sm"
+            className="w-full min-h-[48px] py-3 px-4 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:from-amber-600 active:to-amber-700 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-amber-950/50 transition-all flex items-center justify-center gap-2.5 active:scale-98 tracking-wide border border-amber-300"
           >
-            <RotateCcw className="w-4 h-4 text-slate-300" />
-            <span>{isRepeating ? "Cargando cortes..." : "🔁 Repetir este pedido con los mismos kilos"}</span>
+            <RotateCcw className="w-4 h-4 stroke-[2.5]" />
+            <span>{isRepeating ? "VERIFICANDO DISPONIBILIDAD..." : "🔁 REPETIR PEDIDO ANTERIOR EN 1 CLIC"}</span>
           </button>
         </div>
       )}
 
-      {/* 4. Selector Directo de Marca (2 Pestañas Grandes) */}
+      {/* 4. Selector de Marca & Buscador */}
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setSelectedBrand("jd_distribuidora")}
-            className={`p-3 rounded-xl text-center font-semibold text-xs sm:text-sm transition-all border flex items-center justify-center gap-2 ${
+            className={`p-3.5 rounded-2xl text-center font-black text-xs sm:text-sm transition-all border-2 flex items-center justify-center gap-2 shadow-sm ${
               selectedBrand === "jd_distribuidora"
-                ? "bg-slate-900 text-slate-100 border-slate-700 shadow-sm"
-                : "bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-900"
+                ? "bg-rose-50 border-rose-500 text-rose-950 ring-2 ring-rose-500/20"
+                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
             }`}
           >
-            <Layers className="w-4 h-4" />
+            <Layers className="w-4 h-4 text-rose-600" />
             <span>🥩 JD Cortes Crudos</span>
           </button>
 
           <button
             type="button"
             onClick={() => setSelectedBrand("gourmet_ahumados")}
-            className={`p-3 rounded-xl text-center font-semibold text-xs sm:text-sm transition-all border flex items-center justify-center gap-2 ${
+            className={`p-3.5 rounded-2xl text-center font-black text-xs sm:text-sm transition-all border-2 flex items-center justify-center gap-2 shadow-sm ${
               selectedBrand === "gourmet_ahumados"
-                ? "bg-slate-900 text-slate-100 border-slate-700 shadow-sm"
-                : "bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-900"
+                ? "bg-amber-50 border-amber-500 text-amber-950 ring-2 ring-amber-500/20"
+                : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
             }`}
           >
-            <Flame className="w-4 h-4" />
+            <Flame className="w-4 h-4 text-amber-600" />
             <span>🪵 Gourmet Ahumados</span>
           </button>
         </div>
 
-        {/* Buscador Sencillo */}
+        {/* Buscador */}
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Buscar corte cárnico (ej. Bondiola, Costilla, Tocino, Pierna)..."
+            placeholder="Buscar por corte (Bondiola, Costilla, Panceta, Pierna, Chuleta)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-800 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700"
+            className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-2xl border-2 border-slate-200 focus:outline-none focus:border-brand-600 font-medium bg-white text-slate-900 shadow-sm"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 hover:text-slate-300"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 font-bold"
             >
               ✕
             </button>
@@ -235,16 +268,16 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 5. Catálogo Práctico de Productos */}
+      {/* 5. Catálogo Práctico con Tarjetas Blancas Vivas */}
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
-          <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400">
-            {selectedBrand === "jd_distribuidora" ? "Cortes Disponibles en Cava" : "Ahumados al Leño"} ({filteredProducts.length})
+          <h3 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">
+            {selectedBrand === "jd_distribuidora" ? "🥩 Cortes Crudos en Cava" : "🪵 Ahumados al Leño"} ({filteredProducts.length})
           </h3>
-          <span className="text-[11px] text-slate-500">Precios por kilo en COP</span>
+          <span className="text-xs font-bold text-brand-700">Precios por kilo en COP</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filteredProducts.map((product) => {
             const stock = getProductStock(product.id);
             const availKg = stock ? stock.availableQuantity : 0;
@@ -256,48 +289,46 @@ export default function HomePage() {
             return (
               <div
                 key={product.id}
-                className={`bg-slate-900 rounded-2xl border p-3.5 sm:p-4 space-y-3 shadow-sm transition-all flex flex-col justify-between ${
+                className={`bg-white rounded-3xl border-2 p-4 shadow-sm flex flex-col justify-between space-y-3 transition-all ${
                   inCart
-                    ? "border-slate-700 bg-slate-900"
+                    ? "border-emerald-500 ring-2 ring-emerald-500/20"
                     : isOutOfStock
-                    ? "border-slate-800/80 bg-slate-950/40 opacity-70"
-                    : "border-slate-800 hover:border-slate-750"
+                    ? "border-slate-200 bg-slate-50 opacity-70"
+                    : "border-slate-200 hover:border-slate-300"
                 }`}
               >
-                <div className="flex gap-3">
+                <div className="flex gap-3.5">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-slate-800 flex-shrink-0 bg-slate-950"
+                    className="w-20 h-20 rounded-2xl object-cover border border-slate-100 flex-shrink-0 shadow-sm"
                   />
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800 truncate">
-                        {product.cutType}
-                      </span>
-                      {inCart && (
-                        <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40 flex items-center gap-1 flex-shrink-0">
-                          <Check className="w-3 h-3" />
-                          <span>{inCart.quantity} kg</span>
-                        </span>
-                      )}
-                    </div>
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                      product.brand === "gourmet_ahumados"
+                        ? "bg-amber-100 text-amber-900 border border-amber-300"
+                        : "bg-rose-100 text-rose-900 border border-rose-200"
+                    }`}>
+                      {product.brand === "gourmet_ahumados" ? "🪵 Gourmet Ahumados" : "🥩 Cerdo Crudo JD"}
+                    </span>
 
-                    <h4 className="font-bold text-slate-100 text-sm mt-1 truncate">
+                    <h4 className="font-black text-slate-950 text-base leading-snug mt-1 truncate">
                       {product.name}
                     </h4>
 
-                    <p className="text-base font-bold font-mono text-slate-100 mt-0.5">
+                    <p className="text-lg font-black text-brand-700 mt-0.5">
                       {priceService.formatCurrency(unitPrice)}{" "}
-                      <span className="text-[11px] font-normal text-slate-400 font-sans">/ kg</span>
+                      <span className="text-xs font-normal text-slate-500">/ kilo</span>
                     </p>
 
-                    <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       {isOutOfStock ? (
-                        <span className="text-rose-400">Agotado por hoy</span>
+                        <span className="text-rose-600 font-black">🔴 Agotado por hoy</span>
                       ) : (
-                        <span>Stock: <strong className="text-slate-200">{availKg} kg</strong></span>
+                        <span className="text-emerald-700 font-bold">
+                          🟢 {availKg} kg en bodega
+                        </span>
                       )}
                     </p>
                   </div>
@@ -305,19 +336,19 @@ export default function HomePage() {
 
                 {/* Controles de Selección de Kilos & Agregar */}
                 {!isOutOfStock ? (
-                  <div className="space-y-2 pt-2 border-t border-slate-850">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-medium">Kilos a pedir:</span>
+                  <div className="space-y-2 pt-1 border-t border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700">Kilos:</span>
                       <div className="flex items-center gap-1">
                         {[10, 25, 50].map((quickVal) => (
                           <button
                             key={quickVal}
                             type="button"
                             onClick={() => setQuickQtys((prev) => ({ ...prev, [product.id]: quickVal }))}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium border transition-colors ${
+                            className={`px-2 py-0.5 rounded-lg text-[11px] font-extrabold border transition-colors ${
                               currentQty === quickVal
-                                ? "bg-slate-800 text-slate-200 border-slate-600"
-                                : "bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-300"
+                                ? "bg-slate-900 text-white border-slate-900"
+                                : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
                             }`}
                           >
                             {quickVal}k
@@ -327,56 +358,37 @@ export default function HomePage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-slate-950 rounded-xl p-1 border border-slate-800 flex items-center justify-between">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const step = product.quantityStep || 5;
-                            const min = product.minimumQuantity || 5;
-                            setQuickQtys((prev) => ({
-                              ...prev,
-                              [product.id]: Math.max(min, currentQty - step),
-                            }));
-                          }}
-                          className="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-300 font-bold text-xs flex items-center justify-center"
-                        >
-                          -
-                        </button>
-                        <span className="font-mono font-bold text-xs text-slate-100">
-                          {currentQty} kg
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const step = product.quantityStep || 5;
-                            setQuickQtys((prev) => ({
-                              ...prev,
-                              [product.id]: Math.min(availKg, currentQty + step),
-                            }));
-                          }}
-                          className="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-300 font-bold text-xs flex items-center justify-center"
-                        >
-                          +
-                        </button>
+                      <div className="flex-1">
+                        <QuantityStepper
+                          value={currentQty}
+                          min={product.minimumQuantity}
+                          step={product.quantityStep}
+                          max={availKg}
+                          unit="kg"
+                          onChange={(val) =>
+                            setQuickQtys((prev) => ({ ...prev, [product.id]: val }))
+                          }
+                          size="sm"
+                        />
                       </div>
 
                       <button
                         type="button"
                         onClick={() => handleAdd(product)}
-                        className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm ${
+                        className={`py-2.5 px-4 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 flex-shrink-0 ${
                           inCart
-                            ? "bg-slate-800 hover:bg-slate-750 text-emerald-400 border border-slate-700"
-                            : "bg-slate-800 hover:bg-slate-750 text-slate-100 border border-slate-700"
+                            ? "bg-emerald-700 hover:bg-emerald-600"
+                            : "bg-emerald-600 hover:bg-emerald-500"
                         }`}
                       >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>{inCart ? "Actualizar" : "Agregar"}</span>
+                        <Plus className="w-4 h-4 stroke-[3]" />
+                        <span>{inCart ? "ACTUALIZAR" : "AGREGAR"}</span>
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="py-2 text-center text-xs text-slate-500 bg-slate-950 rounded-xl border border-slate-800">
-                    Agotado por hoy en planta
+                  <div className="text-center py-2 bg-rose-50 rounded-xl border border-rose-100 text-xs text-rose-700 font-bold">
+                    Próxima llegada: {stock?.nextAvailabilityDate || "Pronto"}
                   </div>
                 )}
               </div>
@@ -386,19 +398,29 @@ export default function HomePage() {
       </div>
 
       {/* 6. Soporte por WhatsApp Directo */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-3 text-xs">
-        <div>
-          <p className="font-semibold text-slate-200">¿Prefieres pedir por WhatsApp o llamada?</p>
-          <p className="text-slate-400 text-[11px]">Te tomamos el pedido por chat y lo cargamos al furgón</p>
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+        <div className="flex items-center gap-3 text-center sm:text-left">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
+            💬
+          </div>
+          <div>
+            <p className="font-black text-white text-base">
+              ¿Prefieres pedir por WhatsApp o llamada?
+            </p>
+            <p className="text-xs sm:text-sm text-slate-400 font-medium">
+              Te atendemos directamente y registramos tu pedido por ti en el sistema.
+            </p>
+          </div>
         </div>
+
         <a
           href="https://wa.me/573233218831?text=Hola%20JD%20Distribuidora,%20quiero%20hacer%20un%20pedido%20de%20carne%20de%20cerdo"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs border border-slate-700 flex items-center gap-1.5 flex-shrink-0 transition-colors"
+          className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-lg shadow-emerald-950/40 transition-all active:scale-95 flex items-center justify-center gap-2 flex-shrink-0"
         >
-          <MessageCircle className="w-3.5 h-3.5 text-slate-400" />
-          <span>Pedir por WhatsApp</span>
+          <MessageCircle className="w-4 h-4 fill-current" />
+          <span>ABRIR WHATSAPP DIRECTO</span>
         </a>
       </div>
 
@@ -408,7 +430,7 @@ export default function HomePage() {
           <div className="max-w-xl mx-auto flex items-center justify-between gap-3">
             <div className="min-w-0">
               <span className="text-[10px] text-slate-400 uppercase font-mono block">Tu Pedido Actual:</span>
-              <p className="font-bold text-sm text-slate-100 font-mono truncate">
+              <p className="font-bold text-sm text-emerald-400 font-mono truncate">
                 {cartKg.toFixed(1)} kg • {priceService.formatCurrency(cartTotal)}
               </p>
             </div>
@@ -416,10 +438,10 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => setIsCartOpen(true)}
-              className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-emerald-400 hover:text-emerald-300 font-semibold text-xs border border-slate-700 flex items-center gap-2 shadow-sm transition-colors"
+              className="py-3 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-950/40 flex items-center gap-2 active:scale-95 transition-all border border-emerald-400/30"
             >
-              <ShoppingBag className="w-4 h-4 text-emerald-400" />
-              <span>Ver Pedido y Confirmar ➔</span>
+              <ShoppingBag className="w-4 h-4" />
+              <span>CONFIRMAR PEDIDO ➔</span>
             </button>
           </div>
         </div>
