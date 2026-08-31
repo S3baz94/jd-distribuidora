@@ -140,6 +140,20 @@ export const orderService = {
       emptyBasketsCollected?: number;
       invoicePhoto?: string;
       customerSignature?: string;
+      returnDetails?: {
+        hasReturn: boolean;
+        type: "total" | "parcial";
+        returnedKg: number;
+        returnedAmount: number;
+        returnNote: string;
+        returnedAt: string;
+        returnedItems?: {
+          productId: string;
+          productName: string;
+          quantityKg: number;
+          amount: number;
+        }[];
+      };
     }
   ): Order | undefined => {
     const allOrders = orderService.getOrders();
@@ -147,15 +161,23 @@ export const orderService = {
 
     const updatedOrders = allOrders.map((ord) => {
       if (ord.id === orderId || ord.orderNumber === orderId || ord.orderNumber === `#${orderId}`) {
+        const baseTotal = ord.realTotal !== undefined ? ord.realTotal : ord.total;
+        const adjustedRealTotal =
+          details.returnDetails && details.returnDetails.hasReturn
+            ? Math.max(0, baseTotal - details.returnDetails.returnedAmount)
+            : ord.realTotal;
+
         updatedOrder = {
           ...ord,
-          status: "delivered",
+          status: details.returnDetails?.hasReturn && details.returnDetails.type === "total" ? "cancelled" : "delivered",
           paymentMethod: details.paymentMethod || ord.paymentMethod || "efectivo",
           receivedByName: details.receivedByName || ord.customerName,
           deliveredBasketsLeft: details.deliveredBasketsLeft !== undefined ? details.deliveredBasketsLeft : 2,
           emptyBasketsCollected: details.emptyBasketsCollected !== undefined ? details.emptyBasketsCollected : 2,
           invoicePhoto: details.invoicePhoto || ord.invoicePhoto,
           customerSignature: details.customerSignature || ord.customerSignature,
+          realTotal: adjustedRealTotal,
+          returnDetails: details.returnDetails,
           updatedAt: new Date().toISOString(),
         };
         return updatedOrder;

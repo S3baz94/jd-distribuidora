@@ -83,6 +83,20 @@ interface AppContextType {
       emptyBasketsCollected?: number;
       invoicePhoto?: string;
       customerSignature?: string;
+      returnDetails?: {
+        hasReturn: boolean;
+        type: "total" | "parcial";
+        returnedKg: number;
+        returnedAmount: number;
+        returnNote: string;
+        returnedAt: string;
+        returnedItems?: {
+          productId: string;
+          productName: string;
+          quantityKg: number;
+          amount: number;
+        }[];
+      };
     }
   ) => void;
   adjustOrderRealWeight: (
@@ -576,20 +590,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       emptyBasketsCollected?: number;
       invoicePhoto?: string;
       customerSignature?: string;
+      returnDetails?: {
+        hasReturn: boolean;
+        type: "total" | "parcial";
+        returnedKg: number;
+        returnedAmount: number;
+        returnNote: string;
+        returnedAt: string;
+        returnedItems?: {
+          productId: string;
+          productName: string;
+          quantityKg: number;
+          amount: number;
+        }[];
+      };
     }
   ) => {
     const updated = orderService.confirmDelivery(orderId, details);
     if (updated) {
+      // Re-add stock if there was a return in delivery
+      if (details.returnDetails && details.returnDetails.hasReturn && details.returnDetails.returnedItems) {
+        details.returnDetails.returnedItems.forEach((item) => {
+          if (item.quantityKg > 0) {
+            inventoryService.addBatchStock(
+              item.productId,
+              item.quantityKg,
+              `Reintegro por Devolución en Entrega - Chofer: ${details.returnDetails?.returnNote || "N/A"}`
+            );
+          }
+        });
+        setInventory(inventoryService.getInventory());
+      }
+
       const allOrd = orderService.getAllOrders();
       setAllOrders(allOrd);
       setOrders(allOrd.filter((o) => o.customerId === customer.id));
 
       sendSyncAction("CONFIRM_DELIVERY", { orderId, details });
       soundService.playStatusUpdated();
-      showToast(
-        `✅ Parada completada: ${updated.customerName} (${(details.paymentMethod || "efectivo").toUpperCase()})`,
-        "success"
-      );
+
+      if (details.returnDetails?.hasReturn) {
+        showToast(
+          `↩ Entrega con Devolución (${details.returnDetails.returnedKg} kg): ${updated.customerName}. Reintegro registrado.`,
+          "warning"
+        );
+      } else {
+        showToast(
+          `✅ Parada completada: ${updated.customerName} (${(details.paymentMethod || "efectivo").toUpperCase()})`,
+          "success"
+        );
+      }
     }
   };
 

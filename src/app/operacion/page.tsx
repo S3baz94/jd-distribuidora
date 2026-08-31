@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { priceService } from "@/services/priceService";
 import { DeliveryRoute, Order, DriverExpense } from "@/types";
@@ -73,6 +73,64 @@ export default function OperacionPage() {
   const [deliveryInvoicePhoto, setDeliveryInvoicePhoto] = useState<string>("");
   const deliveryPhotoInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Delivery Return state (Devoluciones en punto de entrega)
+  const [hasDeliveryReturn, setHasDeliveryReturn] = useState(false);
+  const [deliveryReturnType, setDeliveryReturnType] = useState<"parcial" | "total">("parcial");
+  const [deliveryReturnReason, setDeliveryReturnReason] = useState("Rechazo de calidad / Merma en pesaje");
+  const [deliveryReturnNote, setDeliveryReturnNote] = useState("");
+  const [deliveryReturnedKgMap, setDeliveryReturnedKgMap] = useState<{ [productId: string]: number }>({});
+
+  // Return calculations for modal
+  const deliveryReturnSummary = useMemo(() => {
+    if (!deliveryModalOrder || !hasDeliveryReturn) {
+      const base = deliveryModalOrder ? (deliveryModalOrder.realTotal || deliveryModalOrder.total) : 0;
+      return { totalReturnedKg: 0, totalReturnedAmount: 0, returnedItems: [], finalTotalToCollect: base };
+    }
+
+    const orderBaseTotal = deliveryModalOrder.realTotal || deliveryModalOrder.total;
+    const orderTotalKg = deliveryModalOrder.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0);
+
+    if (deliveryReturnType === "total") {
+      const items = deliveryModalOrder.items.map((i) => ({
+        productId: i.productId,
+        productName: i.productName,
+        quantityKg: i.realQuantity || i.quantity,
+        amount: (i.realQuantity || i.quantity) * i.unitPrice,
+      }));
+      return {
+        totalReturnedKg: orderTotalKg,
+        totalReturnedAmount: orderBaseTotal,
+        returnedItems: items,
+        finalTotalToCollect: 0,
+      };
+    }
+
+    const returnedItems = deliveryModalOrder.items
+      .map((i) => {
+        const maxQty = i.realQuantity || i.quantity;
+        const returnedKg = Math.min(maxQty, Math.max(0, deliveryReturnedKgMap[i.productId] || 0));
+        if (returnedKg <= 0) return null;
+        return {
+          productId: i.productId,
+          productName: i.productName,
+          quantityKg: returnedKg,
+          amount: returnedKg * i.unitPrice,
+        };
+      })
+      .filter(Boolean) as { productId: string; productName: string; quantityKg: number; amount: number }[];
+
+    const totalReturnedKg = returnedItems.reduce((s, i) => s + i.quantityKg, 0);
+    const totalReturnedAmount = returnedItems.reduce((s, i) => s + i.amount, 0);
+    const finalTotalToCollect = Math.max(0, orderBaseTotal - totalReturnedAmount);
+
+    return {
+      totalReturnedKg,
+      totalReturnedAmount,
+      returnedItems,
+      finalTotalToCollect,
+    };
+  }, [deliveryModalOrder, hasDeliveryReturn, deliveryReturnType, deliveryReturnedKgMap]);
+
   // Incident reporting fields
   const [incidentReason, setIncidentReason] = useState<string>("Local cerrado / No abren");
   const [incidentNote, setIncidentNote] = useState<string>("");
@@ -119,44 +177,33 @@ export default function OperacionPage() {
     .filter((o) => o.paymentMethod === "banco")
     .reduce((sum, o) => sum + (o.realTotal || o.total), 0);
 
-  const totalCreditCollected = completedOrders
+  const totalCreditBalance = completedOrders
     .filter((o) => o.paymentMethod === "credito")
     .reduce((sum, o) => sum + (o.realTotal || o.total), 0);
+
+  const totalCreditCollected = totalCreditBalance;
 
   const totalCashToCollect = pendingOrders.reduce(
     (sum, o) => sum + (o.realTotal || o.total),
     0
   );
 
-  // Next immediate stop to deliver
+  // Net Cash Balance in Vehicle Cabin (Recaudos en Efectivo - Gastos Operativos)
+  const driverExpenses = expenses.filter((e) => e.driverId === selectedDriverId);
+  const totalExpenses = driverExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalExpensesAmount = totalExpenses;
+  const netCashInCabin = totalCashCollected - totalExpenses;
+  const netCashInHand = netCashInCabin;
   const nextStop = pendingOrders[0];
 
-  // Filter expenses for current driver (Gasolina, Peajes, Parqueadero)
-  const driverExpenses = expenses.filter((e) => e.driverId === selectedDriverId);
-  const totalExpensesAmount = driverExpenses.reduce((sum, e) => sum + e.amount, 0);
+  // Google Maps Dynamic multi-stop route calculation
+  const getGoogleMapsMultiStopUrl = () => {
+    if (pendingOrders.length === 0) return "https://www.google.com/maps";
 
-  // Net physical cash in hand to deliver in plant envelope = Cash collected from customers minus road expenses
-  const netCashInHand = Math.max(0, totalCashCollected - totalExpensesAmount);
-
-  // Dynamic multi-stop Google Maps route recalculated according to remaining pending stops
-  const getFullGoogleMapsRouteUrl = () => {
-    if (pendingOrders.length === 0) {
-      if (routeOrders.length === 0) return "#";
-      const origin = "Planta Frigorifico Central JD Guadalupe Bogota";
-      const dest = encodeURIComponent(routeOrders[routeOrders.length - 1].deliveryAddress);
-      return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${dest}&travelmode=driving`;
-    }
-
-    const origin = completedOrders.length > 0
-      ? encodeURIComponent(completedOrders[completedOrders.length - 1].deliveryAddress)
-      : encodeURIComponent("Planta Frigorifico Central JD Guadalupe Bogota");
-
-    const destination = encodeURIComponent(pendingOrders[pendingOrders.length - 1].deliveryAddress);
-
-    if (pendingOrders.length === 1) {
-      return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
-    }
-
+    const origin = encodeURIComponent("Planta Frigorífica JD Distribuidora, Bogotá");
+    const destination = encodeURIComponent(
+      pendingOrders[pendingOrders.length - 1].deliveryAddress
+    );
     const waypoints = pendingOrders
       .slice(0, pendingOrders.length - 1)
       .map((o) => encodeURIComponent(o.deliveryAddress))
@@ -164,6 +211,8 @@ export default function OperacionPage() {
 
     return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
   };
+
+  const getFullGoogleMapsRouteUrl = getGoogleMapsMultiStopUrl;
 
   const handleOpenDeliverModal = (order: Order) => {
     setDeliveryModalOrder(order);
@@ -174,6 +223,13 @@ export default function OperacionPage() {
     setReturnedBaskets(Math.ceil(order.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0) / 25) || 1);
     setDeliveryNote("");
     setHasSignature(false);
+
+    // Reset return fields
+    setHasDeliveryReturn(false);
+    setDeliveryReturnType("parcial");
+    setDeliveryReturnReason("Rechazo de calidad / Merma en pesaje");
+    setDeliveryReturnNote("");
+    setDeliveryReturnedKgMap({});
   };
 
   // Handle Customer Purchase Invoice Photo Capture
@@ -194,6 +250,18 @@ export default function OperacionPage() {
     e.preventDefault();
     if (!deliveryModalOrder) return;
 
+    const returnDetailsObj = hasDeliveryReturn
+      ? {
+          hasReturn: true,
+          type: deliveryReturnType,
+          returnedKg: deliveryReturnSummary.totalReturnedKg,
+          returnedAmount: deliveryReturnSummary.totalReturnedAmount,
+          returnNote: `${deliveryReturnReason}${deliveryReturnNote ? ` - ${deliveryReturnNote}` : ""}`,
+          returnedAt: new Date().toISOString(),
+          returnedItems: deliveryReturnSummary.returnedItems,
+        }
+      : undefined;
+
     confirmDelivery(deliveryModalOrder.id, {
       paymentMethod: deliveryPaymentMethod,
       receivedByName: receivedByName || deliveryModalOrder.customerName,
@@ -201,6 +269,7 @@ export default function OperacionPage() {
       emptyBasketsCollected: returnedBaskets,
       invoicePhoto: deliveryInvoicePhoto,
       customerSignature: hasSignature ? "signature-captured" : undefined,
+      returnDetails: returnDetailsObj,
     });
 
     // Recalculate remaining stops
@@ -1035,6 +1104,153 @@ export default function OperacionPage() {
                     <span className="text-[9px] opacity-80">15-30 días</span>
                   </button>
                 </div>
+              </div>
+
+              {/* 3. Gestión de Devoluciones en Punto de Entrega (Total o Parcial) */}
+              <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-slate-200 flex items-center gap-1.5 cursor-pointer">
+                    <RotateCcw className="w-4 h-4 text-amber-400" />
+                    <span>3. ¿Hubo Devolución o Rechazo de Producto?</span>
+                  </label>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={hasDeliveryReturn}
+                      onChange={(e) => setHasDeliveryReturn(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
+                </div>
+
+                {hasDeliveryReturn && (
+                  <div className="p-3 bg-slate-900 rounded-xl border border-amber-500/30 space-y-3">
+                    {/* Tipo de devolución */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryReturnType("parcial")}
+                        className={`p-2 rounded-lg border text-xs font-bold transition-all ${
+                          deliveryReturnType === "parcial"
+                            ? "bg-amber-600/30 border-amber-500 text-amber-300"
+                            : "bg-slate-950 border-slate-800 text-slate-400"
+                        }`}
+                      >
+                        Devolución Parcial
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryReturnType("total")}
+                        className={`p-2 rounded-lg border text-xs font-bold transition-all ${
+                          deliveryReturnType === "total"
+                            ? "bg-rose-600/30 border-rose-500 text-rose-300"
+                            : "bg-slate-950 border-slate-800 text-slate-400"
+                        }`}
+                      >
+                        Rechazo Total (100%)
+                      </button>
+                    </div>
+
+                    {/* Motivo de devolución */}
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                        Motivo Principal del Rechazo:
+                      </label>
+                      <select
+                        value={deliveryReturnReason}
+                        onChange={(e) => setDeliveryReturnReason(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                      >
+                        <option value="Rechazo de calidad / Merma en pesaje">Rechazo de calidad / Merma en pesaje</option>
+                        <option value="Exceso de grasa según cliente">Exceso de grasa según cliente</option>
+                        <option value="Ajuste de báscula en el local del cliente">Ajuste de báscula en el local del cliente</option>
+                        <option value="Cliente no tenía el dinero completo">Cliente no tenía el dinero completo</option>
+                        <option value="Error en corte o tipo de producto">Error en corte o tipo de producto</option>
+                        <option value="Devolución voluntaria acordada">Devolución voluntaria acordada</option>
+                      </select>
+                    </div>
+
+                    {/* Observación adicional del chofer */}
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                        Observación / Detalle de la Devolución: *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej. El cliente devolvió 5 kg por merma en balanza del local"
+                        value={deliveryReturnNote}
+                        onChange={(e) => setDeliveryReturnNote(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    {/* Selector de cortes si es parcial */}
+                    {deliveryReturnType === "parcial" && deliveryModalOrder && (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[11px] font-bold text-slate-300 block">
+                          Digita los kilos devueltos por cada corte:
+                        </span>
+                        {deliveryModalOrder.items.map((it) => {
+                          const maxQty = it.realQuantity || it.quantity;
+                          const currentReturned = deliveryReturnedKgMap[it.productId] ?? 0;
+                          const itemSubtotalDevuelto = currentReturned * it.unitPrice;
+
+                          return (
+                            <div
+                              key={it.productId}
+                              className="p-2 bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-between gap-2 text-xs"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-slate-200 truncate">{it.productName}</p>
+                                <p className="text-[10px] text-slate-400 font-mono">
+                                  Entregado: {maxQty} kg • ${it.unitPrice.toLocaleString()}/kg
+                                </p>
+                              </div>
+
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-slate-400">Devuelve:</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={maxQty}
+                                  step="0.5"
+                                  value={currentReturned}
+                                  onChange={(e) => {
+                                    const val = Math.min(maxQty, Math.max(0, parseFloat(e.target.value) || 0));
+                                    setDeliveryReturnedKgMap((prev) => ({ ...prev, [it.productId]: val }));
+                                  }}
+                                  className="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-right font-mono font-bold text-white text-xs"
+                                />
+                                <span className="text-slate-500 font-mono text-[10px]">kg</span>
+                              </div>
+
+                              <div className="w-16 text-right font-mono font-bold text-amber-400 text-xs">
+                                -${itemSubtotalDevuelto.toLocaleString()}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Resumen de la Devolución */}
+                    <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-slate-400 text-[11px] block">Kilos Devueltos:</span>
+                        <strong className="text-amber-400 font-mono">
+                          {deliveryReturnSummary.totalReturnedKg.toFixed(1)} kg
+                        </strong>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-slate-400 text-[11px] block">Nuevo Total a Cobrar al Cliente:</span>
+                        <strong className="text-emerald-400 font-mono text-sm font-black">
+                          ${deliveryReturnSummary.finalTotalToCollect.toLocaleString()} COP
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 3. Foto de la Factura de Compra / Remisión Firmada */}

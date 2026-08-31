@@ -123,6 +123,20 @@ export interface Order {
   emptyBasketsCollected?: number;
   invoicePhoto?: string; // Foto de la factura de venta / remisión firmada
   customerSignature?: string;
+  returnDetails?: {
+    hasReturn: boolean;
+    type: "total" | "parcial";
+    returnedKg: number;
+    returnedAmount: number;
+    returnNote: string;
+    returnedAt: string;
+    returnedItems?: {
+      productId: string;
+      productName: string;
+      quantityKg: number;
+      amount: number;
+    }[];
+  };
   createdAt: string;
   updatedAt: string;
 }
