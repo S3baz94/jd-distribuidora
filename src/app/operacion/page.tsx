@@ -381,606 +381,258 @@ export default function OperacionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-24 font-sans">
-      {/* Top Driver Header */}
-      <div className="bg-slate-950 border-b border-slate-800 sticky top-0 z-30 px-4 py-3 shadow-sm">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-500 font-bold shadow-sm flex-shrink-0">
-              <Truck className="w-5 h-5" />
+    <div className="min-h-screen bg-slate-950 text-slate-100 pb-28 font-sans">
+      {/* 1. Header Minimalista de Conductor */}
+      <header className="bg-slate-950/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 px-4 py-3">
+        <div className="max-w-xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 flex-shrink-0">
+              <Truck className="w-4 h-4 text-slate-300" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase text-slate-300 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700 tracking-wide">
-                  Operación
-                </span>
-                <span className="text-[10px] font-medium text-slate-400">
-                  Despacho en Ruta
-                </span>
-              </div>
-              <h1 className="text-sm sm:text-base font-semibold text-slate-100 leading-tight mt-0.5 flex items-center gap-2">
-                <span>{activeRoute?.driverName || "Carlos Pérez"}</span>
-                <span className="text-xs text-slate-400 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                  {activeRoute?.vehiclePlate || "KLP-541"}
-                </span>
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-sm font-bold text-slate-100 truncate">
+                {activeRoute?.driverName || "Carlos Pérez"}
               </h1>
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+                <span>{activeRoute?.vehiclePlate || "KLP-541"}</span>
+                <span>•</span>
+                <span>1.8°C Cava</span>
+              </div>
             </div>
           </div>
 
-          {/* Switch Driver / Route Selector */}
-          <div className="flex items-center gap-2">
+          {/* Quick Cashout / Caja Header Button */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => setCashoutModalOpen(true)}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-xs font-mono font-medium text-slate-200 flex items-center gap-1.5 transition-colors"
+              title="Ver dinero en caja"
+            >
+              <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+              <span>{priceService.formatCurrency(netCashInHand)}</span>
+            </button>
+
             <select
               value={selectedDriverId}
               onChange={(e) => setSelectedDriverId(e.target.value)}
-              className="bg-slate-900 border border-slate-800 text-xs font-medium text-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-slate-600 transition-colors"
+              className="bg-slate-900 border border-slate-800 text-[11px] font-medium text-slate-400 rounded-lg px-2 py-1.5 focus:outline-none focus:border-slate-700"
             >
               {routes.map((r) => (
                 <option key={r.driverId} value={r.driverId}>
-                  {r.driverName} ({r.name})
+                  {r.name}
                 </option>
               ))}
             </select>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
-        {/* Prominent Assigned Route Details Card */}
-        {activeRoute && (
-          <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                    {activeRoute.zone}
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-400">
-                    Salida: {activeRoute.departureTime || "07:00 AM"}
-                  </span>
-                </div>
-                <h2 className="text-base font-bold text-slate-100 mt-1">
-                  {activeRoute.name}
-                </h2>
-                <p className="text-xs text-slate-400">
-                  Frigorífico Central JD ➔ <strong className="text-slate-200 font-mono">{routeOrders.length} Paradas</strong>
-                </p>
-              </div>
-
-              <div className="text-right flex-shrink-0">
-                <span
-                  className={`text-[10px] font-semibold px-2.5 py-1 rounded-md uppercase inline-flex items-center gap-1.5 ${
-                    activeRoute.status === "in_transit"
-                      ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/40"
-                      : activeRoute.status === "completed"
-                      ? "bg-slate-800 text-slate-300 border border-slate-700"
-                      : "bg-amber-950/40 text-amber-400 border border-amber-800/40"
-                  }`}
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      activeRoute.status === "in_transit"
-                        ? "bg-emerald-400"
-                        : activeRoute.status === "completed"
-                        ? "bg-slate-400"
-                        : "bg-amber-400"
-                    }`}
-                  />
-                  <span>
-                    {activeRoute.status === "in_transit"
-                      ? "En Recorrido"
-                      : activeRoute.status === "completed"
-                      ? "Ruta Lista"
-                      : "Planificada"}
-                  </span>
-                </span>
-              </div>
-            </div>
-
-            {/* Cold Chain Temp Indicator */}
-            <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400">❄️ Temperatura Cava Térmica:</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <strong className="text-slate-200 font-mono text-xs font-semibold">1.8°C</strong>
-                <span className="text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">ÓPTIMO</span>
-              </div>
-            </div>
-
-            {/* Google Maps Master Launch Button */}
-            <div className="pt-1">
-              <a
-                href={getFullGoogleMapsRouteUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-100 border border-slate-700 font-semibold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors active:scale-98"
-              >
-                <Navigation className="w-4 h-4 text-slate-300" />
-                <span>
-                  {pendingOrders.length > 0
-                    ? `Abrir Recorrido en Google Maps GPS (${pendingOrders.length} paradas restantes)`
-                    : `Ruta 100% Completada (${completedOrders.length}/${routeOrders.length} paradas)`}
-                </span>
-              </a>
-            </div>
-          </div>
-        )}
-
-        {/* Interactive GPS Route Map */}
-        {activeRoute && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <Compass className="w-3.5 h-3.5 text-slate-400" />
-                <span>Trazado de Ruta Satelital (Paso a Paso)</span>
-              </h3>
-              <span className="text-[11px] text-slate-400 font-mono">
-                {completedOrders.length}/{routeOrders.length} Paradas Listas
-              </span>
-            </div>
-
-            <RouteMap route={activeRoute} orders={routeOrders} />
-          </div>
-        )}
-
-        {/* Immediate Next Stop Callout Banner or Route Completed Celebration */}
+      <main className="max-w-xl mx-auto px-4 py-4 space-y-4">
+        {/* 2. ENFOQUE PRINCIPAL: Parada Actual (Una sola tarea clara a la vez) */}
         {nextStop ? (
-          <div className="bg-slate-900 border border-slate-800 hover:border-slate-750 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm transition-all">
-            <div className="flex items-start justify-between gap-3">
+          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-md bg-slate-800 text-amber-300 border border-slate-700 text-[10px] font-semibold uppercase flex items-center gap-1.5">
-                  <Navigation className="w-3 h-3 text-amber-400" />
-                  <span>Siguiente Parada</span>
+                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                  Parada #{routeOrders.findIndex((o) => o.id === nextStop.id) + 1} de {routeOrders.length}
                 </span>
-                <span className="text-[11px] font-mono text-slate-400">
-                  #{routeOrders.findIndex((o) => o.id === nextStop.id) + 1} de {routeOrders.length}
-                </span>
+                <span className="text-[11px] text-slate-400 font-medium">En Destino</span>
               </div>
 
-              <strong className="text-slate-100 font-mono font-bold text-sm">
-                {priceService.formatCurrency(nextStop.realTotal || nextStop.total)}
-              </strong>
+              <div className="text-right">
+                <span className="text-[10px] text-slate-400 block">Total a Cobrar:</span>
+                <strong className="text-sm sm:text-base font-mono font-bold text-slate-100">
+                  {priceService.formatCurrency(nextStop.realTotal || nextStop.total)}
+                </strong>
+              </div>
             </div>
 
-            <div>
-              <h4 className="text-base font-bold text-slate-100">{nextStop.customerName}</h4>
-              <p className="text-xs text-slate-400 flex items-start gap-1 mt-0.5">
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-slate-500" />
-                <span>{nextStop.deliveryAddress}</span>
-              </p>
-            </div>
-
-            {/* Meat cuts summary for this stop */}
-            <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-              <span className="text-slate-400">
-                Descarga: <strong className="text-slate-200 font-mono">{nextStop.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0)} kg</strong>
-              </span>
-              <span className="text-slate-400 text-[11px]">
-                ~{Math.ceil(nextStop.items.reduce((s, i) => s + i.quantity, 0) / 25) || 1} canastillas JD
-              </span>
-            </div>
-
-            {/* Quick Action Navigation & Delivery for Next Stop */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+            {/* Datos del Cliente */}
+            <div className="space-y-1">
+              <h2 className="text-base sm:text-lg font-bold text-slate-100">
+                {nextStop.customerName}
+              </h2>
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                   nextStop.deliveryAddress
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
+                className="text-xs text-slate-300 hover:text-white flex items-start gap-1.5 group transition-colors"
               >
-                <Navigation className="w-3.5 h-3.5 text-slate-400" />
-                <span>Navegar GPS</span>
+                <MapPin className="w-4 h-4 text-slate-500 group-hover:text-slate-300 flex-shrink-0 mt-0.5" />
+                <span className="underline decoration-slate-700 underline-offset-2">{nextStop.deliveryAddress}</span>
               </a>
+            </div>
 
+            {/* Resumen de Carga / Carne a Bajar */}
+            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs flex items-center justify-between">
+              <span className="text-slate-400">
+                Carga a entregar: <strong className="text-slate-200 font-mono">{nextStop.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0)} kg</strong>
+              </span>
+              <span className="text-slate-500 font-mono text-[11px]">
+                {nextStop.items.length} corte{nextStop.items.length > 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {/* SOLO 2 BOTONES PRINCIPALES */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
               <a
-                href={`https://wa.me/573233218831?text=${encodeURIComponent(
-                  `Hola ${nextStop.customerName}, soy ${activeRoute?.driverName || "Carlos Pérez"} de JD Distribuidora. Ya voy en camino con su pedido de carne (${nextStop.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0)} kg).`
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  nextStop.deliveryAddress
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
+                className="py-3 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
               >
-                <MessageCircle className="w-3.5 h-3.5 text-slate-400" />
-                <span>Avisar Llegada</span>
+                <Navigation className="w-4 h-4 text-slate-400" />
+                <span>Cómo Llegar (GPS)</span>
               </a>
 
               <button
                 type="button"
                 onClick={() => handleOpenDeliverModal(nextStop)}
-                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-emerald-400 hover:text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 border border-slate-700 shadow-sm transition-colors"
+                className="py-3 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-emerald-400 hover:text-emerald-300 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 shadow-sm transition-colors"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Confirmar Entrega</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Registrar Entrega</span>
               </button>
             </div>
-          </div>
+
+            {/* Enlace secundario de novedad */}
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => setIncidentModalOrder(nextStop)}
+                className="text-[11px] text-slate-500 hover:text-slate-400 font-medium transition-colors"
+              >
+                ¿Novedad o local cerrado? Reportar incidencia aquí
+              </button>
+            </div>
+          </section>
         ) : routeOrders.length > 0 ? (
-          /* Route Completed Celebration Card */
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-sm text-white">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 flex items-center justify-center text-lg font-bold">
-                ✓
-              </div>
-              <div>
-                <span className="text-[10px] font-semibold uppercase text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40">
-                  Turno Finalizado
-                </span>
-                <h3 className="text-base font-bold text-slate-100 mt-0.5">
-                  Todas las entregas han sido completadas
-                </h3>
-              </div>
+          /* Ruta Completada */
+          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-4 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-xl mx-auto text-slate-200">
+              ✓
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-100">¡Ruta 100% Completada!</h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Has entregado las <strong>{routeOrders.length} paradas</strong> asignadas ({totalKg} kg).
+              </p>
             </div>
 
-            <p className="text-xs text-slate-400">
-              Se han entregado satisfactoriamente los <strong className="text-slate-200">{totalKg} kg</strong> de carne en las <strong className="text-slate-200">{routeOrders.length} paradas</strong> del recorrido.
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
-              <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Recaudo Efectivo:</span>
-                <strong className="text-slate-100 font-mono text-sm">{priceService.formatCurrency(totalCashCollected)}</strong>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Efectivo Neto en Sobre:</span>
-                <strong className="text-emerald-400 font-mono text-sm">{priceService.formatCurrency(netCashInHand)}</strong>
-              </div>
+            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 max-w-xs mx-auto text-xs flex justify-between items-center font-mono">
+              <span className="text-slate-400">Total Recaudado:</span>
+              <strong className="text-slate-100 text-sm">{priceService.formatCurrency(totalCashCollected)}</strong>
             </div>
 
             <button
               type="button"
               onClick={() => setCashoutModalOpen(true)}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold text-xs border border-slate-700 flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold text-xs border border-slate-700 transition-colors"
             >
-              <DollarSign className="w-4 h-4 text-slate-400" />
-              <span>Ver Cuadre de Caja de Ruta</span>
+              Ver Cuadre Final y Liquidación
             </button>
-          </div>
+          </section>
         ) : null}
 
-        {/* Route Progress & Cash Collection Widget */}
-        <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-[10px] font-semibold uppercase text-slate-400">
-                Resumen del Turno
-              </span>
-              <h3 className="text-sm font-bold text-slate-100">Progreso de Entregas</h3>
-            </div>
-            
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setExpenseModalOpen(true)}
-                className="text-xs font-medium bg-slate-800 hover:bg-slate-750 text-slate-200 px-3 py-1 rounded-lg border border-slate-700 transition-colors flex items-center gap-1"
-              >
-                <Camera className="w-3.5 h-3.5 text-slate-400" />
-                <span>Recibos</span>
-              </button>
-
-              <button
-                onClick={() => setCashoutModalOpen(true)}
-                className="text-xs font-medium bg-slate-800 hover:bg-slate-750 text-slate-200 px-3 py-1 rounded-lg border border-slate-700 transition-colors flex items-center gap-1"
-              >
-                <DollarSign className="w-3.5 h-3.5 text-slate-400" />
-                <span>Cuadre</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-            <div
-              className="bg-slate-500 h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${
-                  routeOrders.length > 0
-                    ? (completedOrders.length / routeOrders.length) * 100
-                    : 0
-                }%`,
-              }}
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 pt-2 text-xs border-t border-slate-800/80">
-            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-slate-400 block text-[10px] uppercase">Carga Total:</span>
-              <strong className="text-slate-200 text-xs font-mono font-semibold">{totalKg} kg</strong>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-slate-400 block text-[10px] uppercase">Por Recaudar:</span>
-              <strong className="text-amber-400 text-xs font-mono font-semibold">
-                {priceService.formatCurrency(totalCashToCollect)}
-              </strong>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-slate-400 block text-[10px] uppercase">Recaudado:</span>
-              <strong className="text-emerald-400 text-xs font-mono font-semibold">
-                {priceService.formatCurrency(totalCashCollected)}
-              </strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Road Expenses Bar */}
-        {driverExpenses.length > 0 && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2.5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-slate-400" />
-                <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-300">
-                  Gastos de Ruta Reportados ({driverExpenses.length})
-                </h3>
-              </div>
-              <span className="text-xs font-mono font-semibold text-rose-400">
-                Total: -{priceService.formatCurrency(totalExpensesAmount)}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {driverExpenses.map((exp) => (
-                <button
-                  key={exp.id}
-                  onClick={() => setViewReceiptModal(exp)}
-                  className="flex items-center gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 flex-shrink-0 text-left transition-colors"
-                >
-                  {exp.receiptPhoto ? (
-                    <img
-                      src={exp.receiptPhoto}
-                      alt="Recibo"
-                      className="w-8 h-8 rounded-lg object-cover border border-slate-800 flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-lg bg-slate-900 text-slate-400 flex items-center justify-center text-xs flex-shrink-0 border border-slate-800">
-                      🧾
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase bg-slate-800 text-slate-300 border border-slate-700">
-                      {exp.category === "combustible"
-                        ? "⛽ Gasolina"
-                        : exp.category === "peajes"
-                        ? "🛣️ Peaje"
-                        : exp.category === "parqueadero"
-                        ? "🅿️ Parking"
-                        : "📦 Gasto"}
-                    </span>
-                    <p className="text-[11px] font-medium text-slate-200 truncate max-w-[140px] mt-0.5">
-                      {exp.description}
-                    </p>
-                    <p className="text-[11px] text-slate-300 font-mono font-semibold">
-                      {priceService.formatCurrency(exp.amount)}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Sequential Stop Cards */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between pt-1">
-            <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <MapPin className="w-3.5 h-3.5 text-slate-400" />
-              <span>Itinerario de Paradas en Orden</span>
+        {/* 3. Itinerario de Paradas (Lista limpia y compacta) */}
+        <section className="space-y-2.5">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400">
+              Itinerario del Recorrido ({routeOrders.length})
             </h3>
-            <span className="text-xs text-slate-500 font-mono">
-              {pendingOrders.length} pendientes • {completedOrders.length} listas
+            <span className="text-[11px] text-slate-500 font-mono">
+              {completedOrders.length} de {routeOrders.length} entregadas
             </span>
           </div>
 
-          {routeOrders.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-2">
-              <Truck className="w-8 h-8 mx-auto text-slate-600" />
-              <p className="font-semibold text-slate-200 text-sm">No tienes entregas asignadas en esta ruta</p>
-              <p className="text-xs text-slate-500">
-                Espera a que la administración de planta cargue pedidos a tu furgón.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {routeOrders.map((order, idx) => {
-                const isDelivered = order.status === "delivered";
-                const isNextActive = nextStop?.id === order.id;
-                const orderKg = order.items.reduce(
-                  (sum, i) => sum + (i.realQuantity || i.quantity),
-                  0
-                );
-                const estimatedBaskets = Math.ceil(orderKg / 25) || 1;
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl divide-y divide-slate-850 overflow-hidden">
+            {routeOrders.map((order, idx) => {
+              const isDelivered = order.status === "delivered";
+              const isNext = nextStop?.id === order.id;
+              const orderKg = order.items.reduce(
+                (sum, i) => sum + (i.realQuantity || i.quantity),
+                0
+              );
 
-                return (
-                  <div
-                    key={order.id}
-                    className={`rounded-2xl border transition-all p-4 space-y-3 shadow-sm ${
-                      isDelivered
-                        ? "bg-slate-900/60 border-slate-800/80 opacity-80"
-                        : isNextActive
-                        ? "bg-slate-900 border-slate-700 shadow-md"
-                        : "bg-slate-900 border-slate-800"
-                    }`}
-                  >
-                    {/* Stop Header */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 border ${
-                            isDelivered
-                              ? "bg-slate-800 text-slate-400 border-slate-700"
-                              : isNextActive
-                              ? "bg-slate-800 text-amber-300 border-slate-600"
-                              : "bg-slate-950 text-slate-400 border-slate-800"
-                          }`}
-                        >
-                          {isDelivered ? `✓ ${idx + 1}` : `#${idx + 1}`}
-                        </div>
+              return (
+                <div
+                  key={order.id}
+                  onClick={() => {
+                    if (!isDelivered) handleOpenDeliverModal(order);
+                  }}
+                  className={`p-3 sm:p-3.5 flex items-center justify-between gap-3 transition-colors ${
+                    !isDelivered ? "cursor-pointer hover:bg-slate-850/60" : "opacity-60 bg-slate-950/30"
+                  } ${isNext ? "bg-slate-850/40" : ""}`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs flex-shrink-0 border ${
+                        isDelivered
+                          ? "bg-slate-800 text-slate-500 border-slate-700"
+                          : isNext
+                          ? "bg-slate-800 text-amber-300 border-slate-600"
+                          : "bg-slate-950 text-slate-400 border-slate-800"
+                      }`}
+                    >
+                      {isDelivered ? "✓" : idx + 1}
+                    </div>
 
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="font-bold text-slate-100 text-sm">
-                              {order.customerName}
-                            </h4>
-                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">
-                              {order.orderNumber}
-                            </span>
-                            {isNextActive && (
-                              <span className="text-[10px] font-semibold uppercase text-amber-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-                                Siguiente
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Customer Address */}
-                          <p className="text-xs text-slate-400 flex items-start gap-1 mt-1">
-                            <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-slate-500" />
-                            <span>{order.deliveryAddress}</span>
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right flex-shrink-0">
-                        {isDelivered ? (
-                          <span className="text-[10px] font-medium bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-md border border-slate-700 inline-flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3 text-slate-400" />
-                            <span>Entregada</span>
-                          </span>
-                        ) : isNextActive ? (
-                          <span className="text-[10px] font-medium bg-amber-950/40 text-amber-400 px-2.5 py-0.5 rounded-md border border-amber-800/40">
-                            En Curso
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-medium bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-md border border-slate-700">
-                            Pendiente
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="font-semibold text-xs sm:text-sm text-slate-200 truncate">
+                          {order.customerName}
+                        </h4>
+                        {isNext && (
+                          <span className="text-[9px] font-semibold uppercase px-1.5 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700">
+                            Actual
                           </span>
                         )}
                       </div>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                        {order.deliveryAddress}
+                      </p>
                     </div>
-
-                    {/* Cuts to download from fridge */}
-                    <div className="bg-slate-950 rounded-xl p-3 border border-slate-800 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                          Cortes a entregar ({orderKg} kg):
-                        </p>
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          ~{estimatedBaskets} canastillas
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-                        {order.items.map((item, itemIdx) => (
-                          <div
-                            key={itemIdx}
-                            className="flex justify-between items-center bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800"
-                          >
-                            <span className="font-medium text-slate-300 truncate pr-2 flex items-center gap-1.5">
-                              {item.brand === "gourmet_ahumados" ? (
-                                <span className="text-[9px] bg-slate-800 text-amber-400 px-1 py-0.5 rounded border border-slate-700">Ahumado</span>
-                              ) : (
-                                <span className="text-[9px] bg-slate-800 text-slate-400 px-1 py-0.5 rounded border border-slate-700">Crudo</span>
-                              )}
-                              <span className="truncate">{item.productName}</span>
-                            </span>
-                            <span className="font-mono text-slate-200 text-xs">
-                              {item.realQuantity || item.quantity} kg
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Payment to collect or Completed POD summary */}
-                    {isDelivered ? (
-                      <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-slate-300 font-medium">Entrega Registrada:</span>
-                          </div>
-                          <strong className="text-slate-100 font-mono font-bold text-xs">
-                            {priceService.formatCurrency(order.realTotal || order.total)}
-                          </strong>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-1 border-t border-slate-850 text-[11px] text-slate-400">
-                          <span>
-                            Pago: <strong className="text-slate-200 uppercase">{order.paymentMethod === "efectivo" ? "💵 Efectivo" : order.paymentMethod === "banco" ? "🏦 Banco / QR" : "📝 Crédito"}</strong>
-                          </span>
-                          <span>
-                            Canastillas: <strong className="text-slate-200">{order.deliveredBasketsLeft || 2} dejadas / {order.emptyBasketsCollected || 2} recogidas</strong>
-                          </span>
-                          <span>
-                            Firma: <strong className="text-slate-200">Capturada</strong>
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
-                        <span className="text-slate-400 font-medium">Cobro al recibir:</span>
-                        <strong className="text-slate-100 font-mono font-bold text-xs">
-                          {priceService.formatCurrency(order.realTotal || order.total)}
-                        </strong>
-                      </div>
-                    )}
-
-                    {/* Driver Action Buttons */}
-                    {!isDelivered && (
-                      <div className="space-y-1.5 pt-1">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                          {/* GPS Button */}
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                              order.deliveryAddress
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
-                          >
-                            <Navigation className="w-3.5 h-3.5 text-slate-400" />
-                            <span>GPS</span>
-                          </a>
-
-                          {/* WhatsApp / Call Button */}
-                          <a
-                            href={`https://wa.me/573233218831?text=${encodeURIComponent(
-                              `Hola ${order.customerName}, soy ${activeRoute?.driverName || "Carlos Pérez"} de JD Distribuidora. Ya estoy afuera con su pedido de carne (${orderKg} kg).`
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
-                          >
-                            <MessageCircle className="w-3.5 h-3.5 text-slate-400" />
-                            <span>Avisar</span>
-                          </a>
-
-                          {/* Big Deliver Button */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenDeliverModal(order)}
-                            className="col-span-2 sm:col-span-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-emerald-400 hover:text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                            <span>Entregar</span>
-                          </button>
-                        </div>
-
-                        {/* Incident / Problem button */}
-                        <button
-                          type="button"
-                          onClick={() => setIncidentModalOrder(order)}
-                          className="w-full py-1 text-slate-500 hover:text-slate-400 text-[11px] font-medium transition-colors flex items-center justify-center gap-1"
-                        >
-                          <AlertTriangle className="w-3 h-3" />
-                          <span>Reportar Novedad</span>
-                        </button>
-                      </div>
-                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
+
+                  <div className="text-right flex-shrink-0">
+                    <span className="text-xs font-mono font-medium text-slate-300 block">
+                      {orderKg} kg
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {priceService.formatCurrency(order.realTotal || order.total)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+
+      {/* 4. Barra de Acciones Fija al Pie (Solo 2 botones) */}
+      <div className="fixed bottom-0 inset-x-0 bg-slate-950/90 backdrop-blur-md border-t border-slate-800 p-3 z-30">
+        <div className="max-w-xl mx-auto grid grid-cols-2 gap-2.5">
+          <button
+            type="button"
+            onClick={() => setExpenseModalOpen(true)}
+            className="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-300 font-medium text-xs border border-slate-800 flex items-center justify-center gap-2 transition-colors"
+          >
+            <Camera className="w-3.5 h-3.5 text-slate-400" />
+            <span>+ Registrar Gasto</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCashoutModalOpen(true)}
+            className="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-300 font-medium text-xs border border-slate-800 flex items-center justify-center gap-2 transition-colors"
+          >
+            <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+            <span>Cuadre de Caja</span>
+          </button>
         </div>
       </div>
 
