@@ -457,9 +457,9 @@ export default function OperacionPage() {
                   }`}
                 >
                   <span
-                    className={`w-2 h-2 rounded-full ${
+                    className={`w-1.5 h-1.5 rounded-full ${
                       activeRoute.status === "in_transit"
-                        ? "bg-emerald-400 animate-pulse"
+                        ? "bg-emerald-400"
                         : activeRoute.status === "completed"
                         ? "bg-slate-400"
                         : "bg-amber-400"
@@ -477,50 +477,44 @@ export default function OperacionPage() {
             </div>
 
             {/* Cold Chain Temp Indicator */}
-            <div className="flex items-center justify-between bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs">
+            <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
               <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-xs border border-cyan-500/30">
-                  ❄️
-                </span>
-                <span className="text-slate-300 text-xs font-bold">Temperatura Furgón Térmico:</span>
+                <span className="text-xs text-slate-400">❄️ Temperatura Cava Térmica:</span>
               </div>
-              <strong className="text-emerald-400 font-mono font-black text-xs sm:text-sm">
-                1.8°C <span className="text-[10px] text-cyan-300 font-bold bg-cyan-500/20 px-1.5 py-0.5 rounded border border-cyan-500/30">ÓPTIMO</span>
-              </strong>
+              <div className="flex items-center gap-2">
+                <strong className="text-slate-200 font-mono text-xs font-semibold">1.8°C</strong>
+                <span className="text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">ÓPTIMO</span>
+              </div>
             </div>
 
-            {/* Google Maps Master Launch Button (Dynamically Recalculated) */}
+            {/* Google Maps Master Launch Button */}
             <div className="pt-1">
               <a
                 href={getFullGoogleMapsRouteUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`w-full min-h-[54px] py-4 px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xl transition-all active:scale-98 text-center border-2 ${
-                  pendingOrders.length > 0
-                    ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 glow-master-btn border-emerald-300"
-                    : "bg-emerald-700/80 text-white border-emerald-500/60 shadow-emerald-950/50"
-                }`}
+                className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-100 border border-slate-700 font-semibold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors active:scale-98"
               >
-                <Navigation className={`w-5 h-5 flex-shrink-0 ${pendingOrders.length > 0 ? "text-slate-950 fill-current animate-bounce" : "text-white"}`} />
+                <Navigation className="w-4 h-4 text-slate-300" />
                 <span>
                   {pendingOrders.length > 0
-                    ? `🗺️ ABRIR RECORRIDO ACTUALIZADO EN GOOGLE MAPS GPS (${pendingOrders.length} PARADAS RESTANTES)`
-                    : `🏁 RUTA 100% COMPLETADA (${completedOrders.length}/${routeOrders.length} PARADAS ENTREGADAS)`}
+                    ? `Abrir Recorrido en Google Maps GPS (${pendingOrders.length} paradas restantes)`
+                    : `Ruta 100% Completada (${completedOrders.length}/${routeOrders.length} paradas)`}
                 </span>
               </a>
             </div>
           </div>
         )}
 
-        {/* Interactive GPS Route Map (Always Visible & Prominent) */}
+        {/* Interactive GPS Route Map */}
         {activeRoute && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h3 className="font-black text-xs uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <Compass className="w-4 h-4 text-cyan-400" />
-                <span>Trazado de Ruta en Mapa Satelital (Paso a Paso)</span>
+              <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <Compass className="w-3.5 h-3.5 text-slate-400" />
+                <span>Trazado de Ruta Satelital (Paso a Paso)</span>
               </h3>
-              <span className="text-[11px] text-cyan-300 font-bold">
+              <span className="text-[11px] text-slate-400 font-mono">
                 {completedOrders.length}/{routeOrders.length} Paradas Listas
               </span>
             </div>
@@ -531,37 +525,37 @@ export default function OperacionPage() {
 
         {/* Immediate Next Stop Callout Banner or Route Completed Celebration */}
         {nextStop ? (
-          <div className="bg-gradient-to-br from-amber-950/40 via-slate-900 to-emerald-950/60 border-2 border-amber-500/80 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-2xl ring-2 ring-amber-500/30 glow-amber-card">
+          <div className="bg-slate-900 border border-slate-800 hover:border-slate-750 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm transition-all">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <span className="px-3 py-1 rounded-full bg-amber-500 text-slate-950 font-black text-xs uppercase shadow-md flex items-center gap-1.5 animate-pulse">
-                  <Navigation className="w-3.5 h-3.5 fill-current" />
-                  <span>📍 Siguiente Parada Activa</span>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-md bg-slate-800 text-amber-300 border border-slate-700 text-[10px] font-semibold uppercase flex items-center gap-1.5">
+                  <Navigation className="w-3 h-3 text-amber-400" />
+                  <span>Siguiente Parada</span>
                 </span>
-                <span className="text-xs font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30 font-mono">
-                  Parada #{routeOrders.findIndex((o) => o.id === nextStop.id) + 1} de {routeOrders.length}
+                <span className="text-[11px] font-mono text-slate-400">
+                  #{routeOrders.findIndex((o) => o.id === nextStop.id) + 1} de {routeOrders.length}
                 </span>
               </div>
 
-              <strong className="text-emerald-400 font-black text-sm sm:text-base">
+              <strong className="text-slate-100 font-mono font-bold text-sm">
                 {priceService.formatCurrency(nextStop.realTotal || nextStop.total)}
               </strong>
             </div>
 
             <div>
-              <h4 className="text-lg font-black text-white">{nextStop.customerName}</h4>
-              <p className="text-xs text-emerald-300 font-bold flex items-start gap-1 mt-0.5">
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-rose-400" />
+              <h4 className="text-base font-bold text-slate-100">{nextStop.customerName}</h4>
+              <p className="text-xs text-slate-400 flex items-start gap-1 mt-0.5">
+                <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-slate-500" />
                 <span>{nextStop.deliveryAddress}</span>
               </p>
             </div>
 
             {/* Meat cuts summary for this stop */}
-            <div className="bg-slate-950/80 p-2.5 rounded-2xl border border-slate-800 flex justify-between items-center text-xs">
+            <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
               <span className="text-slate-400">
-                🥩 Descarga: <strong className="text-white">{nextStop.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0)} kg</strong>
+                Descarga: <strong className="text-slate-200 font-mono">{nextStop.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0)} kg</strong>
               </span>
-              <span className="text-brand-300 font-bold">
+              <span className="text-slate-400 text-[11px]">
                 ~{Math.ceil(nextStop.items.reduce((s, i) => s + i.quantity, 0) / 25) || 1} canastillas JD
               </span>
             </div>
@@ -574,10 +568,10 @@ export default function OperacionPage() {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-3 px-3 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-black text-xs flex items-center justify-center gap-2 border border-slate-700 transition-all active:scale-95"
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
               >
-                <Navigation className="w-4 h-4 text-cyan-400" />
-                <span>Navegar Maps</span>
+                <Navigation className="w-3.5 h-3.5 text-slate-400" />
+                <span>Navegar GPS</span>
               </a>
 
               <a
@@ -586,98 +580,98 @@ export default function OperacionPage() {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-3 px-3 rounded-2xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 font-black text-xs flex items-center justify-center gap-2 border border-emerald-500/30 transition-all active:scale-95"
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
               >
-                <MessageCircle className="w-4 h-4 fill-current" />
+                <MessageCircle className="w-3.5 h-3.5 text-slate-400" />
                 <span>Avisar Llegada</span>
               </a>
 
               <button
                 type="button"
                 onClick={() => handleOpenDeliverModal(nextStop)}
-                className="py-3 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95 border border-emerald-400"
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-emerald-400 hover:text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 border border-slate-700 shadow-sm transition-colors"
               >
-                <CheckCircle2 className="w-4 h-4 stroke-[3]" />
-                <span>CONFIRMAR ENTREGA</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Confirmar Entrega</span>
               </button>
             </div>
           </div>
         ) : routeOrders.length > 0 ? (
           /* Route Completed Celebration Card */
-          <div className="bg-gradient-to-br from-emerald-950 via-slate-900 to-emerald-900/50 border-2 border-emerald-500 rounded-3xl p-5 sm:p-6 space-y-3.5 shadow-2xl glow-emerald-card text-white">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-sm text-white">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl font-black border border-emerald-500/40">
-                🏁
+              <div className="w-10 h-10 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 flex items-center justify-center text-lg font-bold">
+                ✓
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                  Turno de Entregas Finalizado
+                <span className="text-[10px] font-semibold uppercase text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40">
+                  Turno Finalizado
                 </span>
-                <h3 className="text-lg sm:text-xl font-black text-white mt-0.5">
-                  ¡Todas las paradas han sido completadas!
+                <h3 className="text-base font-bold text-slate-100 mt-0.5">
+                  Todas las entregas han sido completadas
                 </h3>
               </div>
             </div>
 
-            <p className="text-xs text-slate-300">
-              Has entregado satisfactoriamente los <strong>{totalKg} kg</strong> de carne en las <strong>{routeOrders.length} paradas</strong> del recorrido.
+            <p className="text-xs text-slate-400">
+              Se han entregado satisfactoriamente los <strong className="text-slate-200">{totalKg} kg</strong> de carne en las <strong className="text-slate-200">{routeOrders.length} paradas</strong> del recorrido.
             </p>
 
-            <div className="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs">
+            <div className="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">Recaudo Efectivo:</span>
-                <strong className="text-emerald-400 font-black text-sm">{priceService.formatCurrency(totalCashCollected)}</strong>
+                <span className="text-slate-400 block text-[10px] uppercase">Recaudo Efectivo:</span>
+                <strong className="text-slate-100 font-mono text-sm">{priceService.formatCurrency(totalCashCollected)}</strong>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">Efectivo Neto en Sobre:</span>
-                <strong className="text-emerald-300 font-black text-sm">{priceService.formatCurrency(netCashInHand)}</strong>
+                <span className="text-slate-400 block text-[10px] uppercase">Efectivo Neto en Sobre:</span>
+                <strong className="text-emerald-400 font-mono text-sm">{priceService.formatCurrency(netCashInHand)}</strong>
               </div>
             </div>
 
             <button
               type="button"
               onClick={() => setCashoutModalOpen(true)}
-              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-xl flex items-center justify-center gap-2 active:scale-98 transition-all"
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold text-xs border border-slate-700 flex items-center justify-center gap-2 transition-colors"
             >
-              <DollarSign className="w-4 h-4" />
-              <span>VER CUADRE DE CAJA FINAL DE PLANTA</span>
+              <DollarSign className="w-4 h-4 text-slate-400" />
+              <span>Ver Cuadre de Caja de Ruta</span>
             </button>
           </div>
         ) : null}
 
         {/* Route Progress & Cash Collection Widget */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-850 rounded-3xl p-4 sm:p-5 border border-slate-800 shadow-xl space-y-3">
+        <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-xs font-black uppercase text-brand-400">
+              <span className="text-[10px] font-semibold uppercase text-slate-400">
                 Resumen del Turno
               </span>
-              <h3 className="text-base sm:text-lg font-black text-white">Progreso de Entregas</h3>
+              <h3 className="text-sm font-bold text-slate-100">Progreso de Entregas</h3>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setExpenseModalOpen(true)}
-                className="text-xs font-black bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-1.5 rounded-full border border-amber-500/40 shadow-md transition-all active:scale-95 flex items-center gap-1"
+                className="text-xs font-medium bg-slate-800 hover:bg-slate-750 text-slate-200 px-3 py-1 rounded-lg border border-slate-700 transition-colors flex items-center gap-1"
               >
-                <Camera className="w-3.5 h-3.5" />
-                <span>📸 Recibos</span>
+                <Camera className="w-3.5 h-3.5 text-slate-400" />
+                <span>Recibos</span>
               </button>
 
               <button
                 onClick={() => setCashoutModalOpen(true)}
-                className="text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-full border border-emerald-400 shadow-md transition-all active:scale-95 flex items-center gap-1"
+                className="text-xs font-medium bg-slate-800 hover:bg-slate-750 text-slate-200 px-3 py-1 rounded-lg border border-slate-700 transition-colors flex items-center gap-1"
               >
-                <DollarSign className="w-3.5 h-3.5" />
+                <DollarSign className="w-3.5 h-3.5 text-slate-400" />
                 <span>Cuadre</span>
               </button>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-700">
+          <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
             <div
-              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+              className="bg-slate-500 h-full rounded-full transition-all duration-500"
               style={{
                 width: `${
                   routeOrders.length > 0
@@ -688,22 +682,22 @@ export default function OperacionPage() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-2 pt-2 text-xs border-t border-slate-800">
-            <div className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Carga Total:</span>
-              <strong className="text-white text-xs sm:text-sm font-black">{totalKg} kg</strong>
+          <div className="grid grid-cols-3 gap-2 pt-2 text-xs border-t border-slate-800/80">
+            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-400 block text-[10px] uppercase">Carga Total:</span>
+              <strong className="text-slate-200 text-xs font-mono font-semibold">{totalKg} kg</strong>
             </div>
 
-            <div className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Por Recaudar:</span>
-              <strong className="text-amber-400 text-xs sm:text-sm font-black">
+            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-400 block text-[10px] uppercase">Por Recaudar:</span>
+              <strong className="text-amber-400 text-xs font-mono font-semibold">
                 {priceService.formatCurrency(totalCashToCollect)}
               </strong>
             </div>
 
-            <div className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Recaudado:</span>
-              <strong className="text-emerald-400 text-xs sm:text-sm font-black">
+            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-400 block text-[10px] uppercase">Recaudado:</span>
+              <strong className="text-emerald-400 text-xs font-mono font-semibold">
                 {priceService.formatCurrency(totalCashCollected)}
               </strong>
             </div>
@@ -712,15 +706,15 @@ export default function OperacionPage() {
 
         {/* Road Expenses Bar */}
         {driverExpenses.length > 0 && (
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 space-y-2.5 shadow-lg">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2.5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Camera className="w-4 h-4 text-amber-400" />
-                <h3 className="font-black text-xs uppercase tracking-wider text-slate-200">
+                <Receipt className="w-4 h-4 text-slate-400" />
+                <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-300">
                   Gastos de Ruta Reportados ({driverExpenses.length})
                 </h3>
               </div>
-              <span className="text-xs font-black text-rose-400">
+              <span className="text-xs font-mono font-semibold text-rose-400">
                 Total: -{priceService.formatCurrency(totalExpensesAmount)}
               </span>
             </div>
@@ -730,21 +724,21 @@ export default function OperacionPage() {
                 <button
                   key={exp.id}
                   onClick={() => setViewReceiptModal(exp)}
-                  className="flex items-center gap-2 p-2.5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-amber-400/50 flex-shrink-0 text-left transition-all active:scale-95 shadow-md"
+                  className="flex items-center gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 flex-shrink-0 text-left transition-colors"
                 >
                   {exp.receiptPhoto ? (
                     <img
                       src={exp.receiptPhoto}
                       alt="Recibo"
-                      className="w-9 h-9 rounded-xl object-cover border border-slate-750 flex-shrink-0"
+                      className="w-8 h-8 rounded-lg object-cover border border-slate-800 flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-slate-900 text-slate-400 flex items-center justify-center text-xs flex-shrink-0 border border-slate-800">
                       🧾
                     </div>
                   )}
                   <div>
-                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase bg-slate-800 text-slate-300 border border-slate-700">
                       {exp.category === "combustible"
                         ? "⛽ Gasolina"
                         : exp.category === "peajes"
@@ -753,10 +747,10 @@ export default function OperacionPage() {
                         ? "🅿️ Parking"
                         : "📦 Gasto"}
                     </span>
-                    <p className="text-[11px] font-bold text-white truncate max-w-[140px] mt-0.5">
+                    <p className="text-[11px] font-medium text-slate-200 truncate max-w-[140px] mt-0.5">
                       {exp.description}
                     </p>
-                    <p className="text-[11px] text-amber-400 font-black">
+                    <p className="text-[11px] text-slate-300 font-mono font-semibold">
                       {priceService.formatCurrency(exp.amount)}
                     </p>
                   </div>
@@ -767,27 +761,27 @@ export default function OperacionPage() {
         )}
 
         {/* Sequential Stop Cards */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between pt-1">
-            <h3 className="font-black text-sm uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-rose-500" />
+            <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5 text-slate-400" />
               <span>Itinerario de Paradas en Orden</span>
             </h3>
-            <span className="text-xs text-slate-400 font-bold">
+            <span className="text-xs text-slate-500 font-mono">
               {pendingOrders.length} pendientes • {completedOrders.length} listas
             </span>
           </div>
 
           {routeOrders.length === 0 ? (
-            <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 text-center space-y-2">
-              <Truck className="w-10 h-10 mx-auto text-slate-600" />
-              <p className="font-black text-white text-base">No tienes entregas asignadas en esta ruta</p>
-              <p className="text-xs text-slate-400">
+            <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-2">
+              <Truck className="w-8 h-8 mx-auto text-slate-600" />
+              <p className="font-semibold text-slate-200 text-sm">No tienes entregas asignadas en esta ruta</p>
+              <p className="text-xs text-slate-500">
                 Espera a que la administración de planta cargue pedidos a tu furgón.
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {routeOrders.map((order, idx) => {
                 const isDelivered = order.status === "delivered";
                 const isNextActive = nextStop?.id === order.id;
@@ -800,11 +794,11 @@ export default function OperacionPage() {
                 return (
                   <div
                     key={order.id}
-                    className={`rounded-3xl border transition-all p-4 sm:p-5 space-y-4 shadow-xl ${
+                    className={`rounded-2xl border transition-all p-4 space-y-3 shadow-sm ${
                       isDelivered
-                        ? "bg-slate-900/50 border-emerald-500/40 opacity-90"
+                        ? "bg-slate-900/60 border-slate-800/80 opacity-80"
                         : isNextActive
-                        ? "bg-slate-900 border-amber-500 ring-2 ring-amber-500/40 glow-amber-card"
+                        ? "bg-slate-900 border-slate-700 shadow-md"
                         : "bg-slate-900 border-slate-800"
                     }`}
                   >
@@ -812,35 +806,35 @@ export default function OperacionPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
                         <div
-                          className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shadow-md flex-shrink-0 ${
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 border ${
                             isDelivered
-                              ? "bg-emerald-600 text-white"
+                              ? "bg-slate-800 text-slate-400 border-slate-700"
                               : isNextActive
-                              ? "bg-amber-500 text-slate-950 animate-pulse"
-                              : "bg-blue-600 text-white"
+                              ? "bg-slate-800 text-amber-300 border-slate-600"
+                              : "bg-slate-950 text-slate-400 border-slate-800"
                           }`}
                         >
-                          {isDelivered ? `✓ #${idx + 1}` : `#${idx + 1}`}
+                          {isDelivered ? `✓ ${idx + 1}` : `#${idx + 1}`}
                         </div>
 
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="font-black text-white text-base sm:text-lg">
+                            <h4 className="font-bold text-slate-100 text-sm">
                               {order.customerName}
                             </h4>
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">
                               {order.orderNumber}
                             </span>
                             {isNextActive && (
-                              <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/40 animate-pulse">
-                                📍 Siguiente en Ruta
+                              <span className="text-[10px] font-semibold uppercase text-amber-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                                Siguiente
                               </span>
                             )}
                           </div>
 
                           {/* Customer Address */}
-                          <p className="text-xs text-emerald-400 font-extrabold flex items-start gap-1 mt-1">
-                            <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-rose-400" />
+                          <p className="text-xs text-slate-400 flex items-start gap-1 mt-1">
+                            <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-slate-500" />
                             <span>{order.deliveryAddress}</span>
                           </p>
                         </div>
@@ -848,52 +842,48 @@ export default function OperacionPage() {
 
                       <div className="text-right flex-shrink-0">
                         {isDelivered ? (
-                          <span className="text-xs font-black bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>✓ Parada Lista</span>
+                          <span className="text-[10px] font-medium bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-md border border-slate-700 inline-flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-slate-400" />
+                            <span>Entregada</span>
                           </span>
                         ) : isNextActive ? (
-                          <span className="text-xs font-black bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full border border-amber-500/40">
+                          <span className="text-[10px] font-medium bg-amber-950/40 text-amber-400 px-2.5 py-0.5 rounded-md border border-amber-800/40">
                             En Curso
                           </span>
                         ) : (
-                          <span className="text-xs font-black bg-slate-800 text-slate-400 px-3 py-1 rounded-full border border-slate-700">
+                          <span className="text-[10px] font-medium bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-md border border-slate-700">
                             Pendiente
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Cuts to download from fridge with Brand differentiation */}
-                    <div className="bg-slate-950/80 rounded-2xl p-3.5 border border-slate-800/80 space-y-2">
+                    {/* Cuts to download from fridge */}
+                    <div className="bg-slate-950 rounded-xl p-3 border border-slate-800 space-y-2">
                       <div className="flex items-center justify-between">
-                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
-                          🥩 Cortes a bajar ({orderKg} kg en total):
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                          Cortes a entregar ({orderKg} kg):
                         </p>
-                        <span className="text-[11px] text-brand-300 font-bold bg-brand-500/20 px-2 py-0.5 rounded-md border border-brand-500/30 flex items-center gap-1">
-                          <Box className="w-3 h-3" />
-                          <span>~{estimatedBaskets} canastillas JD</span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          ~{estimatedBaskets} canastillas
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
                         {order.items.map((item, itemIdx) => (
                           <div
                             key={itemIdx}
-                            className="flex justify-between items-center bg-slate-900 px-3 py-2 rounded-xl border border-slate-800"
+                            className="flex justify-between items-center bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800"
                           >
-                            <span className="font-bold text-slate-200 truncate pr-2 flex items-center gap-1.5">
+                            <span className="font-medium text-slate-300 truncate pr-2 flex items-center gap-1.5">
                               {item.brand === "gourmet_ahumados" ? (
-                                <span className="text-amber-400 text-xs flex items-center gap-0.5">
-                                  <Flame className="w-3.5 h-3.5 fill-current" />
-                                  <strong className="text-[10px] bg-amber-500/20 px-1 rounded uppercase">Ahumado</strong>
-                                </span>
+                                <span className="text-[9px] bg-slate-800 text-amber-400 px-1 py-0.5 rounded border border-slate-700">Ahumado</span>
                               ) : (
-                                <span className="text-rose-400 text-[10px] bg-rose-500/20 px-1 rounded uppercase font-bold">Crudo</span>
+                                <span className="text-[9px] bg-slate-800 text-slate-400 px-1 py-0.5 rounded border border-slate-700">Crudo</span>
                               )}
                               <span className="truncate">{item.productName}</span>
                             </span>
-                            <span className="font-extrabold text-brand-400 whitespace-nowrap">
+                            <span className="font-mono text-slate-200 text-xs">
                               {item.realQuantity || item.quantity} kg
                             </span>
                           </div>
@@ -903,35 +893,32 @@ export default function OperacionPage() {
 
                     {/* Payment to collect or Completed POD summary */}
                     {isDelivered ? (
-                      <div className="bg-emerald-950/40 p-3.5 rounded-2xl border border-emerald-500/30 space-y-2 text-xs">
+                      <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                            <span className="text-emerald-300 font-bold">Entrega y Cobro Completados:</span>
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-slate-300 font-medium">Entrega Registrada:</span>
                           </div>
-                          <strong className="text-emerald-400 font-black text-base">
+                          <strong className="text-slate-100 font-mono font-bold text-xs">
                             {priceService.formatCurrency(order.realTotal || order.total)}
                           </strong>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-emerald-500/20 text-[11px]">
-                          <span className="text-slate-300">
-                            💳 Pago: <strong className="text-emerald-400 uppercase">{order.paymentMethod === "efectivo" ? "💵 Efectivo" : order.paymentMethod === "banco" ? "🏦 Banco / QR" : "📝 Crédito"}</strong>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-1 border-t border-slate-850 text-[11px] text-slate-400">
+                          <span>
+                            Pago: <strong className="text-slate-200 uppercase">{order.paymentMethod === "efectivo" ? "💵 Efectivo" : order.paymentMethod === "banco" ? "🏦 Banco / QR" : "📝 Crédito"}</strong>
                           </span>
-                          <span className="text-slate-300">
-                            📦 Canastillas: <strong className="text-white">{order.deliveredBasketsLeft || 2} dejadas / {order.emptyBasketsCollected || 2} recogidas</strong>
+                          <span>
+                            Canastillas: <strong className="text-slate-200">{order.deliveredBasketsLeft || 2} dejadas / {order.emptyBasketsCollected || 2} recogidas</strong>
                           </span>
-                          <span className="text-slate-300">
-                            ✍️ Firma: <strong className="text-emerald-300">Digital Validada</strong>
+                          <span>
+                            Firma: <strong className="text-slate-200">Capturada</strong>
                           </span>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between bg-slate-850 p-3 rounded-2xl border border-slate-750 text-xs">
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-4 h-4 text-emerald-400" />
-                          <span className="text-slate-300 font-bold">Cobro al recibir:</span>
-                        </div>
-                        <strong className="text-emerald-400 font-black text-base">
+                      <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
+                        <span className="text-slate-400 font-medium">Cobro al recibir:</span>
+                        <strong className="text-slate-100 font-mono font-bold text-xs">
                           {priceService.formatCurrency(order.realTotal || order.total)}
                         </strong>
                       </div>
@@ -939,8 +926,8 @@ export default function OperacionPage() {
 
                     {/* Driver Action Buttons */}
                     {!isDelivered && (
-                      <div className="space-y-2 pt-1">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <div className="space-y-1.5 pt-1">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                           {/* GPS Button */}
                           <a
                             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -948,10 +935,10 @@ export default function OperacionPage() {
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="py-3 px-3 rounded-2xl bg-slate-800 hover:bg-slate-750 active:bg-slate-700 text-slate-200 font-black text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-all active:scale-95"
+                            className="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
                           >
-                            <Navigation className="w-4 h-4 text-cyan-400" />
-                            <span>Navegar GPS</span>
+                            <Navigation className="w-3.5 h-3.5 text-slate-400" />
+                            <span>GPS</span>
                           </a>
 
                           {/* WhatsApp / Call Button */}
@@ -961,20 +948,20 @@ export default function OperacionPage() {
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="py-3 px-3 rounded-2xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 font-black text-xs flex items-center justify-center gap-1.5 border border-emerald-500/30 transition-all active:scale-95"
+                            className="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
                           >
-                            <MessageCircle className="w-4 h-4 fill-current" />
-                            <span>Avisar Llegada</span>
+                            <MessageCircle className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Avisar</span>
                           </a>
 
                           {/* Big Deliver Button */}
                           <button
                             type="button"
                             onClick={() => handleOpenDeliverModal(order)}
-                            className="col-span-2 sm:col-span-1 py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95 border border-emerald-400"
+                            className="col-span-2 sm:col-span-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-emerald-400 hover:text-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
                           >
-                            <CheckCircle2 className="w-4 h-4 stroke-[3]" />
-                            <span>CONFIRMAR ENTREGA</span>
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Entregar</span>
                           </button>
                         </div>
 
@@ -982,10 +969,10 @@ export default function OperacionPage() {
                         <button
                           type="button"
                           onClick={() => setIncidentModalOrder(order)}
-                          className="w-full py-2 rounded-xl text-slate-400 hover:text-amber-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                          className="w-full py-1 text-slate-500 hover:text-slate-400 text-[11px] font-medium transition-colors flex items-center justify-center gap-1"
                         >
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Reportar Novedad en este local</span>
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Reportar Novedad</span>
                         </button>
                       </div>
                     )}
@@ -999,32 +986,32 @@ export default function OperacionPage() {
 
       {/* Modal 1: Confirm Delivery & Customer Purchase Invoice */}
       {deliveryModalOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95 text-white max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-xl space-y-4 animate-in zoom-in-95 text-white max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <span className="text-[10px] font-black uppercase text-emerald-400 bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                  Factura de Compra & Entrega de Carne
+                <span className="text-[10px] font-semibold uppercase text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                  Entrega de Pedido
                 </span>
-                <h3 className="font-black text-lg text-white mt-1">
+                <h3 className="font-bold text-base text-slate-100 mt-1">
                   {deliveryModalOrder.customerName}
                 </h3>
               </div>
             </div>
 
             <form onSubmit={handleConfirmDelivery} className="space-y-3.5 text-xs">
-              <div className="p-3 bg-slate-855 rounded-2xl border border-slate-750 text-slate-300 flex justify-between items-center">
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-slate-300 flex justify-between items-center">
                 <div>
-                  <span className="text-slate-400 text-[11px] block font-bold">Total Factura de Compra:</span>
-                  <strong className="text-xl font-black text-emerald-400">
+                  <span className="text-slate-400 text-[11px] block">Total de Factura:</span>
+                  <strong className="text-base font-mono font-bold text-slate-100">
                     {priceService.formatCurrency(
                       deliveryModalOrder.realTotal || deliveryModalOrder.total
                     )}
                   </strong>
                 </div>
                 <div className="text-right">
-                  <span className="text-slate-400 text-[11px] block font-bold">Kilos a entregar:</span>
-                  <strong className="text-white font-black text-sm">
+                  <span className="text-slate-400 text-[11px] block">Kilos a entregar:</span>
+                  <strong className="text-slate-200 font-mono text-sm">
                     {deliveryModalOrder.items.reduce(
                       (s, i) => s + (i.realQuantity || i.quantity),
                       0
@@ -1036,81 +1023,81 @@ export default function OperacionPage() {
 
               {/* 1. Recipient Name */}
               <div>
-                <label className="font-black block text-slate-300 mb-1">
-                  1. ¿Quién recibió la carne en el local? *
+                <label className="font-medium block text-slate-300 mb-1">
+                  1. ¿Quién recibe en el local? *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ej. Don Carlos / Administrador"
+                  placeholder="Nombre de quien recibe..."
                   value={receivedByName}
                   onChange={(e) => setReceivedByName(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-sm focus:border-brand-500 focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs focus:border-slate-600 focus:outline-none"
                 />
               </div>
 
-              {/* 2. Forma de Pago de la Factura de Compra del Cliente (Crédito, Banco, Efectivo) */}
-              <div className="bg-slate-950 p-3.5 rounded-2xl border-2 border-emerald-500/40 space-y-2">
-                <label className="font-black block text-emerald-300 text-xs flex items-center justify-between">
-                  <span>2. ¿Cómo paga el cliente esta Factura? *</span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">
+              {/* 2. Forma de Pago de la Factura de Compra del Cliente */}
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                <label className="font-medium block text-slate-300 text-xs flex items-center justify-between">
+                  <span>2. Forma de Pago del Cliente *</span>
+                  <span className="text-[10px] text-slate-400">
                     {deliveryPaymentMethod === "efectivo"
-                      ? "💵 Suma a caja física"
+                      ? "Efectivo en sobre"
                       : deliveryPaymentMethod === "banco"
-                      ? "🏦 Transferencia / QR"
-                      : "📝 Factura Crédito"}
+                      ? "Transferencia / QR"
+                      : "Factura a Crédito"}
                   </span>
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => setDeliveryPaymentMethod("efectivo")}
-                    className={`p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1 ${
+                    className={`p-2.5 rounded-xl border text-center transition-colors flex flex-col items-center gap-1 ${
                       deliveryPaymentMethod === "efectivo"
-                        ? "bg-emerald-600 border-emerald-400 text-white shadow-lg ring-2 ring-emerald-500/40"
-                        : "bg-slate-850 border-slate-750 text-slate-400 hover:text-white"
+                        ? "bg-slate-800 border-slate-600 text-slate-100"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
                     }`}
                   >
-                    <span className="text-base">💵</span>
-                    <span className="font-black text-xs">Efectivo</span>
-                    <span className="text-[9px] opacity-80">En sobre</span>
+                    <span className="text-sm">💵</span>
+                    <span className="font-semibold text-xs">Efectivo</span>
+                    <span className="text-[9px] text-slate-400">En sobre</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setDeliveryPaymentMethod("banco")}
-                    className={`p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1 ${
+                    className={`p-2.5 rounded-xl border text-center transition-colors flex flex-col items-center gap-1 ${
                       deliveryPaymentMethod === "banco"
-                        ? "bg-cyan-600 border-cyan-400 text-white shadow-lg ring-2 ring-cyan-500/40"
-                        : "bg-slate-850 border-slate-750 text-slate-400 hover:text-white"
+                        ? "bg-slate-800 border-slate-600 text-slate-100"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
                     }`}
                   >
-                    <span className="text-base">🏦</span>
-                    <span className="font-black text-xs">Banco</span>
-                    <span className="text-[9px] opacity-80">Transf. / QR</span>
+                    <span className="text-sm">🏦</span>
+                    <span className="font-semibold text-xs">Banco</span>
+                    <span className="text-[9px] text-slate-400">Transf./QR</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setDeliveryPaymentMethod("credito")}
-                    className={`p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1 ${
+                    className={`p-2.5 rounded-xl border text-center transition-colors flex flex-col items-center gap-1 ${
                       deliveryPaymentMethod === "credito"
-                        ? "bg-amber-600 border-amber-400 text-white shadow-lg ring-2 ring-amber-500/40"
-                        : "bg-slate-850 border-slate-750 text-slate-400 hover:text-white"
+                        ? "bg-slate-800 border-slate-600 text-slate-100"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
                     }`}
                   >
-                    <span className="text-base">📝</span>
-                    <span className="font-black text-xs">Crédito</span>
-                    <span className="text-[9px] opacity-80">15-30 días</span>
+                    <span className="text-sm">📝</span>
+                    <span className="font-semibold text-xs">Crédito</span>
+                    <span className="text-[9px] text-slate-400">15-30 días</span>
                   </button>
                 </div>
               </div>
 
-              {/* 3. Gestión de Devoluciones en Punto de Entrega (Total o Parcial) */}
-              <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-3">
+              {/* 3. Gestión de Devoluciones en Punto de Entrega */}
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-black text-slate-200 flex items-center gap-1.5 cursor-pointer">
-                    <RotateCcw className="w-4 h-4 text-amber-400" />
+                  <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5 cursor-pointer">
+                    <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
                     <span>3. ¿Hubo Devolución o Rechazo de Producto?</span>
                   </label>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -1120,20 +1107,20 @@ export default function OperacionPage() {
                       onChange={(e) => setHasDeliveryReturn(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                    <div className="w-8 h-4 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-slate-600"></div>
                   </label>
                 </div>
 
                 {hasDeliveryReturn && (
-                  <div className="p-3 bg-slate-900 rounded-xl border border-amber-500/30 space-y-3">
+                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-3">
                     {/* Tipo de devolución */}
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => setDeliveryReturnType("parcial")}
-                        className={`p-2 rounded-lg border text-xs font-bold transition-all ${
+                        className={`p-2 rounded-lg border text-xs font-medium transition-colors ${
                           deliveryReturnType === "parcial"
-                            ? "bg-amber-600/30 border-amber-500 text-amber-300"
+                            ? "bg-slate-800 border-slate-600 text-slate-100"
                             : "bg-slate-950 border-slate-800 text-slate-400"
                         }`}
                       >
@@ -1142,9 +1129,9 @@ export default function OperacionPage() {
                       <button
                         type="button"
                         onClick={() => setDeliveryReturnType("total")}
-                        className={`p-2 rounded-lg border text-xs font-bold transition-all ${
+                        className={`p-2 rounded-lg border text-xs font-medium transition-colors ${
                           deliveryReturnType === "total"
-                            ? "bg-rose-600/30 border-rose-500 text-rose-300"
+                            ? "bg-slate-800 border-slate-600 text-slate-100"
                             : "bg-slate-950 border-slate-800 text-slate-400"
                         }`}
                       >
@@ -1154,13 +1141,13 @@ export default function OperacionPage() {
 
                     {/* Motivo de devolución */}
                     <div>
-                      <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                      <label className="text-[11px] font-medium text-slate-400 block mb-1">
                         Motivo Principal del Rechazo:
                       </label>
                       <select
                         value={deliveryReturnReason}
                         onChange={(e) => setDeliveryReturnReason(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none"
                       >
                         <option value="Rechazo de calidad / Merma en pesaje">Rechazo de calidad / Merma en pesaje</option>
                         <option value="Exceso de grasa según cliente">Exceso de grasa según cliente</option>
@@ -1173,7 +1160,7 @@ export default function OperacionPage() {
 
                     {/* Observación adicional del chofer */}
                     <div>
-                      <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                      <label className="text-[11px] font-medium text-slate-400 block mb-1">
                         Observación / Detalle de la Devolución: *
                       </label>
                       <input
@@ -1181,14 +1168,14 @@ export default function OperacionPage() {
                         placeholder="Ej. El cliente devolvió 5 kg por merma en balanza del local"
                         value={deliveryReturnNote}
                         onChange={(e) => setDeliveryReturnNote(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-slate-600"
                       />
                     </div>
 
                     {/* Selector de cortes si es parcial */}
                     {deliveryReturnType === "parcial" && deliveryModalOrder && (
                       <div className="space-y-1.5 pt-1">
-                        <span className="text-[11px] font-bold text-slate-300 block">
+                        <span className="text-[11px] font-medium text-slate-400 block">
                           Digita los kilos devueltos por cada corte:
                         </span>
                         {deliveryModalOrder.items.map((it) => {
@@ -1202,8 +1189,8 @@ export default function OperacionPage() {
                               className="p-2 bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-between gap-2 text-xs"
                             >
                               <div className="flex-1 min-w-0">
-                                <p className="font-bold text-slate-200 truncate">{it.productName}</p>
-                                <p className="text-[10px] text-slate-400 font-mono">
+                                <p className="font-medium text-slate-200 truncate">{it.productName}</p>
+                                <p className="text-[10px] text-slate-500 font-mono">
                                   Entregado: {maxQty} kg • ${it.unitPrice.toLocaleString()}/kg
                                 </p>
                               </div>
@@ -1220,12 +1207,12 @@ export default function OperacionPage() {
                                     const val = Math.min(maxQty, Math.max(0, parseFloat(e.target.value) || 0));
                                     setDeliveryReturnedKgMap((prev) => ({ ...prev, [it.productId]: val }));
                                   }}
-                                  className="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-right font-mono font-bold text-white text-xs"
+                                  className="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-right font-mono font-medium text-slate-100 text-xs"
                                 />
                                 <span className="text-slate-500 font-mono text-[10px]">kg</span>
                               </div>
 
-                              <div className="w-16 text-right font-mono font-bold text-amber-400 text-xs">
+                              <div className="w-16 text-right font-mono font-semibold text-rose-400 text-xs">
                                 -${itemSubtotalDevuelto.toLocaleString()}
                               </div>
                             </div>
@@ -1238,13 +1225,13 @@ export default function OperacionPage() {
                     <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                       <div>
                         <span className="text-slate-400 text-[11px] block">Kilos Devueltos:</span>
-                        <strong className="text-amber-400 font-mono">
+                        <strong className="text-slate-200 font-mono">
                           {deliveryReturnSummary.totalReturnedKg.toFixed(1)} kg
                         </strong>
                       </div>
                       <div className="text-right">
-                        <span className="text-slate-400 text-[11px] block">Nuevo Total a Cobrar al Cliente:</span>
-                        <strong className="text-emerald-400 font-mono text-sm font-black">
+                        <span className="text-slate-400 text-[11px] block">Nuevo Total a Cobrar:</span>
+                        <strong className="text-emerald-400 font-mono text-sm font-semibold">
                           ${deliveryReturnSummary.finalTotalToCollect.toLocaleString()} COP
                         </strong>
                       </div>
@@ -1253,11 +1240,11 @@ export default function OperacionPage() {
                 )}
               </div>
 
-              {/* 3. Foto de la Factura de Compra / Remisión Firmada */}
+              {/* Foto de la Factura de Compra / Remisión */}
               <div className="space-y-1.5">
-                <label className="font-black text-slate-300 text-xs flex items-center justify-between">
-                  <span>3. Foto de Factura de Compra / Remisión:</span>
-                  <span className="text-[10px] text-brand-400 font-bold">Opcional / Soporte</span>
+                <label className="font-medium text-slate-300 text-xs flex items-center justify-between">
+                  <span>Foto de Remisión / Soporte:</span>
+                  <span className="text-[10px] text-slate-500 font-mono">Opcional</span>
                 </label>
                 
                 <input
@@ -1270,20 +1257,20 @@ export default function OperacionPage() {
                 />
 
                 {deliveryInvoicePhoto ? (
-                  <div className="relative rounded-2xl overflow-hidden border border-emerald-500/40 bg-slate-950 p-1 flex items-center justify-between">
+                  <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950 p-2 flex items-center justify-between">
                     <img
                       src={deliveryInvoicePhoto}
-                      alt="Factura de compra"
-                      className="h-14 w-20 object-cover rounded-xl"
+                      alt="Factura"
+                      className="h-12 w-16 object-cover rounded-lg"
                     />
                     <div className="flex-1 px-3">
-                      <p className="text-[11px] font-bold text-emerald-400">✓ Factura fotografiada</p>
+                      <p className="text-[11px] font-medium text-slate-300">✓ Foto adjuntada</p>
                       <button
                         type="button"
                         onClick={() => deliveryPhotoInputRef.current?.click()}
-                        className="text-[10px] text-slate-400 hover:text-white underline"
+                        className="text-[10px] text-slate-500 hover:text-slate-300 underline"
                       >
-                        Cambiar foto
+                        Cambiar
                       </button>
                     </div>
                   </div>
@@ -1291,67 +1278,67 @@ export default function OperacionPage() {
                   <button
                     type="button"
                     onClick={() => deliveryPhotoInputRef.current?.click()}
-                    className="w-full py-2.5 px-3 rounded-2xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-98"
+                    className="w-full py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-300 font-medium text-xs flex items-center justify-center gap-2 transition-colors"
                   >
-                    <Camera className="w-4 h-4 text-emerald-400" />
-                    <span>Tomar Foto a la Factura / Remisión 📸</span>
+                    <Camera className="w-4 h-4 text-slate-400" />
+                    <span>Tomar Foto de Remisión</span>
                   </button>
                 )}
               </div>
 
-              {/* 4. Plastic Baskets Exchange Control */}
-              <div className="bg-slate-850 p-3 rounded-2xl border border-slate-750 space-y-2">
-                <label className="font-black text-slate-200 block text-xs flex items-center gap-1.5">
-                  <Box className="w-3.5 h-3.5 text-brand-400" />
-                  <span>4. Control de Canastillas Plásticas JD:</span>
+              {/* Control de Canastillas */}
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                <label className="font-medium text-slate-300 block text-xs flex items-center gap-1.5">
+                  <Box className="w-3.5 h-3.5 text-slate-400" />
+                  <span>4. Control de Canastillas JD:</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-bold">Canastillas Dejadas:</span>
+                    <span className="text-[10px] text-slate-400 block">Dejadas:</span>
                     <input
                       type="number"
                       min={0}
                       value={deliveredBaskets}
                       onChange={(e) => setDeliveredBaskets(parseInt(e.target.value) || 0)}
-                      className="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-black text-center"
+                      className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 font-mono text-center"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-bold">Vacías Recogidas:</span>
+                    <span className="text-[10px] text-slate-400 block">Recogidas:</span>
                     <input
                       type="number"
                       min={0}
                       value={returnedBaskets}
                       onChange={(e) => setReturnedBaskets(parseInt(e.target.value) || 0)}
-                      className="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-black text-center"
+                      className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 font-mono text-center"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* 5. Digital Finger Signature on Canvas */}
+              {/* Firma en Pantalla */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="font-black text-slate-300 text-xs flex items-center gap-1">
-                    <PenTool className="w-3 h-3 text-brand-400" />
-                    <span>5. Firma de Recibido en Pantalla (Dedo del Cliente):</span>
+                  <label className="font-medium text-slate-300 text-xs flex items-center gap-1">
+                    <PenTool className="w-3 h-3 text-slate-400" />
+                    <span>5. Firma de Recibido en Pantalla:</span>
                   </label>
                   {hasSignature && (
                     <button
                       type="button"
                       onClick={clearSignature}
-                      className="text-[10px] text-slate-400 hover:text-rose-400 font-bold"
+                      className="text-[10px] text-slate-500 hover:text-slate-300"
                     >
-                      Limpiar firma
+                      Limpiar
                     </button>
                   )}
                 </div>
 
-                <div className="border-2 border-dashed border-slate-700 rounded-2xl bg-slate-950 overflow-hidden relative touch-none">
+                <div className="border border-dashed border-slate-800 rounded-xl bg-slate-950 overflow-hidden relative touch-none">
                   <canvas
                     ref={canvasRef}
                     width={350}
-                    height={100}
+                    height={90}
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
@@ -1359,31 +1346,31 @@ export default function OperacionPage() {
                     onTouchStart={startDrawing}
                     onTouchMove={draw}
                     onTouchEnd={stopDrawing}
-                    className="w-full h-[90px] cursor-crosshair"
+                    className="w-full h-[80px] cursor-crosshair"
                   />
                   {!hasSignature && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-600 text-xs font-bold">
-                      Firma aquí con el dedo ✍️
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-600 text-xs">
+                      Firma aquí con el dedo
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Action buttons */}
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setDeliveryModalOrder(null)}
-                  className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 font-medium text-xs transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-sm shadow-xl flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-emerald-400 font-semibold text-xs border border-slate-700 flex items-center justify-center gap-1.5 transition-colors shadow-sm"
                 >
-                  <CheckCircle2 className="w-5 h-5 stroke-[3]" />
-                  <span>REGISTRAR ENTREGA</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>Registrar Entrega</span>
                 </button>
               </div>
             </form>
@@ -1393,23 +1380,23 @@ export default function OperacionPage() {
 
       {/* Modal 2: Report Incident / Problem */}
       {incidentModalOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95 text-white">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-xl space-y-4 animate-in zoom-in-95 text-white">
             <div className="flex items-center gap-2.5 border-b border-slate-800 pb-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-                <AlertTriangle className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center border border-slate-700">
+                <AlertTriangle className="w-3.5 h-3.5 text-slate-400" />
               </div>
               <div>
-                <h3 className="font-black text-base text-white">
+                <h3 className="font-bold text-sm text-slate-100">
                   Reportar Novedad en Entrega
                 </h3>
                 <p className="text-xs text-slate-400">{incidentModalOrder.customerName}</p>
               </div>
             </div>
 
-            <form onSubmit={handleReportIncident} className="space-y-3.5 text-xs">
+            <form onSubmit={handleReportIncident} className="space-y-3 text-xs">
               <div>
-                <label className="font-bold block text-slate-300 mb-1.5">
+                <label className="font-medium block text-slate-300 mb-1.5">
                   Motivo de la Novedad:
                 </label>
                 <div className="space-y-1.5">
@@ -1423,29 +1410,29 @@ export default function OperacionPage() {
                       key={reason}
                       type="button"
                       onClick={() => setIncidentReason(reason)}
-                      className={`w-full p-2.5 rounded-xl border text-left font-bold text-xs transition-all flex items-center justify-between ${
+                      className={`w-full p-2.5 rounded-xl border text-left font-medium text-xs transition-colors flex items-center justify-between ${
                         incidentReason === reason
-                          ? "bg-amber-500/20 border-amber-500 text-amber-300 font-black"
-                          : "bg-slate-800 border-slate-750 text-slate-300"
+                          ? "bg-slate-800 border-slate-600 text-slate-100"
+                          : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
                       }`}
                     >
                       <span>{reason}</span>
-                      {incidentReason === reason && <Check className="w-4 h-4 text-amber-400" />}
+                      {incidentReason === reason && <Check className="w-3.5 h-3.5 text-slate-300" />}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="font-bold block text-slate-300 mb-1">
-                  Detalle adicional para la central:
+                <label className="font-medium block text-slate-300 mb-1">
+                  Detalle adicional:
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Ej. El encargado dice que vuelve a las 2pm..."
+                  placeholder="Detalles sobre la novedad..."
                   value={incidentNote}
                   onChange={(e) => setIncidentNote(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-medium focus:outline-none focus:border-brand-500"
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-slate-600"
                 />
               </div>
 
@@ -1453,13 +1440,13 @@ export default function OperacionPage() {
                 <button
                   type="button"
                   onClick={() => setIncidentModalOrder(null)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold hover:bg-slate-700"
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-medium hover:bg-slate-750"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-black"
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-100 border border-slate-700 font-semibold"
                 >
                   Enviar Reporte
                 </button>
@@ -1471,15 +1458,15 @@ export default function OperacionPage() {
 
       {/* Modal 3: Cashout Summary for Driver */}
       {cashoutModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95 text-white">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-xl space-y-4 animate-in zoom-in-95 text-white">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-black">
-                  💵
+                <div className="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center border border-slate-700">
+                  <DollarSign className="w-4 h-4 text-slate-400" />
                 </div>
                 <div>
-                  <h3 className="font-black text-base text-white">
+                  <h3 className="font-bold text-sm text-slate-100">
                     Cuadre de Caja & Recaudo de Ruta
                   </h3>
                   <p className="text-[11px] text-slate-400">Liquidación final del turno de entrega</p>
@@ -1487,58 +1474,58 @@ export default function OperacionPage() {
               </div>
             </div>
 
-            <div className="space-y-2.5 text-xs">
-              <div className="p-3 bg-slate-850 rounded-2xl border border-slate-750 flex justify-between items-center">
+            <div className="space-y-2 text-xs">
+              <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
                 <div>
-                  <span className="text-slate-300 font-bold block">(+) Recaudo Facturas Efectivo:</span>
-                  <span className="text-[10px] text-emerald-400 font-bold">Cobrado de contado en ruta</span>
+                  <span className="text-slate-400 font-medium block">(+) Facturas en Efectivo:</span>
+                  <span className="text-[10px] text-slate-500">Cobrado de contado</span>
                 </div>
-                <strong className="text-emerald-400 font-black text-base">
+                <strong className="text-slate-100 font-mono font-semibold">
                   {priceService.formatCurrency(totalCashCollected)}
                 </strong>
               </div>
 
-              <div className="p-3 bg-slate-850 rounded-2xl border border-slate-750 flex justify-between items-center">
+              <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
                 <div>
-                  <span className="text-slate-300 font-bold block">(-) Gastos de Ruta (Gasolina/Peajes):</span>
-                  <span className="text-[10px] text-rose-400">{driverExpenses.length} recibos con foto</span>
+                  <span className="text-slate-400 font-medium block">(-) Gastos de Ruta:</span>
+                  <span className="text-[10px] text-slate-500">{driverExpenses.length} recibos registrados</span>
                 </div>
-                <strong className="text-rose-400 font-black text-base">
+                <strong className="text-rose-400 font-mono font-semibold">
                   -{priceService.formatCurrency(totalExpensesAmount)}
                 </strong>
               </div>
 
-              <div className="p-3.5 bg-emerald-950/40 rounded-2xl border-2 border-emerald-500/50 flex justify-between items-center shadow-lg">
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-700 flex justify-between items-center">
                 <div>
-                  <span className="text-emerald-300 font-black block text-xs uppercase">
-                    (=) EFECTIVO NETO A ENTREGAR EN PLANTA:
+                  <span className="text-slate-200 font-semibold block text-xs uppercase">
+                    (=) Efectivo Neto en Sobre:
                   </span>
-                  <span className="text-slate-400 text-[10px]">
-                    Dinero físico a entregar en sobre cerrado en bodega
+                  <span className="text-slate-500 text-[10px]">
+                    Dinero a entregar en planta
                   </span>
                 </div>
-                <strong className="text-emerald-300 font-black text-xl">
+                <strong className="text-emerald-400 font-mono font-bold text-base">
                   {priceService.formatCurrency(netCashInHand)}
                 </strong>
               </div>
 
               {(totalBankCollected > 0 || totalCreditCollected > 0) && (
-                <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 space-y-1.5 text-[11px]">
-                  <span className="text-slate-400 font-bold block">Otras Formas de Liquidación de Clientes:</span>
+                <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-[11px]">
+                  <span className="text-slate-500 font-medium block">Otras Formas de Liquidación:</span>
                   <div className="flex justify-between items-center">
-                    <span className="text-cyan-300 font-bold">🏦 Pagos Banco / QR:</span>
-                    <strong className="text-cyan-300 font-black">{priceService.formatCurrency(totalBankCollected)}</strong>
+                    <span className="text-slate-400">Pagos Banco / QR:</span>
+                    <strong className="text-slate-200 font-mono">{priceService.formatCurrency(totalBankCollected)}</strong>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-amber-300 font-bold">📝 Facturas a Crédito:</span>
-                    <strong className="text-amber-300 font-black">{priceService.formatCurrency(totalCreditCollected)}</strong>
+                    <span className="text-slate-400">Facturas a Crédito:</span>
+                    <strong className="text-slate-200 font-mono">{priceService.formatCurrency(totalCreditCollected)}</strong>
                   </div>
                 </div>
               )}
 
-              <div className="p-3 bg-slate-850 rounded-2xl border border-slate-750 flex justify-between items-center">
-                <span className="text-slate-400">Saldo Pendiente por Cobrar en Calle:</span>
-                <strong className="text-amber-400 font-black text-base">
+              <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
+                <span className="text-slate-400">Saldo Pendiente en Calle:</span>
+                <strong className="text-amber-400 font-mono font-semibold">
                   {priceService.formatCurrency(totalCashToCollect)}
                 </strong>
               </div>
@@ -1548,9 +1535,9 @@ export default function OperacionPage() {
               <button
                 type="button"
                 onClick={() => setCashoutModalOpen(false)}
-                className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-xs shadow-md"
+                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold text-xs border border-slate-700 transition-colors"
               >
-                Cerrar Resumen de Cuadre
+                Cerrar Cuadre
               </button>
             </div>
           </div>
@@ -1559,51 +1546,51 @@ export default function OperacionPage() {
 
       {/* Modal 4: Capture Driver Expense with Camera & Receipt Photo */}
       {expenseModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95 text-white max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-xl space-y-4 animate-in zoom-in-95 text-white max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-                  <Camera className="w-5 h-5" />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center border border-slate-700">
+                  <Camera className="w-4 h-4 text-slate-400" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full">
-                    Gasto Operativo de Ruta
+                  <span className="text-[10px] font-semibold uppercase text-slate-400">
+                    Gasto de Ruta
                   </span>
-                  <h3 className="font-black text-base sm:text-lg text-white mt-0.5">
+                  <h3 className="font-bold text-sm text-slate-100 mt-0.5">
                     Registrar Recibo / Combustible
                   </h3>
                 </div>
               </div>
             </div>
 
-            <form onSubmit={handleSaveExpense} className="space-y-3.5 text-xs">
+            <form onSubmit={handleSaveExpense} className="space-y-3 text-xs">
               {/* Category */}
               <div>
-                <label className="font-bold block text-slate-300 mb-1.5">
-                  1. Tipo de Gasto de Ruta:
+                <label className="font-medium block text-slate-300 mb-1.5">
+                  1. Tipo de Gasto:
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
-                    { id: "combustible", label: "⛽ Combustible / ACPM" },
+                    { id: "combustible", label: "⛽ Combustible" },
                     { id: "peajes", label: "🛣️ Peajes" },
                     { id: "parqueadero", label: "🅿️ Parqueadero" },
-                    { id: "mantenimiento", label: "🔧 Mantenimiento / Taller" },
-                    { id: "viaticos", label: "🍽️ Viáticos / Alimentación" },
-                    { id: "otros", label: "📦 Otros Gastos" },
+                    { id: "mantenimiento", label: "🔧 Taller" },
+                    { id: "viaticos", label: "🍽️ Alimentación" },
+                    { id: "otros", label: "📦 Otros" },
                   ].map((cat) => (
                     <button
                       key={cat.id}
                       type="button"
                       onClick={() => setExpenseCategory(cat.id as DriverExpense["category"])}
-                      className={`p-2 rounded-xl border text-left font-bold text-[11px] transition-all flex items-center justify-between ${
+                      className={`p-2 rounded-xl border text-left font-medium text-[11px] transition-colors flex items-center justify-between ${
                         expenseCategory === cat.id
-                          ? "bg-amber-600/30 border-amber-500 text-amber-300 font-black shadow-sm"
-                          : "bg-slate-800 border-slate-750 text-slate-300 hover:bg-slate-750"
+                          ? "bg-slate-800 border-slate-600 text-slate-100"
+                          : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
                       }`}
                     >
                       <span className="truncate">{cat.label}</span>
-                      {expenseCategory === cat.id && <Check className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
+                      {expenseCategory === cat.id && <Check className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" />}
                     </button>
                   ))}
                 </div>
@@ -1611,8 +1598,8 @@ export default function OperacionPage() {
 
               {/* Amount */}
               <div>
-                <label className="font-bold block text-slate-300 mb-1">
-                  2. Valor Total del Gasto: *
+                <label className="font-medium block text-slate-300 mb-1">
+                  2. Valor del Gasto: *
                 </label>
                 <div className="relative">
                   <input
@@ -1622,21 +1609,21 @@ export default function OperacionPage() {
                     required
                     value={expenseAmount}
                     onChange={(e) => setExpenseAmount(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-800 border-2 border-amber-500/50 focus:border-amber-500 rounded-xl px-4 py-3 text-lg text-white font-black focus:outline-none"
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono font-semibold focus:outline-none"
                   />
-                  <span className="absolute right-3.5 top-3 text-xs text-amber-400 font-extrabold pointer-events-none">
+                  <span className="absolute right-3 top-2 text-xs text-slate-500 font-mono pointer-events-none">
                     COP
                   </span>
                 </div>
 
                 {/* Quick amount pills */}
-                <div className="grid grid-cols-4 gap-1.5 mt-2">
+                <div className="grid grid-cols-4 gap-1.5 mt-1.5">
                   {[20000, 50000, 100000, 150000].map((val) => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => setExpenseAmount(val)}
-                      className="py-1 px-2 bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold text-[10px] rounded-lg border border-slate-700"
+                      className="py-1 px-2 bg-slate-950 hover:bg-slate-850 text-slate-400 font-mono text-[10px] rounded-lg border border-slate-800"
                     >
                       ${val / 1000}k
                     </button>
@@ -1646,20 +1633,19 @@ export default function OperacionPage() {
 
               {/* Camera Trigger & Photo Upload */}
               <div className="space-y-1.5">
-                <label className="font-bold block text-slate-300 mb-1 flex items-center justify-between">
-                  <span>3. Foto del Recibo / Tirilla Física: *</span>
+                <label className="font-medium block text-slate-300 mb-1 flex items-center justify-between">
+                  <span>3. Foto del Recibo: *</span>
                   {expenseReceiptPhoto && (
                     <button
                       type="button"
                       onClick={() => setExpenseReceiptPhoto("")}
-                      className="text-[10px] text-rose-400 font-bold"
+                      className="text-[10px] text-slate-500 hover:text-rose-400"
                     >
                       Borrar foto
                     </button>
                   )}
                 </label>
 
-                {/* Hidden input for direct camera access */}
                 <input
                   type="file"
                   accept="image/*"
@@ -1670,67 +1656,54 @@ export default function OperacionPage() {
                 />
 
                 {expenseReceiptPhoto ? (
-                  <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500 bg-slate-950 max-h-48 flex items-center justify-center">
+                  <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950 max-h-40 flex items-center justify-center">
                     <img
                       src={expenseReceiptPhoto}
-                      alt="Foto de Recibo"
-                      className="w-full h-44 object-contain"
+                      alt="Recibo"
+                      className="w-full h-36 object-contain"
                     />
-                    <span className="absolute bottom-2 right-2 bg-emerald-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-                      <Check className="w-3 h-3" />
-                      <span>Foto Capturada</span>
-                    </span>
                   </div>
                 ) : (
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-4 px-4 rounded-2xl border-2 border-dashed border-amber-500/50 hover:border-amber-400 bg-amber-950/20 hover:bg-amber-950/40 text-amber-300 transition-all flex flex-col items-center justify-center gap-2 group active:scale-98"
+                    className="w-full py-3 px-4 rounded-xl border border-dashed border-slate-800 hover:border-slate-700 bg-slate-950 text-slate-400 transition-colors flex items-center justify-center gap-2"
                   >
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/20 group-hover:bg-amber-500/30 flex items-center justify-center text-amber-400 transition-colors">
-                      <Camera className="w-6 h-6" />
-                    </div>
-                    <div className="text-center">
-                      <p className="font-black text-xs sm:text-sm text-white">
-                        TOCAR AQUÍ PARA ABRIR LA CÁMARA 📸
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        Toma la foto clara de la tirilla de gasolina o peaje
-                      </p>
-                    </div>
+                    <Camera className="w-4 h-4 text-slate-500" />
+                    <span className="text-xs font-medium text-slate-300">Tomar foto de recibo</span>
                   </button>
                 )}
               </div>
 
               {/* Description */}
               <div>
-                <label className="font-bold block text-slate-300 mb-1">
-                  4. Descripción / Observación:
+                <label className="font-medium block text-slate-300 mb-1">
+                  4. Descripción:
                 </label>
                 <input
                   type="text"
                   value={expenseDesc}
                   onChange={(e) => setExpenseDesc(e.target.value)}
-                  placeholder="Ej. Tanqueada ACPM Estación El Sol..."
-                  className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-brand-500"
+                  placeholder="Ej. Tanqueada ACPM Estación..."
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-slate-600"
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setExpenseModalOpen(false)}
-                  className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 font-medium"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-black text-sm shadow-xl flex items-center justify-center gap-2"
+                  className="flex-1 py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-100 border border-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span>GUARDAR RECIBO DE GASTO</span>
+                  <CheckCircle2 className="w-4 h-4 text-slate-300" />
+                  <span>Guardar Recibo</span>
                 </button>
               </div>
             </form>
@@ -1740,45 +1713,43 @@ export default function OperacionPage() {
 
       {/* Modal 5: View Captured Receipt Photo */}
       {viewReceiptModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 animate-in zoom-in-95 text-white">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-xl space-y-3 animate-in zoom-in-95 text-white">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
               <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                    {viewReceiptModal.category === "combustible" ? "⛽ COMBUSTIBLE" : viewReceiptModal.category === "peajes" ? "🛣️ PEAJE" : "📦 GASTO DE RUTA"}
-                  </span>
-                </div>
-                <h4 className="font-black text-sm text-white">{viewReceiptModal.description}</h4>
-                <p className="text-xs text-amber-400 font-extrabold">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded uppercase bg-slate-800 text-slate-300 border border-slate-700">
+                  {viewReceiptModal.category === "combustible" ? "Combustible" : viewReceiptModal.category === "peajes" ? "Peaje" : "Gasto de Ruta"}
+                </span>
+                <h4 className="font-semibold text-sm text-slate-100 mt-1">{viewReceiptModal.description}</h4>
+                <p className="text-xs font-mono text-slate-300">
                   {priceService.formatCurrency(viewReceiptModal.amount)} • {new Date(viewReceiptModal.createdAt).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
               <button
                 onClick={() => setViewReceiptModal(null)}
-                className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-black"
+                className="p-1 bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-slate-200 rounded-lg text-xs"
               >
                 ✕
               </button>
             </div>
 
             {viewReceiptModal.receiptPhoto ? (
-              <div className="rounded-2xl overflow-hidden bg-black p-1 border border-slate-800 max-h-96 flex items-center justify-center">
+              <div className="rounded-xl overflow-hidden bg-black p-1 border border-slate-800 max-h-80 flex items-center justify-center">
                 <img
                   src={viewReceiptModal.receiptPhoto}
                   alt="Comprobante"
-                  className="w-full h-auto max-h-80 object-contain rounded-xl"
+                  className="w-full h-auto max-h-72 object-contain rounded-lg"
                 />
               </div>
             ) : (
-              <div className="p-8 text-center bg-slate-850 rounded-2xl border border-slate-800 text-slate-400 text-xs font-bold">
+              <div className="p-6 text-center bg-slate-950 rounded-xl border border-slate-800 text-slate-500 text-xs">
                 No se adjuntó fotografía física para este recibo.
               </div>
             )}
 
             <button
               onClick={() => setViewReceiptModal(null)}
-              className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-xs"
+              className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold text-xs border border-slate-700 transition-colors"
             >
               Cerrar Vista
             </button>
