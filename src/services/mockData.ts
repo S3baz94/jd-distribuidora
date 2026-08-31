@@ -13,6 +13,26 @@ export const DEMO_COMPANY = {
 
 export const INITIAL_CUSTOMERS: Customer[] = [
   {
+    id: "cust-nuevo",
+    companyId: "dist-001",
+    businessName: "Nuevo Cliente B2B (Primer Pedido)",
+    contactName: "Cliente Nuevo",
+    nit: "901.999.888-0",
+    phone: "320 123 4567",
+    email: "cliente.nuevo@gmail.com",
+    address: "Calle 72 # 11-45, Chapinero",
+    city: "Bogotá D.C.",
+    zone: "Zona Centro & Chapinero (Galerías)",
+    lat: 4.6560,
+    lng: -74.0600,
+    priceListId: "list-famas-a",
+    assignedPriceListName: "Tarifa Institucional JD - Nivel A",
+    status: "active",
+    paymentTerms: "Contado contra entrega / Transferencia",
+    minOrderAmount: 300000,
+    deliveryDays: "Lunes a Sábado",
+  },
+  {
     id: "cust-carlos",
     companyId: "dist-001",
     businessName: "Salsamentaria Carlos",

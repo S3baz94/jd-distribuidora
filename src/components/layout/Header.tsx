@@ -21,6 +21,8 @@ export const Header: React.FC = () => {
   const pathname = usePathname();
   const {
     customer,
+    allCustomers,
+    switchCustomer,
     cartTotal,
     cartKg,
     cartItemsCount,
@@ -93,23 +95,27 @@ export const Header: React.FC = () => {
 
         {/* Right side: Client Business Badge & Cart Button */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Customer info pill */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-left text-xs">
-            <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-            <div className="hidden sm:block">
-              <p className="font-semibold text-slate-200 leading-none truncate max-w-[130px]">
-                {customer.businessName}
-              </p>
-              <p className="text-[10px] text-slate-400 leading-none mt-0.5">
-                {customer.assignedPriceListName || customer.contactName}
-              </p>
-            </div>
+          {/* Customer info selector */}
+          <div className="relative">
+            <select
+              value={customer.id}
+              onChange={(e) => switchCustomer(e.target.value)}
+              className="bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-slate-700 cursor-pointer max-w-[170px] sm:max-w-[220px] truncate"
+              title="Cambiar cliente o probar como Cliente Nuevo"
+            >
+              {allCustomers.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.id === "cust-nuevo" ? "🆕 " : "🏪 "}
+                  {c.businessName}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Cart Button */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-semibold shadow-sm transition-all relative"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-semibold shadow-sm transition-all relative flex-shrink-0"
             title="Ver pedido actual"
           >
             <ShoppingBag className="w-4 h-4 text-slate-300" />

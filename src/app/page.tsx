@@ -26,6 +26,8 @@ import {
 export default function HomePage() {
   const {
     customer,
+    allCustomers,
+    switchCustomer,
     activeOrder,
     lastOrder,
     products,
@@ -46,6 +48,8 @@ export default function HomePage() {
   const [isRepeatModalOpen, setIsRepeatModalOpen] = useState(false);
   const [isRepeating, setIsRepeating] = useState(false);
   const [quickQtys, setQuickQtys] = useState<Record<string, number>>({});
+
+  const isNewCustomer = customer.id === "cust-nuevo";
 
   // Filter products by selected brand and search query
   const filteredProducts = useMemo(() => {
@@ -86,7 +90,7 @@ export default function HomePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 space-y-5 pb-28">
-      {/* 1. Header con Colores Vivos y Glassmorphism */}
+      {/* 1. Header con Colores Vivos y Selector de Cliente */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 text-white rounded-3xl p-5 md:p-6 shadow-2xl border border-slate-800 space-y-3.5 glow-emerald-card">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -97,23 +101,42 @@ export default function HomePage() {
               JD & Gourmet Ahumados
             </span>
           </div>
-          <span className="text-emerald-400 font-black text-xs flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Stock en Frío Disponible</span>
-          </span>
+
+          <div className="flex items-center gap-2">
+            {isNewCustomer ? (
+              <button
+                type="button"
+                onClick={() => switchCustomer("cust-carlos")}
+                className="text-[11px] bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold px-3 py-1 rounded-full border border-slate-700 transition-colors"
+                title="Cambiar a cliente con historial"
+              >
+                🔄 Ver como Cliente Recurrente
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => switchCustomer("cust-nuevo")}
+                className="text-[11px] bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 font-bold px-3 py-1 rounded-full border border-emerald-700/60 transition-colors flex items-center gap-1.5"
+                title="Probar experiencia limpia sin pedidos previos"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>🆕 Probar como Cliente Nuevo</span>
+              </button>
+            )}
+          </div>
         </div>
 
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-white leading-tight">
-            Hola, {customer.contactName.split(" ")[0]} 👋 ({customer.businessName})
+            Hola, {customer.contactName.split(" ")[0]} 👋 <span className="text-slate-300 font-bold">({customer.businessName})</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
             Cortes en canal, piezas despostadas y costillas ahumadas con entrega directa en tu local.
           </p>
         </div>
 
-        {/* Dirección de Entrega */}
-        <div className="bg-slate-950/80 rounded-2xl p-3 border border-slate-800 flex items-center justify-between gap-3 text-xs">
+        {/* Dirección de Entrega & Acceso a Perfil */}
+        <div className="bg-slate-950/80 rounded-2xl p-3 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center text-sm font-black border border-emerald-500/30 flex-shrink-0">
               📍
@@ -128,17 +151,45 @@ export default function HomePage() {
             </div>
           </div>
 
-          <Link
-            href="/pedidos"
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs whitespace-nowrap flex-shrink-0 transition-colors border border-slate-700 active:scale-95 flex items-center gap-1.5"
-          >
-            <Package className="w-3.5 h-3.5 text-amber-400" />
-            <span>Mis Pedidos</span>
-          </Link>
+          <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+            <Link
+              href="/cuenta"
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs whitespace-nowrap transition-colors border border-slate-700"
+            >
+              Editar Datos
+            </Link>
+            <Link
+              href="/pedidos"
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs whitespace-nowrap transition-colors border border-slate-700 flex items-center gap-1.5"
+            >
+              <Package className="w-3.5 h-3.5 text-amber-400" />
+              <span>Mis Pedidos</span>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* 2. Pedido Activo en Camino (Si existe) */}
+      {/* 2. Onboarding Banner para Cliente Nuevo */}
+      {isNewCustomer && (
+        <div className="bg-gradient-to-br from-emerald-950/70 via-slate-900 to-slate-900 border-2 border-emerald-500/40 rounded-3xl p-4 sm:p-5 shadow-xl text-white space-y-2 glow-emerald-card animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">🎉</span>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                Primer Pedido
+              </span>
+              <h2 className="text-base sm:text-lg font-black text-white mt-0.5">
+                ¡Bienvenido a JD Distribuidora & Gourmet Ahumados!
+              </h2>
+            </div>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-300 font-medium">
+            Estás listo para realizar tu primer pedido. Explora abajo los cortes frescos de cerdo o las costillas ahumadas al leño, selecciona los kilos que necesitas y confírmalo para despacho en furgón refrigerado.
+          </p>
+        </div>
+      )}
+
+      {/* 3. Pedido Activo en Camino (Si existe) */}
       {activeOrder && (
         <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border-2 border-emerald-500/50 rounded-3xl p-4 sm:p-5 shadow-2xl space-y-3 glow-emerald-card text-white">
           <div className="flex items-center justify-between">
