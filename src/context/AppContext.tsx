@@ -30,6 +30,7 @@ import { soundService } from "@/services/soundService";
 import { INITIAL_EXPENSES } from "@/services/serverState";
 import { BillingService, DEFAULT_BILLING_SETTINGS } from "@/services/billingService";
 import { LicenseService, DEFAULT_LICENSE_CONFIG } from "@/services/licenseService";
+import { autoAssignOrdersToRoutes } from "@/services/routeOptimizer";
 
 interface ToastInfo {
   id: string;
@@ -108,6 +109,7 @@ interface AppContextType {
     details: { driverName?: string; driverPhone?: string; sealNumber?: string; internalNotes?: string }
   ) => void;
   assignOrderToRoute: (orderId: string, routeId: string, stopOrder?: number) => void;
+  autoAssignRoutes: () => { totalAssigned: number; routesCount: number };
   updateRouteStatus: (routeId: string, status: "planned" | "in_transit" | "completed") => void;
   createRoute: (newRoute: DeliveryRoute) => void;
   addInventoryBatch: (productId: string, addedKg: number, note?: string) => void;
@@ -533,13 +535,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updatedAllOrders = orderService.getAllOrders();
 
     setInventory(updatedInv);
-    setAllOrders(updatedAllOrders);
-    setOrders((prev) => [newOrder, ...prev]);
     clearCart();
 
-    sendSyncAction("CREATE_ORDER", { order: newOrder });
+    // Trigger automatic route assignment (max 5 stops per zone)
+    const optResult = autoAssignOrdersToRoutes([newOrder, ...allOrders], routes, allCustomers);
+    setAllOrders(optResult.updatedOrders);
+    setOrders(optResult.updatedOrders.filter((o) => o.customerId === customer.id));
+    orderService.saveOrders(optResult.updatedOrders);
+    setRoutes(optResult.updatedRoutes);
+    routeService.saveRoutes(optResult.updatedRoutes);
 
-    showToast(`¡Pedido ${newOrder.orderNumber} registrado con éxito!`, "success");
+    sendSyncAction("CREATE_ORDER", { order: newOrder, routes: optResult.updatedRoutes });
+
+    showToast(`¡Pedido ${newOrder.orderNumber} registrado y asignado a ruta automática!`, "success");
     return newOrder;
   };
 
@@ -709,6 +717,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     showToast(`Pedido asignado a ${targetRoute.name} (${targetRoute.driverName})`, "success");
+  };
+
+  const autoAssignRoutes = () => {
+    const optResult = autoAssignOrdersToRoutes(allOrders, routes, allCustomers);
+    setAllOrders(optResult.updatedOrders);
+    setOrders(optResult.updatedOrders.filter((o) => o.customerId === customer.id));
+    orderService.saveOrders(optResult.updatedOrders);
+
+    setRoutes(optResult.updatedRoutes);
+    routeService.saveRoutes(optResult.updatedRoutes);
+
+    sendSyncAction("AUTO_ASSIGN_ROUTES", {
+      orders: optResult.updatedOrders,
+      routes: optResult.updatedRoutes,
+    });
+
+    showToast(
+      `⚡ ${optResult.stats.totalOrdersAssigned} pedidos asignados automáticamente en ${optResult.stats.totalRoutesCreatedOrUpdated} furgones (Máx. 5 paradas por ruta).`,
+      "success"
+    );
+
+    return {
+      totalAssigned: optResult.stats.totalOrdersAssigned,
+      routesCount: optResult.stats.totalRoutesCreatedOrUpdated,
+    };
   };
 
   const updateRouteStatus = (routeId: string, status: "planned" | "in_transit" | "completed") => {
@@ -1009,6 +1042,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         adjustOrderRealWeight,
         updateOrderDispatch,
         assignOrderToRoute,
+        autoAssignRoutes,
         updateRouteStatus,
         createRoute,
         addInventoryBatch,

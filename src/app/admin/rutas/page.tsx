@@ -28,6 +28,7 @@ export default function AdminRutasPage() {
     allOrders,
     routes,
     assignOrderToRoute,
+    autoAssignRoutes,
     createRoute,
     showToast,
   } = useApp();
@@ -40,6 +41,7 @@ export default function AdminRutasPage() {
   const [newDriverPhone, setNewDriverPhone] = useState("");
   const [newVehiclePlate, setNewVehiclePlate] = useState("");
   const [newDepartureTime, setNewDepartureTime] = useState("07:00 AM");
+  const [isAutoAssigning, setIsAutoAssigning] = useState(false);
 
   // Filter orders for active logistics
   const unassignedOrders = allOrders.filter(
@@ -55,6 +57,14 @@ export default function AdminRutasPage() {
     return allOrders.filter(
       (o) => o.routeId === route.id || route.orderIds.includes(o.id)
     );
+  };
+
+  const handleRunAutoAssign = () => {
+    setIsAutoAssigning(true);
+    setTimeout(() => {
+      const res = autoAssignRoutes();
+      setIsAutoAssigning(false);
+    }, 400);
   };
 
   const handleCreateRoute = (e: React.FormEvent) => {
@@ -116,6 +126,16 @@ export default function AdminRutasPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={handleRunAutoAssign}
+            disabled={isAutoAssigning}
+            className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95 border border-emerald-400/50"
+            title="Asigna automáticamente todas las órdenes a rutas de máx. 5 paradas por zona"
+          >
+            <span className="text-base">⚡</span>
+            <span>{isAutoAssigning ? "Optimizando..." : "Auto-Asignar Rutas (Máx. 5 Paradas)"}</span>
+          </button>
+
           <Link
             href="/admin/movimientos"
             className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-750 text-amber-300 font-black text-xs sm:text-sm flex items-center gap-2 border border-amber-500/40 shadow-lg transition-all active:scale-95"
@@ -127,9 +147,22 @@ export default function AdminRutasPage() {
             className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-cyan-950/40 transition-all active:scale-95 border border-cyan-400/30"
           >
             <Plus className="w-4 h-4" />
-            <span>Planificar Nueva Ruta</span>
+            <span>Nueva Ruta Manual</span>
           </button>
         </div>
+      </div>
+
+      {/* Regla de Oro / Capacidad Logística Banner */}
+      <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-base">🛡️</span>
+          <span className="text-slate-300 font-bold">
+            Política Logística JD: <strong className="text-white">Máximo 5 paradas por furgón refrigerado</strong> agrupadas por zona geográfica y cercanía para preservar la cadena de frío (0°C a 4°C).
+          </span>
+        </div>
+        <span className="text-[11px] font-mono text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-full border border-cyan-500/20 font-extrabold flex-shrink-0">
+          🛰️ Auto-Enrutamiento Activo
+        </span>
       </div>
 
       {/* Live Fleet Monitoring KPI Cards (Matching Slide 3) */}
@@ -201,9 +234,13 @@ export default function AdminRutasPage() {
                 <p className="font-black text-xs sm:text-sm text-white">
                   {route.name}
                 </p>
-                <p className="text-[11px] text-slate-400">
-                  {route.driverName} • <strong className="text-brand-300">{orderCount} paradas</strong>
-                </p>
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                  <span>{route.driverName}</span>
+                  <span>•</span>
+                  <span className={`px-1.5 py-0.2 rounded font-mono font-bold ${orderCount >= 5 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"}`}>
+                    {orderCount} / 5 paradas
+                  </span>
+                </div>
               </div>
             </button>
           );
