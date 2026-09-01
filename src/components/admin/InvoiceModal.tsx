@@ -269,12 +269,12 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
 
               {/* Footer Legal & Agradecimiento */}
               <div className="pt-3 text-center space-y-1 text-[8px] text-gray-600 leading-tight">
-                <p>Res. DIAN N° {settings.resolutionNumber} del {settings.resolutionDate}</p>
-                <p>Habilitación Rango: {settings.prefix} {settings.fromNumber} a {settings.prefix} {settings.toNumber}</p>
+                <p className="font-bold text-gray-800 uppercase tracking-wide">DOCUMENTO COMERCIAL DE VENTA & REMISIÓN DE DESPACHO</p>
+                <p>Carnes de cerdo frescas crudas exentas de IVA según Art. 477 del Estatuto Tributario.</p>
                 <p className="pt-1 text-[9px] font-bold text-gray-800">{settings.posFooterNote}</p>
-                <div className="pt-4 text-center">
-                  <p className="font-mono tracking-widest text-[9px] font-bold">*** JD DISTRIBUIDORA ***</p>
-                  <p className="text-[7px] text-gray-400">Software Autorizado por Sebastián</p>
+                <div className="pt-3 text-center border-t border-dashed border-gray-300 mt-2">
+                  <p className="font-mono tracking-widest text-[9px] font-bold text-black">*** JD DISTRIBUIDORA & GOURMET AHUMADOS ***</p>
+                  <p className="text-[8px] text-gray-600">Línea de Atención & Pedidos: +57 323 321 8831</p>
                 </div>
               </div>
             </div>
