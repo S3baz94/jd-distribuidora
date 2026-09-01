@@ -62,6 +62,7 @@ export default function FacturacionPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | InvoiceStatus | "devolucion">("all");
   const [paymentFilter, setPaymentFilter] = useState<"all" | InvoicePaymentType>("all");
+  const [brandFilter, setBrandFilter] = useState<"all" | "jd_distribuidora" | "gourmet_ahumados">("all");
 
   // Refund / Devolución State
   const [refundInvoice, setRefundInvoice] = useState<Invoice | null>(null);
@@ -71,6 +72,7 @@ export default function FacturacionPage() {
   const [bankEntity, setBankEntity] = useState<string>("Bancolombia (QR / Transferencia)");
 
   // New Invoice Form State
+  const [invoiceBrand, setInvoiceBrand] = useState<"jd_distribuidora" | "gourmet_ahumados">("jd_distribuidora");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("c1");
   const [isCounterSale, setIsCounterSale] = useState(false);
   const [counterCustomerName, setCounterCustomerName] = useState("Cliente Mostrador / Planta");
@@ -92,8 +94,18 @@ export default function FacturacionPage() {
 
   // Financial Metrics
   const metrics = useMemo(() => {
-    const totalFacturado = invoices
-      .filter((i) => i.status !== "anulada" && i.status !== "devuelta_total")
+    const activeInvoices = invoices.filter(
+      (i) => i.status !== "anulada" && i.status !== "devuelta_total"
+    );
+
+    const totalFacturado = activeInvoices.reduce((sum, i) => sum + i.total, 0);
+
+    const facturadoJD = activeInvoices
+      .filter((i) => (i.brand || "jd_distribuidora") === "jd_distribuidora")
+      .reduce((sum, i) => sum + i.total, 0);
+
+    const facturadoGourmet = activeInvoices
+      .filter((i) => i.brand === "gourmet_ahumados")
       .reduce((sum, i) => sum + i.total, 0);
 
     const totalEfectivo = invoices
@@ -108,12 +120,12 @@ export default function FacturacionPage() {
       .filter((i) => i.status === "pendiente" || i.paymentType === "credito")
       .reduce((sum, i) => sum + (i.paymentDetails.creditAmount || i.total), 0);
 
-    const totalKilos = invoices
-      .filter((i) => i.status !== "anulada" && i.status !== "devuelta_total")
-      .reduce((sum, i) => sum + i.totalKg, 0);
+    const totalKilos = activeInvoices.reduce((sum, i) => sum + i.totalKg, 0);
 
     return {
       totalFacturado,
+      facturadoJD,
+      facturadoGourmet,
       totalEfectivo,
       totalBanco,
       totalCarteraCredito,
@@ -125,6 +137,9 @@ export default function FacturacionPage() {
   // Filtered Invoices
   const filteredInvoices = useMemo(() => {
     return invoices.filter((inv) => {
+      const matchesBrand =
+        brandFilter === "all" || (inv.brand || "jd_distribuidora") === brandFilter;
+
       const matchesSearch =
         inv.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
         inv.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -138,9 +153,9 @@ export default function FacturacionPage() {
 
       const matchesPayment = paymentFilter === "all" || inv.paymentType === paymentFilter;
 
-      return matchesSearch && matchesStatus && matchesPayment;
+      return matchesBrand && matchesSearch && matchesStatus && matchesPayment;
     });
-  }, [invoices, searchQuery, statusFilter, paymentFilter]);
+  }, [invoices, brandFilter, searchQuery, statusFilter, paymentFilter]);
 
   // Active customer for form
   const currentCustomer = useMemo(() => {
@@ -222,6 +237,7 @@ export default function FacturacionPage() {
         : undefined;
 
     const newInv = createInvoice({
+      brand: invoiceBrand,
       customerId: isCounterSale ? "counter" : currentCustomer.id,
       customerName: isCounterSale ? counterCustomerName : currentCustomer.businessName,
       customerNit: isCounterSale ? counterCustomerNit : currentCustomer.nit,
@@ -339,26 +355,26 @@ export default function FacturacionPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
+      {/* Top Header with Corporate Separation */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl relative overflow-hidden">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-brand-600/20 text-brand-400 flex items-center justify-center border border-brand-500/30 flex-shrink-0">
             <Receipt className="w-7 h-7" />
           </div>
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span className="text-[10px] font-black uppercase tracking-wider text-brand-300 bg-brand-500/20 px-2.5 py-0.5 rounded-full border border-brand-500/30">
-                SISTEMA POS & FACTURACIÓN CÁRNICA
+                SISTEMA POS & FACTURACIÓN COMERCIAL
               </span>
               <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                {billingSettings.prefix} {billingSettings.currentNumber}
+                2 Empresas Independientes (JD & Gourmet)
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-white">
               Facturación & Cuentas por Cobrar
             </h1>
             <p className="text-xs text-slate-400">
-              Emisión de facturas por kilos, tirillas térmicas POS (80mm), arqueo y control de cartera.
+              Emisión de facturas separadas por empresa con NIT, consecutivos independientes (FAC-JD y FAC-GA) y libro contable.
             </p>
           </div>
         </div>
@@ -366,10 +382,14 @@ export default function FacturacionPage() {
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={exportInvoicesCSV}
+            onClick={() => exportInvoicesCSV(brandFilter)}
             className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-2 border border-slate-700 transition-all"
+            title="Exporta el libro de ventas en formato CSV para contabilidad"
           >
-            <Download className="w-4 h-4 text-emerald-400" /> Exportar Libro (.CSV)
+            <Download className="w-4 h-4 text-emerald-400" />
+            <span>
+              Exportar {brandFilter === "jd_distribuidora" ? "JD" : brandFilter === "gourmet_ahumados" ? "Gourmet" : "Consolidado"} (.CSV)
+            </span>
           </button>
 
           <button
@@ -381,20 +401,79 @@ export default function FacturacionPage() {
         </div>
       </div>
 
+      {/* Selector de Empresa Emisora (Facturación Separada) */}
+      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl">
+        <button
+          onClick={() => setBrandFilter("all")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+            brandFilter === "all"
+              ? "bg-slate-800 text-white shadow-md border border-slate-700"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <Building2 className="w-4 h-4 text-slate-400" />
+          <span>Consolidado Grupo ({invoices.length} Facturas)</span>
+        </button>
+
+        <button
+          onClick={() => setBrandFilter("jd_distribuidora")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+            brandFilter === "jd_distribuidora"
+              ? "bg-rose-700 text-white shadow-lg shadow-rose-950/50 border border-rose-500/50"
+              : "text-slate-400 hover:text-rose-300"
+          }`}
+        >
+          <span className="text-base">🥩</span>
+          <div className="text-left">
+            <span className="block leading-tight font-extrabold">JD DISTRIBUIDORA S.A.S.</span>
+            <span className="text-[10px] opacity-80 font-mono">NIT: 901.684.219-3 • FAC-JD (Crudos)</span>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setBrandFilter("gourmet_ahumados")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+            brandFilter === "gourmet_ahumados"
+              ? "bg-amber-600 text-white shadow-lg shadow-amber-950/50 border border-amber-400/50"
+              : "text-slate-400 hover:text-amber-300"
+          }`}
+        >
+          <span className="text-base">🔥</span>
+          <div className="text-left">
+            <span className="block leading-tight font-extrabold">GOURMET AHUMADOS S.A.S.</span>
+            <span className="text-[10px] opacity-80 font-mono">NIT: 901.792.845-1 • FAC-GA (Ahumados)</span>
+          </div>
+        </button>
+      </div>
+
       {/* Financial Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Facturado */}
         <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span>Total Facturado:</span>
+            <span>
+              {brandFilter === "jd_distribuidora"
+                ? "Total JD Distribuidora:"
+                : brandFilter === "gourmet_ahumados"
+                ? "Total Gourmet Ahumados:"
+                : "Total Facturado Grupo:"}
+            </span>
             <TrendingUp className="w-4 h-4 text-brand-400" />
           </div>
           <p className="text-xl sm:text-2xl font-black text-white font-mono">
-            ${metrics.totalFacturado.toLocaleString()}
+            $
+            {(brandFilter === "jd_distribuidora"
+              ? metrics.facturadoJD
+              : brandFilter === "gourmet_ahumados"
+              ? metrics.facturadoGourmet
+              : metrics.totalFacturado
+            ).toLocaleString()}
           </p>
-          <p className="text-[11px] text-slate-400 mt-1">
-            {metrics.totalKilos.toFixed(1)} kg despachados
-          </p>
+          <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
+            <span>🥩 JD: ${metrics.facturadoJD.toLocaleString()}</span>
+            <span>•</span>
+            <span>🔥 GA: ${metrics.facturadoGourmet.toLocaleString()}</span>
+          </div>
         </div>
 
         {/* Recaudo Efectivo */}
@@ -530,7 +609,18 @@ export default function FacturacionPage() {
                 filteredInvoices.map((inv) => (
                   <tr key={inv.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="p-3.5">
-                      <div className="font-mono font-bold text-white text-xs">{inv.number}</div>
+                      <div className="font-mono font-bold text-white text-xs flex items-center gap-1.5">
+                        <span>{inv.number}</span>
+                        {inv.brand === "gourmet_ahumados" ? (
+                          <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30 font-bold">
+                            🔥 Gourmet
+                          </span>
+                        ) : (
+                          <span className="text-[9px] bg-rose-500/20 text-rose-300 px-1.5 py-0.2 rounded border border-rose-500/30 font-bold">
+                            🥩 JD
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[10px] text-slate-500 uppercase">{inv.origin}</span>
                     </td>
                     <td className="p-3.5 text-slate-300">
@@ -679,11 +769,63 @@ export default function FacturacionPage() {
 
             {/* Form Content */}
             <form onSubmit={handleIssueInvoice} className="flex-1 overflow-y-auto py-4 space-y-5">
-              {/* 1. Cliente */}
+              {/* 1. Selección de Empresa Emisora */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                  <span>1. Empresa Emisora de la Factura:</span>
+                  <span className="text-[10px] text-brand-400 font-mono font-bold">
+                    {invoiceBrand === "jd_distribuidora" ? "FAC-JD (Crudos)" : "FAC-GA (Ahumados)"}
+                  </span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInvoiceBrand("jd_distribuidora");
+                      setCartItems([{ productId: "p1", quantityKg: 15.0 }]);
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
+                      invoiceBrand === "jd_distribuidora"
+                        ? "bg-rose-950/80 border-rose-500 text-white shadow-lg ring-2 ring-rose-500/50"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-xl">🥩</span>
+                    <div>
+                      <p className="font-black text-xs text-white">JD DISTRIBUIDORA S.A.S.</p>
+                      <p className="text-[10px] text-rose-300 font-mono">NIT: 901.684.219-3 • Cortes Crudos</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInvoiceBrand("gourmet_ahumados");
+                      const firstGourmet = products.find((p) => p.brand === "gourmet_ahumados");
+                      if (firstGourmet) {
+                        setCartItems([{ productId: firstGourmet.id, quantityKg: 10.0 }]);
+                      }
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
+                      invoiceBrand === "gourmet_ahumados"
+                        ? "bg-amber-950/80 border-amber-500 text-white shadow-lg ring-2 ring-amber-500/50"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-xl">🔥</span>
+                    <div>
+                      <p className="font-black text-xs text-white">GOURMET AHUMADOS S.A.S.</p>
+                      <p className="text-[10px] text-amber-300 font-mono">NIT: 901.792.845-1 • Ahumados</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Cliente */}
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <UserCheck className="w-4 h-4 text-brand-400" /> 1. Adquiriente / Cliente:
+                    <UserCheck className="w-4 h-4 text-brand-400" /> 2. Adquiriente / Cliente:
                   </label>
                   <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
                     <input
@@ -728,27 +870,36 @@ export default function FacturacionPage() {
                 )}
               </div>
 
-              {/* 2. Selector de Cortes y Kilos */}
+              {/* 3. Selector de Cortes y Kilos */}
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <Scale className="w-4 h-4 text-brand-400" /> 2. Cortes de Cerdo & Kilos Reales:
+                <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Scale className="w-4 h-4 text-brand-400" /> 3. Cortes & Kilos de {invoiceBrand === "jd_distribuidora" ? "JD Distribuidora (Crudos)" : "Gourmet Ahumados (Leño)"}:
+                  </span>
+                  <span className="text-[10px] text-slate-400">Clic para agregar corte</span>
                 </label>
 
-                {/* Quick Add Buttons */}
+                {/* Quick Add Buttons for selected enterprise */}
                 <div className="flex flex-wrap gap-1.5">
-                  {products.slice(0, 8).map((prod) => (
-                    <button
-                      key={prod.id}
-                      type="button"
-                      onClick={() => handleAddProductToInvoice(prod.id)}
-                      className="py-1 px-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[11px] text-slate-300 hover:text-white border border-slate-700 flex items-center gap-1 transition-all"
-                    >
-                      <span>+ {prod.name.split(" ")[0]}</span>
-                      <span className="font-mono text-emerald-400">
-                        (${getProductPrice(prod.id).toLocaleString()}/kg)
-                      </span>
-                    </button>
-                  ))}
+                  {products
+                    .filter((p) => p.brand === invoiceBrand)
+                    .map((prod) => (
+                      <button
+                        key={prod.id}
+                        type="button"
+                        onClick={() => handleAddProductToInvoice(prod.id)}
+                        className={`py-1 px-2.5 rounded-lg text-[11px] border flex items-center gap-1 transition-all ${
+                          invoiceBrand === "gourmet_ahumados"
+                            ? "bg-amber-950/40 hover:bg-amber-900/60 text-amber-200 border-amber-800/50"
+                            : "bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-700"
+                        }`}
+                      >
+                        <span>+ {prod.name.split(" ")[0]}</span>
+                        <span className="font-mono text-emerald-400">
+                          (${getProductPrice(prod.id).toLocaleString()}/kg)
+                        </span>
+                      </button>
+                    ))}
                 </div>
 
                 {/* Items List */}

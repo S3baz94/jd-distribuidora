@@ -313,6 +313,9 @@ export interface Invoice {
   };
   status: InvoiceStatus;
   origin: InvoiceOrigin;
+  brand?: BrandType;
+  companyName?: string;
+  companyNit?: string;
   notes?: string;
   issuedAt: string;
   sellerName: string;

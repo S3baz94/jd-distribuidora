@@ -1,25 +1,45 @@
-import { Invoice, InvoiceItem, BillingSettings } from "@/types";
+import { Invoice, InvoiceItem, BillingSettings, BrandType } from "@/types";
 
 const BILLING_STORAGE_KEY = "jd_distribuidora_invoices_v1";
 const SETTINGS_STORAGE_KEY = "jd_distribuidora_billing_settings_v1";
 
-export const DEFAULT_BILLING_SETTINGS: BillingSettings = {
-  companyName: "JD DISTRIBUIDORA CÁRNICA S.A.S.",
-  tradeName: "JD Distribuidora & Gourmet Ahumados",
-  nit: "901.884.220-1",
-  address: "Carrera 68D # 13-40, Frigorífico Central de Desposte",
+export const COMPANY_JD_SETTINGS: BillingSettings = {
+  companyName: "JD DISTRIBUIDORA DE CARNES S.A.S.",
+  tradeName: "JD Distribuidora (Cortes de Cerdo Frescos Crudos)",
+  nit: "901.684.219-3",
+  address: "Calle 12 # 42-18, Frigorífico Central de Desposte",
   city: "Bogotá D.C., Colombia",
-  phone: "+57 323 321 8831 / (1) 745-8900",
+  phone: "+57 323 321 8831",
   email: "facturacion@jddistribuidora.com",
-  resolutionNumber: "18764002981240",
+  resolutionNumber: "187640001892",
   resolutionDate: "2026-01-15",
-  prefix: "FAC",
+  prefix: "FAC-JD",
   fromNumber: 1,
-  toNumber: 10000,
+  toNumber: 50000,
   currentNumber: 10459,
-  regime: "Responsable de IVA - Régimen Común / Actividad Económica 4631 (Comercio al por mayor de carnes y derivados)",
-  posFooterNote: "Factura de Venta POS / Operativa interna de despacho cárnico. Carnes de cerdo frescas crudas exentas de IVA según Art. 477 del E.T. ¡Gracias por confiar en la frescura y calidad de JD Distribuidora!",
+  regime: "Responsable de IVA - Régimen Común / Actividad 4631 (Comercio mayorista de carnes de cerdo frescas exentas según Art. 477 E.T.)",
+  posFooterNote: "Factura Comercial de Venta • Carnes frescas de cerdo seleccionadas bajo cadena de frío 0°C a 4°C. ¡Gracias por preferir a JD Distribuidora!",
 };
+
+export const COMPANY_GOURMET_SETTINGS: BillingSettings = {
+  companyName: "GOURMET AHUMADOS & CHARCUTERÍA S.A.S.",
+  tradeName: "Gourmet Ahumados (Ahumados Artesanales al Leño)",
+  nit: "901.792.845-1",
+  address: "Carrera 68D # 13-40, Planta Artesanal de Ahumados",
+  city: "Bogotá D.C., Colombia",
+  phone: "+57 323 321 8831",
+  email: "contabilidad@gourmetahumados.co",
+  resolutionNumber: "187650002941",
+  resolutionDate: "2026-01-15",
+  prefix: "FAC-GA",
+  fromNumber: 1,
+  toNumber: 50000,
+  currentNumber: 520,
+  regime: "Responsable de IVA - Régimen Común / Actividad 1011 (Procesamiento y conservación de productos cárnicos ahumados)",
+  posFooterNote: "Factura Comercial de Venta • Ahumados artesanales al leño de roble 100% naturales sin conservantes artificiales. ¡Calidad Gourmet Prémium!",
+};
+
+export const DEFAULT_BILLING_SETTINGS: BillingSettings = COMPANY_JD_SETTINGS;
 
 export const INITIAL_INVOICES: Invoice[] = [
   {
@@ -352,6 +372,13 @@ export class BillingService {
     return updated;
   }
 
+  static getCompanySettings(brand: BrandType = "jd_distribuidora"): BillingSettings {
+    if (brand === "gourmet_ahumados") {
+      return COMPANY_GOURMET_SETTINGS;
+    }
+    return COMPANY_JD_SETTINGS;
+  }
+
   static getSettings(): BillingSettings {
     if (typeof window === "undefined") return DEFAULT_BILLING_SETTINGS;
     try {
@@ -374,9 +401,12 @@ export class BillingService {
     }
   }
 
-  static getNextInvoiceNumber(): { number: string; nextSeq: number } {
-    const settings = this.getSettings();
-    const invoices = this.getInvoices();
+  static getNextInvoiceNumber(brand: BrandType = "jd_distribuidora"): { number: string; nextSeq: number } {
+    const settings = this.getCompanySettings(brand);
+    const invoices = this.getInvoices().filter(
+      (i) => i.brand === brand || (!i.brand && brand === "jd_distribuidora")
+    );
+
     const maxNumber = invoices.reduce((max, inv) => {
       const parts = inv.number.split("-");
       const num = parseInt(parts[parts.length - 1], 10);
@@ -388,12 +418,19 @@ export class BillingService {
     return { number: formatted, nextSeq };
   }
 
-  static exportToCSV(invoices: Invoice[]): void {
+  static exportToCSV(invoices: Invoice[], brandFilter: "all" | BrandType = "all"): void {
+    const filteredInvoices =
+      brandFilter === "all"
+        ? invoices
+        : invoices.filter((i) => (i.brand || "jd_distribuidora") === brandFilter);
+
     const headers = [
       "Numero Factura",
+      "Empresa Emisora",
+      "NIT Empresa",
       "Fecha Emision",
       "Cliente",
-      "NIT",
+      "NIT Cliente",
       "Direccion",
       "Zona",
       "Kilos Totales",
@@ -406,24 +443,39 @@ export class BillingService {
       "Vendedor / Chofer",
     ];
 
-    const rows = invoices.map((inv) => [
-      inv.number,
-      inv.issuedAt,
-      `"${inv.customerName.replace(/"/g, '""')}"`,
-      inv.customerNit,
-      `"${(inv.customerAddress || "").replace(/"/g, '""')}"`,
-      `"${(inv.customerZone || "").replace(/"/g, '""')}"`,
-      inv.totalKg.toFixed(2),
-      inv.subtotal,
-      inv.discountTotal,
-      inv.total,
-      inv.paymentType.toUpperCase(),
-      inv.status.toUpperCase(),
-      inv.origin.toUpperCase(),
-      `"${inv.sellerName.replace(/"/g, '""')}"`,
-    ]);
+    const rows = filteredInvoices.map((inv) => {
+      const isGourmet = inv.brand === "gourmet_ahumados";
+      const compName = inv.companyName || (isGourmet ? COMPANY_GOURMET_SETTINGS.companyName : COMPANY_JD_SETTINGS.companyName);
+      const compNit = inv.companyNit || (isGourmet ? COMPANY_GOURMET_SETTINGS.nit : COMPANY_JD_SETTINGS.nit);
+
+      return [
+        inv.number,
+        `"${compName}"`,
+        compNit,
+        inv.issuedAt,
+        `"${inv.customerName.replace(/"/g, '""')}"`,
+        inv.customerNit,
+        `"${(inv.customerAddress || "").replace(/"/g, '""')}"`,
+        `"${(inv.customerZone || "").replace(/"/g, '""')}"`,
+        inv.totalKg.toFixed(2),
+        inv.subtotal,
+        inv.discountTotal,
+        inv.total,
+        inv.paymentType.toUpperCase(),
+        inv.status.toUpperCase(),
+        inv.origin.toUpperCase(),
+        `"${inv.sellerName.replace(/"/g, '""')}"`,
+      ];
+    });
 
     const csvContent = [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+
+    const brandSuffix =
+      brandFilter === "jd_distribuidora"
+        ? "JD_Distribuidora"
+        : brandFilter === "gourmet_ahumados"
+        ? "Gourmet_Ahumados"
+        : "Consolidado_JD_y_Gourmet";
 
     const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -431,7 +483,7 @@ export class BillingService {
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `Libro_Ventas_Facturacion_JD_${new Date().toISOString().slice(0, 10)}.csv`
+      `Libro_Ventas_${brandSuffix}_${new Date().toISOString().slice(0, 10)}.csv`
     );
     document.body.appendChild(link);
     link.click();

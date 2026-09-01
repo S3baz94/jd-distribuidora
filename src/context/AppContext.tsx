@@ -151,7 +151,7 @@ interface AppContextType {
     }
   ) => void;
   updateBillingSettings: (settings: BillingSettings) => void;
-  exportInvoicesCSV: () => void;
+  exportInvoicesCSV: (brandFilter?: "all" | BrandType) => void;
 
   // Licenciamiento & Master Kill-Switch
   license: LicenseConfig;
@@ -839,18 +839,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // ==========================================
-  // FACTURACIÓN CÁRNICA & POS
+  // FACTURACIÓN CÁRNICA & POS (SEPARACIÓN CORPORATIVA JD vs GOURMET)
   // ==========================================
   const createInvoice = (
     newInvoiceData: Omit<Invoice, "id" | "number" | "prefix" | "issuedAt"> & { customNumber?: string }
   ): Invoice => {
-    const { number, nextSeq } = BillingService.getNextInvoiceNumber();
+    // Detect brand based on items or explicit brand
+    const isGourmet =
+      newInvoiceData.brand === "gourmet_ahumados" ||
+      (!newInvoiceData.brand &&
+        newInvoiceData.items.length > 0 &&
+        newInvoiceData.items.every((i) => i.brand === "gourmet_ahumados"));
+
+    const targetBrand: BrandType = isGourmet ? "gourmet_ahumados" : "jd_distribuidora";
+    const companySettings = BillingService.getCompanySettings(targetBrand);
+
+    const { number } = BillingService.getNextInvoiceNumber(targetBrand);
     const invoiceNumber = newInvoiceData.customNumber || number;
+
     const newInvoice: Invoice = {
       ...newInvoiceData,
-      id: `inv-${Date.now()}`,
+      id: `inv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       number: invoiceNumber,
-      prefix: billingSettings.prefix,
+      prefix: companySettings.prefix,
+      brand: targetBrand,
+      companyName: companySettings.companyName,
+      companyNit: companySettings.nit,
       issuedAt: new Date().toISOString(),
     };
 
@@ -858,11 +872,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setInvoices(updatedInvoices);
     BillingService.saveInvoices(updatedInvoices);
 
-    const updatedSettings = { ...billingSettings, currentNumber: nextSeq };
-    setBillingSettings(updatedSettings);
-    BillingService.saveSettings(updatedSettings);
-
-    showToast(`🧾 Factura ${invoiceNumber} generada exitosamente`, "success");
     soundService.playStatusUpdated();
     return newInvoice;
   };
@@ -940,9 +949,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast("Configuración de facturación actualizada", "success");
   };
 
-  const exportInvoicesCSV = () => {
-    BillingService.exportToCSV(invoices);
-    showToast("Libro de facturación exportado en .CSV", "success");
+  const exportInvoicesCSV = (brandFilter: "all" | BrandType = "all") => {
+    BillingService.exportToCSV(invoices, brandFilter);
+    const suffix =
+      brandFilter === "jd_distribuidora"
+        ? "JD Distribuidora"
+        : brandFilter === "gourmet_ahumados"
+        ? "Gourmet Ahumados"
+        : "Consolidado";
+    showToast(`📥 Libro contable de ${suffix} exportado a Excel (CSV)`, "success");
   };
 
   // ==========================================

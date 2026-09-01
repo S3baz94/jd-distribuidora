@@ -3,6 +3,10 @@
 import React, { useState } from "react";
 import { Invoice, BillingSettings } from "@/types";
 import {
+  COMPANY_JD_SETTINGS,
+  COMPANY_GOURMET_SETTINGS,
+} from "@/services/billingService";
+import {
   Printer,
   FileText,
   X,
@@ -16,6 +20,7 @@ import {
   Phone,
   MapPin,
   Calendar,
+  Flame,
 } from "lucide-react";
 
 interface InvoiceModalProps {
@@ -34,6 +39,13 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
   const [printFormat, setPrintFormat] = useState<"pos" | "carta">("pos");
 
   if (!isOpen || !invoice) return null;
+
+  const isGourmet = invoice.brand === "gourmet_ahumados";
+  const activeCompany = isGourmet
+    ? COMPANY_GOURMET_SETTINGS
+    : invoice.brand === "jd_distribuidora"
+    ? COMPANY_JD_SETTINGS
+    : settings;
 
   const handlePrint = () => {
     window.print();
@@ -142,19 +154,31 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
             >
               {/* Header Empresa */}
               <div className="text-center pb-3 border-b border-dashed border-gray-400">
-                <h2 className="font-black text-sm uppercase tracking-tight">{settings.companyName}</h2>
-                <p className="text-[10px] font-bold text-gray-800">{settings.tradeName}</p>
-                <p className="text-[10px]">NIT: {settings.nit}</p>
-                <p className="text-[9px] text-gray-600 leading-snug">{settings.address}</p>
-                <p className="text-[9px] text-gray-600">{settings.city} • Tel: {settings.phone}</p>
-                <p className="text-[8px] text-gray-500 mt-1 italic leading-tight">{settings.regime}</p>
+                <div className="inline-flex items-center gap-1 mb-1">
+                  {isGourmet ? (
+                    <span className="bg-amber-600 text-white font-black text-[10px] px-2 py-0.5 rounded uppercase flex items-center gap-1">
+                      <Flame className="w-3 h-3 fill-current" />
+                      <span>Gourmet Ahumados</span>
+                    </span>
+                  ) : (
+                    <span className="bg-rose-700 text-white font-black text-[10px] px-2 py-0.5 rounded uppercase">
+                      🥩 JD Distribuidora
+                    </span>
+                  )}
+                </div>
+                <h2 className="font-black text-sm uppercase tracking-tight">{activeCompany.companyName}</h2>
+                <p className="text-[10px] font-bold text-gray-800">{activeCompany.tradeName}</p>
+                <p className="text-[10px] font-bold">NIT: {activeCompany.nit}</p>
+                <p className="text-[9px] text-gray-600 leading-snug">{activeCompany.address}</p>
+                <p className="text-[9px] text-gray-600">{activeCompany.city} • Tel: {activeCompany.phone}</p>
+                <p className="text-[8px] text-gray-500 mt-1 italic leading-tight">{activeCompany.regime}</p>
               </div>
 
               {/* Info Factura */}
               <div className="py-2.5 border-b border-dashed border-gray-400 space-y-1">
                 <div className="flex justify-between font-bold text-xs">
                   <span>FACTURA VENTA:</span>
-                  <span>{invoice.number}</span>
+                  <span className="font-mono font-black">{invoice.number}</span>
                 </div>
                 <div className="flex justify-between text-[10px]">
                   <span>Fecha Emisión:</span>
@@ -192,7 +216,9 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
                         <span>
                           {item.quantityKg.toFixed(2)} kg x ${item.unitPrice.toLocaleString()}/kg
                         </span>
-                        <span>{item.brand === "gourmet_ahumados" ? "AHUMADO" : "CRUDO"}</span>
+                        <span className="font-bold">
+                          {item.brand === "gourmet_ahumados" ? "🔥 AHUMADO" : "🥩 CRUDO"}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -269,12 +295,15 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
 
               {/* Footer Legal & Agradecimiento */}
               <div className="pt-3 text-center space-y-1 text-[8px] text-gray-600 leading-tight">
-                <p className="font-bold text-gray-800 uppercase tracking-wide">DOCUMENTO COMERCIAL DE VENTA & REMISIÓN DE DESPACHO</p>
-                <p>Carnes de cerdo frescas crudas exentas de IVA según Art. 477 del Estatuto Tributario.</p>
-                <p className="pt-1 text-[9px] font-bold text-gray-800">{settings.posFooterNote}</p>
+                <p className="font-bold text-gray-800 uppercase tracking-wide">
+                  DOCUMENTO COMERCIAL DE VENTA & REMISIÓN DE DESPACHO
+                </p>
+                <p>{activeCompany.posFooterNote}</p>
                 <div className="pt-3 text-center border-t border-dashed border-gray-300 mt-2">
-                  <p className="font-mono tracking-widest text-[9px] font-bold text-black">*** JD DISTRIBUIDORA & GOURMET AHUMADOS ***</p>
-                  <p className="text-[8px] text-gray-600">Línea de Atención & Pedidos: +57 323 321 8831</p>
+                  <p className="font-mono tracking-widest text-[9px] font-bold text-black">
+                    *** {activeCompany.tradeName.toUpperCase()} ***
+                  </p>
+                  <p className="text-[8px] text-gray-600">Línea de Atención & Facturación: {activeCompany.phone}</p>
                 </div>
               </div>
             </div>
@@ -289,15 +318,21 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
               {/* Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-6 border-b-2 border-slate-900">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-brand-600 text-white font-black text-2xl flex items-center justify-center shadow-md">
-                    JD
+                  <div
+                    className={`w-14 h-14 rounded-2xl font-black text-2xl flex items-center justify-center shadow-md ${
+                      isGourmet
+                        ? "bg-amber-600 text-white shadow-amber-200"
+                        : "bg-brand-600 text-white"
+                    }`}
+                  >
+                    {isGourmet ? "GA" : "JD"}
                   </div>
                   <div>
-                    <h1 className="text-xl font-black uppercase text-slate-900">{settings.companyName}</h1>
-                    <p className="text-xs font-bold text-brand-700">{settings.tradeName}</p>
-                    <p className="text-xs text-slate-600">NIT: {settings.nit}</p>
-                    <p className="text-xs text-slate-600">{settings.address} • {settings.city}</p>
-                    <p className="text-xs text-slate-600">PBX: {settings.phone} • {settings.email}</p>
+                    <h1 className="text-xl font-black uppercase text-slate-900">{activeCompany.companyName}</h1>
+                    <p className="text-xs font-bold text-brand-700">{activeCompany.tradeName}</p>
+                    <p className="text-xs text-slate-600 font-bold">NIT: {activeCompany.nit}</p>
+                    <p className="text-xs text-slate-600">{activeCompany.address} • {activeCompany.city}</p>
+                    <p className="text-xs text-slate-600">PBX: {activeCompany.phone} • {activeCompany.email}</p>
                   </div>
                 </div>
 
