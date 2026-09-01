@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { priceService } from "@/services/priceService";
 import { exportService } from "@/services/exportService";
-import { Customer } from "@/types";
+import { Customer, Invoice } from "@/types";
 import {
   Users,
   UserPlus,
@@ -21,12 +21,20 @@ import {
   Package,
   ArrowRight,
   TrendingUp,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  DollarSign,
+  Receipt,
+  FileText,
+  Printer,
 } from "lucide-react";
 
 export default function AdminCustomersPage() {
-  const { allCustomers, allOrders, createCustomer, updateCustomerData, showToast } = useApp();
+  const { allCustomers, allOrders, invoices, updateInvoicePayment, createCustomer, updateCustomerData, showToast } = useApp();
   const [isNewCustModalOpen, setIsNewCustModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [statementCustomer, setStatementCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState<Partial<Customer>>({
     businessName: "",
     contactName: "",
@@ -43,6 +51,20 @@ export default function AdminCustomersPage() {
     deliveryDays: "Lunes a Sábado",
     status: "active",
   });
+
+  // Calculate Global Financial & Portfolio Metrics
+  const globalTotalInvoiced = invoices.filter(i => i.status !== "anulada").reduce((s, i) => s + i.total, 0);
+  const pendingCreditInvoices = invoices.filter(
+    (i) => i.status === "pendiente" || (i.paymentType === "credito" && i.status !== "pagada" && i.status !== "anulada")
+  );
+  const globalTotalPendingDebt = pendingCreditInvoices.reduce((s, i) => s + i.total, 0);
+
+  const todayStr = new Date().toISOString().split("T")[0];
+  const overdueInvoices = pendingCreditInvoices.filter((i) => {
+    if (!i.paymentDetails.creditDueDate) return false;
+    return i.paymentDetails.creditDueDate < todayStr;
+  });
+  const globalTotalOverdue = overdueInvoices.reduce((s, i) => s + i.total, 0);
 
   const handleExportCustomersCSV = () => {
     exportService.exportCustomersToCSV(allCustomers, allOrders);
@@ -102,6 +124,14 @@ export default function AdminCustomersPage() {
     showToast("✓ Datos del cliente actualizados correctamente", "success");
   };
 
+  const handleRegisterPayment = (invoice: Invoice) => {
+    updateInvoicePayment(invoice.id, "banco", {
+      ...invoice.paymentDetails,
+      bankReference: `PAGO-CARTERA-${Date.now().toString().slice(-4)}`,
+    });
+    showToast(`✓ Pago de ${priceService.formatCurrency(invoice.total)} registrado para la factura ${invoice.number}`, "success");
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -136,7 +166,70 @@ export default function AdminCustomersPage() {
         </div>
       </div>
 
-      {/* Customer Cards Grid with Historical Stats */}
+      {/* Global Financial & Portfolio KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl">
+          <div className="flex items-center justify-between text-slate-400 mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Cartera por Cobrar:</span>
+            <div className="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+              <CreditCard className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-amber-400 font-mono">
+            {priceService.formatCurrency(globalTotalPendingDebt)}
+          </p>
+          <p className="text-[10px] text-slate-400 mt-0.5">
+            {pendingCreditInvoices.length} facturas a crédito vigentes
+          </p>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl">
+          <div className="flex items-center justify-between text-slate-400 mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Cartera Vencida (Mora):</span>
+            <div className="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+              <AlertTriangle className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-rose-400 font-mono">
+            {priceService.formatCurrency(globalTotalOverdue)}
+          </p>
+          <p className="text-[10px] text-slate-400 mt-0.5">
+            {overdueInvoices.length} facturas vencidas
+          </p>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl">
+          <div className="flex items-center justify-between text-slate-400 mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Total Facturado Histórico:</span>
+            <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <TrendingUp className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">
+            {priceService.formatCurrency(globalTotalInvoiced)}
+          </p>
+          <p className="text-[10px] text-slate-400 mt-0.5">
+            En {invoices.length} facturas comerciales emitidas
+          </p>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl">
+          <div className="flex items-center justify-between text-slate-400 mb-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Directorio Activo:</span>
+            <div className="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+              <Users className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl sm:text-2xl font-black text-white font-mono">
+            {allCustomers.length} <span className="text-xs font-semibold text-slate-400">clientes</span>
+          </p>
+          <p className="text-[10px] text-slate-400 mt-0.5">
+            Famas, carnicerías y asaderos
+          </p>
+        </div>
+      </div>
+
+      {/* Customer Cards Grid with Historical Stats & Portfolio Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {allCustomers.map((cust) => {
           const custOrders = allOrders.filter((o) => o.customerId === cust.id);
@@ -148,6 +241,23 @@ export default function AdminCustomersPage() {
             (sum, o) => sum + (o.realTotal || o.total),
             0
           );
+
+          // Customer specific portfolio and invoice calculation
+          const custInvoices = invoices.filter(
+            (i) => i.customerId === cust.id || i.customerNit === cust.nit
+          );
+          const custPendingInvoices = custInvoices.filter(
+            (i) => i.status === "pendiente" || (i.paymentType === "credito" && i.status !== "pagada" && i.status !== "anulada")
+          );
+          const custDebt = custPendingInvoices.reduce((s, i) => s + i.total, 0);
+
+          const custOverdue = custPendingInvoices.filter((i) => {
+            if (!i.paymentDetails.creditDueDate) return false;
+            return i.paymentDetails.creditDueDate < todayStr;
+          });
+          const custOverdueDebt = custOverdue.reduce((s, i) => s + i.total, 0);
+
+          const avgTicket = custOrders.length > 0 ? totalInvoiced / custOrders.length : 0;
 
           return (
             <div
@@ -193,6 +303,58 @@ export default function AdminCustomersPage() {
                     <span>Condición Comercial: <strong className="text-slate-200">{cust.paymentTerms}</strong></span>
                   </p>
                 </div>
+
+                {/* Financial & Portfolio Status Card */}
+                <div className={`p-3 rounded-2xl border text-xs space-y-1.5 ${
+                  custOverdueDebt > 0
+                    ? "bg-rose-950/30 border-rose-500/40 text-rose-200"
+                    : custDebt > 0
+                    ? "bg-amber-950/30 border-amber-500/40 text-amber-200"
+                    : "bg-slate-950 border-slate-800 text-slate-300"
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wide flex items-center gap-1.5">
+                      {custOverdueDebt > 0 ? (
+                        <>
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                          <span className="text-rose-400">⚠️ CARTERA EN MORA</span>
+                        </>
+                      ) : custDebt > 0 ? (
+                        <>
+                          <Clock className="w-3.5 h-3.5 text-amber-400" />
+                          <span className="text-amber-400">SALDO PENDIENTE POR COBRAR</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400">CARTERA AL DÍA (SIN DEUDA)</span>
+                        </>
+                      )}
+                    </span>
+                    <strong className={`font-mono text-sm font-black ${
+                      custOverdueDebt > 0
+                        ? "text-rose-400"
+                        : custDebt > 0
+                        ? "text-amber-400"
+                        : "text-emerald-400"
+                    }`}>
+                      {priceService.formatCurrency(custDebt)}
+                    </strong>
+                  </div>
+
+                  {custDebt > 0 && (
+                    <div className="flex justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+                      <span>{custPendingInvoices.length} facturas pendientes</span>
+                      <span>
+                        {custOverdueDebt > 0 ? (
+                          <strong className="text-rose-400">Mora: {priceService.formatCurrency(custOverdueDebt)}</strong>
+                        ) : (
+                          <strong className="text-slate-300">Vigente a plazo</strong>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Accumulated Historical Stats */}
@@ -207,21 +369,31 @@ export default function AdminCustomersPage() {
                     <strong className="text-emerald-400 font-black text-sm">{totalKg.toFixed(0)} kg</strong>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Facturado:</span>
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Ticket Promedio:</span>
                     <strong className="text-brand-300 font-black text-xs sm:text-sm">
-                      {priceService.formatCurrency(totalInvoiced)}
+                      {priceService.formatCurrency(avgTicket)}
                     </strong>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStatementCustomer(cust)}
+                    className="py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-amber-500/30"
+                    title="Ver extracto y facturas de cartera"
+                  >
+                    <Receipt className="w-3.5 h-3.5" />
+                    <span>Cartera</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => setEditingCustomer(cust)}
-                    className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+                    className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
                   >
-                    <Building className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Editar Cliente</span>
+                    <Building className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Editar</span>
                   </button>
 
                   <Link
@@ -541,6 +713,193 @@ export default function AdminCustomersPage() {
           </div>
         </div>
       )}
+
+      {/* Customer Financial Statement & Portfolio (Cartera) Modal */}
+      {statementCustomer && (() => {
+        const custInvoices = invoices.filter(
+          (i) => i.customerId === statementCustomer.id || i.customerNit === statementCustomer.nit
+        );
+        const custTotalInvoiced = custInvoices.filter(i => i.status !== "anulada").reduce((s, i) => s + i.total, 0);
+        const custPaidInvoices = custInvoices.filter(i => i.status === "pagada");
+        const custTotalPaid = custPaidInvoices.reduce((s, i) => s + i.total, 0);
+        const custPendingInvoices = custInvoices.filter(
+          (i) => i.status === "pendiente" || (i.paymentType === "credito" && i.status !== "pagada" && i.status !== "anulada")
+        );
+        const custDebt = custPendingInvoices.reduce((s, i) => s + i.total, 0);
+        const custOverdue = custPendingInvoices.filter((i) => {
+          if (!i.paymentDetails.creditDueDate) return false;
+          return i.paymentDetails.creditDueDate < todayStr;
+        });
+        const custOverdueDebt = custOverdue.reduce((s, i) => s + i.total, 0);
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl animate-in zoom-in-95 flex flex-col max-h-[90vh]">
+              {/* Modal Header */}
+              <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                    <Receipt className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                      ESTADO DE CUENTA & CARTERA
+                    </span>
+                    <h3 className="font-black text-lg text-white mt-0.5">
+                      {statementCustomer.businessName}
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      NIT: <span className="font-mono text-slate-300 font-bold">{statementCustomer.nit}</span> • {statementCustomer.paymentTerms}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setStatementCustomer(null)}
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Financial KPIs Banner */}
+              <div className="p-4 bg-slate-850 border-b border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <span className="text-slate-400 block text-[9px] uppercase font-bold">Total Facturado:</span>
+                  <strong className="text-emerald-400 font-black text-sm font-mono block">
+                    {priceService.formatCurrency(custTotalInvoiced)}
+                  </strong>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <span className="text-slate-400 block text-[9px] uppercase font-bold">Total Pagado:</span>
+                  <strong className="text-white font-black text-sm font-mono block">
+                    {priceService.formatCurrency(custTotalPaid)}
+                  </strong>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <span className="text-slate-400 block text-[9px] uppercase font-bold">Saldo en Cartera:</span>
+                  <strong className={`font-black text-sm font-mono block ${custDebt > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+                    {priceService.formatCurrency(custDebt)}
+                  </strong>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <span className="text-slate-400 block text-[9px] uppercase font-bold">Saldo Vencido (Mora):</span>
+                  <strong className={`font-black text-sm font-mono block ${custOverdueDebt > 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                    {priceService.formatCurrency(custOverdueDebt)}
+                  </strong>
+                </div>
+              </div>
+
+              {/* Invoices List / Statement */}
+              <div className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-xs text-slate-300 uppercase tracking-wide">
+                    Historial de Facturas Comerciales ({custInvoices.length})
+                  </h4>
+                  <span className="text-xs text-slate-400">
+                    {custPendingInvoices.length} pendientes por recaudar
+                  </span>
+                </div>
+
+                {custInvoices.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500 bg-slate-950 rounded-2xl border border-slate-800">
+                    <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="font-bold text-xs text-slate-400">No hay facturas emitidas para este cliente</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {custInvoices.map((inv) => {
+                      const isPending = inv.status === "pendiente" || (inv.paymentType === "credito" && inv.status !== "pagada" && inv.status !== "anulada");
+                      const isOverdue = isPending && inv.paymentDetails.creditDueDate && inv.paymentDetails.creditDueDate < todayStr;
+
+                      return (
+                        <div
+                          key={inv.id}
+                          className={`p-3.5 rounded-2xl border transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                            isOverdue
+                              ? "bg-rose-950/20 border-rose-500/40"
+                              : isPending
+                              ? "bg-amber-950/20 border-amber-500/40"
+                              : "bg-slate-950 border-slate-800"
+                          }`}
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-black text-white text-xs">
+                                {inv.number}
+                              </span>
+                              <span
+                                className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                  inv.status === "pagada"
+                                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                    : isOverdue
+                                    ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                                    : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                }`}
+                              >
+                                {inv.status === "pagada" ? "✓ Pagada" : isOverdue ? "⚠️ Vencida en Mora" : "⏳ Crédito Vigente"}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {inv.totalKg.toFixed(1)} kg
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-slate-400">
+                              Emisión: <strong className="text-slate-300">{new Date(inv.issuedAt).toLocaleDateString("es-CO")}</strong>
+                              {inv.paymentDetails.creditDueDate && (
+                                <span> • Vence: <strong className={isOverdue ? "text-rose-400" : "text-slate-300"}>{inv.paymentDetails.creditDueDate}</strong></span>
+                              )}
+                            </p>
+                          </div>
+
+                          <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2">
+                            <span className="font-black text-sm text-white font-mono">
+                              {priceService.formatCurrency(inv.total)}
+                            </span>
+
+                            {isPending && (
+                              <button
+                                type="button"
+                                onClick={() => handleRegisterPayment(inv)}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] flex items-center gap-1 shadow-md active:scale-95 transition-all"
+                              >
+                                <DollarSign className="w-3.5 h-3.5" />
+                                <span>Registrar Pago</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700"
+                >
+                  <Printer className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Imprimir Extracto</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStatementCustomer(null)}
+                  className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
