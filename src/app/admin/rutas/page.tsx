@@ -28,9 +28,7 @@ export default function AdminRutasPage() {
     allOrders,
     routes,
     assignOrderToRoute,
-    updateRouteStatus,
     createRoute,
-    updateOrderStatus,
     showToast,
   } = useApp();
 
@@ -88,25 +86,6 @@ export default function AdminRutasPage() {
     setNewDriverName("");
     setNewDriverPhone("");
     setNewVehiclePlate("");
-  };
-
-  const handleStartRoute = (route: DeliveryRoute) => {
-    updateRouteStatus(route.id, "in_transit");
-    // Update all assigned orders to "dispatched" (en ruta de frío)
-    const routeOrders = getRouteOrders(route);
-    routeOrders.forEach((ord) => {
-      updateOrderStatus(ord.id, "dispatched");
-    });
-    showToast(`🚚 ${route.name} ha iniciado recorrido. Pedidos marcados en ruta de frío.`, "success");
-  };
-
-  const handleCompleteRoute = (route: DeliveryRoute) => {
-    updateRouteStatus(route.id, "completed");
-    const routeOrders = getRouteOrders(route);
-    routeOrders.forEach((ord) => {
-      updateOrderStatus(ord.id, "delivered");
-    });
-    showToast(`🏁 ${route.name} completada. Todos los pedidos entregados.`, "success");
   };
 
   const handlePrintManifest = (route: DeliveryRoute) => {
@@ -314,26 +293,31 @@ export default function AdminRutasPage() {
                 <span>Enviar al Chofer</span>
               </a>
 
-              {selectedRoute.status === "planned" && (
-                <button
-                  onClick={() => handleStartRoute(selectedRoute)}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-2 shadow-md transition-all active:scale-95"
-                >
-                  <Truck className="w-4 h-4" />
-                  <span>Iniciar Salida</span>
-                </button>
-              )}
-
-              {selectedRoute.status === "in_transit" && (
-                <button
-                  onClick={() => handleCompleteRoute(selectedRoute)}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black flex items-center gap-2 shadow-md transition-all active:scale-95"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Marcar Finalizada</span>
-                </button>
-              )}
+              <div className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 flex items-center gap-2 text-xs font-bold text-slate-300 shadow-sm">
+                <span className={`w-2.5 h-2.5 rounded-full ${selectedRoute.status === "in_transit" ? "bg-emerald-400 animate-ping" : selectedRoute.status === "completed" ? "bg-slate-400" : "bg-amber-400"}`} />
+                <span>
+                  {selectedRoute.status === "in_transit"
+                    ? "📡 En Ruta (Monitoreo en Vivo)"
+                    : selectedRoute.status === "completed"
+                    ? "🏁 Finalizada por el Chofer"
+                    : "⏳ Esperando Salida"}
+                </span>
+              </div>
             </div>
+          </div>
+
+          {/* Monitoring Banner Notice */}
+          <div className="p-3.5 bg-cyan-950/30 border border-cyan-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-cyan-200">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse flex-shrink-0" />
+              <div>
+                <span className="font-extrabold text-white">Modo Supervisión Satelital (Solo Lectura): </span>
+                <span className="text-slate-300">Las paradas, firmas, fotos de factura y recaudos son ejecutados en tiempo real por el chofer desde la App de Operación.</span>
+              </div>
+            </div>
+            <span className="font-mono text-[10px] uppercase font-black bg-cyan-500/20 px-2.5 py-1 rounded-full text-cyan-300 border border-cyan-500/30 self-start sm:self-auto flex-shrink-0">
+              🛰️ Telemetría Satelital Activa
+            </span>
           </div>
 
           {/* Logistics & Cashout Summary Bar */}
