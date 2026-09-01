@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import { priceService } from "@/services/priceService";
+import {
+  OperationsAuthService,
+  OperationsUserProfile,
+} from "@/services/authService";
+import { OperationsAuthGate } from "@/components/operations/OperationsAuthGate";
 import { DeliveryRoute, Order, DriverExpense } from "@/types";
 import { RouteMap } from "@/components/admin/RouteMap";
 import {
@@ -39,6 +44,8 @@ import {
   Scale,
   ThermometerSnowflake,
   Boxes,
+  LogOut,
+  UserCheck,
 } from "lucide-react";
 import { PlantPackingStation } from "@/components/operations/PlantPackingStation";
 import { ColdStorageStation } from "@/components/operations/ColdStorageStation";
@@ -55,8 +62,21 @@ export default function OperacionPage() {
     showToast,
   } = useApp();
 
+  // Active operations authenticated user: Operador vs Domiciliario
+  const [currentUser, setCurrentUser] = useState<OperationsUserProfile | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
   // Active operations role mode: Domiciliario / Chofer vs Operario de Planta vs Operario de Bodega
   const [operationsMode, setOperationsMode] = useState<"domiciliario" | "planta" | "bodega">("domiciliario");
+
+  useEffect(() => {
+    const session = OperationsAuthService.getCurrentSession();
+    if (session) {
+      setCurrentUser(session);
+      setOperationsMode(session.role === "operador" ? "planta" : "domiciliario");
+    }
+    setIsAuthChecking(false);
+  }, []);
 
   // Active driver selection
   const [selectedDriverId, setSelectedDriverId] = useState<string>(
@@ -388,6 +408,24 @@ export default function OperacionPage() {
     setHasSignature(false);
   };
 
+  const handleLogout = () => {
+    OperationsAuthService.logout();
+    setCurrentUser(null);
+    showToast("Turno cerrado correctamente", "info");
+  };
+
+  // Render Gate if no authenticated session
+  if (!currentUser && !isAuthChecking) {
+    return (
+      <OperationsAuthGate
+        onAuthenticated={(user) => {
+          setCurrentUser(user);
+          setOperationsMode(user.role === "operador" ? "planta" : "domiciliario");
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-24 font-sans">
       {/* Top Operations Header */}
@@ -395,37 +433,35 @@ export default function OperacionPage() {
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center justify-between sm:justify-start gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-500 font-bold shadow-sm flex-shrink-0">
-                {operationsMode === "domiciliario" ? (
-                  <Truck className="w-5 h-5" />
-                ) : operationsMode === "planta" ? (
-                  <Scale className="w-5 h-5 text-emerald-400" />
-                ) : (
-                  <ThermometerSnowflake className="w-5 h-5 text-cyan-400" />
-                )}
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-xl flex-shrink-0">
+                {currentUser?.role === "operador" ? "👷" : "🚚"}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 tracking-wide">
-                    {operationsMode === "domiciliario"
-                      ? "MÓDULO DE CHOFER & RUTA"
-                      : operationsMode === "planta"
-                      ? "MÓDULO DE PLANTA & BÁSCULA"
-                      : "MÓDULO DE BODEGA & FRÍO"}
+                  <span
+                    className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border tracking-wide ${
+                      currentUser?.role === "operador"
+                        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                        : "text-amber-400 bg-amber-500/10 border-amber-500/20"
+                    }`}
+                  >
+                    {currentUser?.role === "operador"
+                      ? "PANTALLA DE OPERADOR DE PLANTA"
+                      : "PANTALLA DE DOMICILIARIO / CONDUCTOR"}
                   </span>
                 </div>
                 <h1 className="text-sm sm:text-base font-bold text-slate-100 leading-tight mt-0.5">
-                  {operationsMode === "domiciliario"
-                    ? `${activeRoute?.driverName || "Carlos Pérez"} • Furgón ${activeRoute?.vehiclePlate || "KLP-541"}`
-                    : operationsMode === "planta"
-                    ? "Control de Cargas & Báscula en Frigorífico"
-                    : "Recepción de Canales & Kardex Frío (1.8°C)"}
+                  {currentUser?.role === "operador"
+                    ? operationsMode === "planta"
+                      ? "Alistamiento, Báscula Digital & Precintos INVIMA"
+                      : "Kardex en Frío (1.8°C) & Recepción de Canales"
+                    : `${activeRoute?.driverName || "Carlos Pérez"} • Furgón ${activeRoute?.vehiclePlate || "KLP-541"}`}
                 </h1>
               </div>
             </div>
 
             {/* Quick Driver switcher only if in domiciliario mode */}
-            {operationsMode === "domiciliario" && (
+            {currentUser?.role === "domiciliario" && (
               <select
                 value={selectedDriverId}
                 onChange={(e) => setSelectedDriverId(e.target.value)}
@@ -440,51 +476,67 @@ export default function OperacionPage() {
             )}
           </div>
 
-          {/* Operational Work Role Selector Tabs */}
-          <div className="flex bg-slate-900 rounded-2xl p-1 border border-slate-800 self-stretch sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setOperationsMode("domiciliario")}
-              className={`flex-1 sm:flex-initial px-3 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
-                operationsMode === "domiciliario"
-                  ? "bg-amber-500 text-slate-950 shadow-md font-black"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Truck className="w-3.5 h-3.5" />
-              <span>Chofer / Ruta</span>
-            </button>
+          {/* Action buttons based on active role */}
+          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end">
+            {currentUser?.role === "operador" ? (
+              <div className="flex bg-slate-900 rounded-2xl p-1 border border-slate-800 flex-1 sm:flex-initial">
+                <button
+                  type="button"
+                  onClick={() => setOperationsMode("planta")}
+                  className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                    operationsMode === "planta"
+                      ? "bg-emerald-600 text-white shadow-md font-black"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <Scale className="w-3.5 h-3.5" />
+                  <span>Alistamiento & Báscula</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setOperationsMode("planta")}
-              className={`flex-1 sm:flex-initial px-3 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
-                operationsMode === "planta"
-                  ? "bg-emerald-600 text-white shadow-md font-black"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Scale className="w-3.5 h-3.5" />
-              <span>Planta & Cargas</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setOperationsMode("bodega")}
+                  className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                    operationsMode === "bodega"
+                      ? "bg-cyan-600 text-white shadow-md font-black"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <ThermometerSnowflake className="w-3.5 h-3.5" />
+                  <span>Bodega & Frío</span>
+                </button>
+              </div>
+            ) : (
+              <div className="hidden sm:block">
+                <select
+                  value={selectedDriverId}
+                  onChange={(e) => setSelectedDriverId(e.target.value)}
+                  className="bg-slate-900 border border-slate-800 text-xs font-bold text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+                >
+                  {routes.map((r) => (
+                    <option key={r.driverId} value={r.driverId}>
+                      🚚 {r.driverName} ({r.vehiclePlate})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
+            {/* Logout / Switch Role button */}
             <button
               type="button"
-              onClick={() => setOperationsMode("bodega")}
-              className={`flex-1 sm:flex-initial px-3 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
-                operationsMode === "bodega"
-                  ? "bg-cyan-600 text-white shadow-md font-black"
-                  : "text-slate-400 hover:text-white"
-              }`}
+              onClick={handleLogout}
+              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 text-xs font-bold border border-slate-800 hover:border-rose-700/60 transition-colors flex items-center gap-1.5 flex-shrink-0"
+              title="Cerrar turno o cambiar a otro perfil de operación"
             >
-              <ThermometerSnowflake className="w-3.5 h-3.5" />
-              <span>Bodega & Frío</span>
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Cerrar Turno</span>
             </button>
           </div>
         </div>
       </div>
 
-      {operationsMode === "domiciliario" ? (
+      {currentUser?.role === "domiciliario" || operationsMode === "domiciliario" ? (
         <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
         {/* Prominent Assigned Route Details Card */}
         {activeRoute && (
