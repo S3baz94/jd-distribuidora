@@ -141,8 +141,15 @@ export default function AdminOrdersPage() {
           </p>
         </div>
 
-        {/* Database Download Buttons */}
+        {/* Actions */}
         <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+          <Link
+            href="/admin/facturacion"
+            className="px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-950/40 transition-all active:scale-95"
+          >
+            <span>➕ Crear Pedido / Factura POS</span>
+          </Link>
+
           <button
             onClick={handleExportCSV}
             className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
@@ -151,23 +158,6 @@ export default function AdminOrdersPage() {
             <FileSpreadsheet className="w-4 h-4" />
             <span>Descargar en Excel (.CSV)</span>
           </button>
-
-          <button
-            onClick={handleExportFullBackup}
-            className="px-3.5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-2 border border-slate-700 transition-all"
-            title="Descargar copia de seguridad completa del sistema"
-          >
-            <Database className="w-4 h-4 text-cyan-400" />
-            <span>Backup Base de Datos (.JSON)</span>
-          </button>
-
-          <Link
-            href="/admin/alistamiento"
-            className="px-3.5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-2xl shadow-md transition-all flex items-center gap-1.5"
-          >
-            <Scale className="w-4 h-4" />
-            <span>Planilla de Picking</span>
-          </Link>
         </div>
       </div>
 

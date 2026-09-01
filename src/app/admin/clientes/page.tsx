@@ -24,8 +24,9 @@ import {
 } from "lucide-react";
 
 export default function AdminCustomersPage() {
-  const { allCustomers, allOrders, createCustomer, showToast } = useApp();
+  const { allCustomers, allOrders, createCustomer, updateCustomerData, showToast } = useApp();
   const [isNewCustModalOpen, setIsNewCustModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState<Partial<Customer>>({
     businessName: "",
     contactName: "",
@@ -90,6 +91,15 @@ export default function AdminCustomersPage() {
       deliveryDays: "Lunes a Sábado",
       status: "active",
     });
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCustomer) return;
+
+    updateCustomerData(editingCustomer.id, editingCustomer);
+    setEditingCustomer(null);
+    showToast("✓ Datos del cliente actualizados correctamente", "success");
   };
 
   return (
@@ -204,14 +214,25 @@ export default function AdminCustomersPage() {
                   </div>
                 </div>
 
-                <Link
-                  href={`/admin/pedidos`}
-                  className="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
-                >
-                  <Package className="w-3.5 h-3.5 text-brand-400" />
-                  <span>Ver Historial de Órdenes en Panel</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCustomer(cust)}
+                    className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+                  >
+                    <Building className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Editar Cliente</span>
+                  </button>
+
+                  <Link
+                    href={`/admin/pedidos`}
+                    className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+                    title="Ver pedidos de este cliente"
+                  >
+                    <Package className="w-3.5 h-3.5 text-brand-400" />
+                    <span>Pedidos</span>
+                  </Link>
+                </div>
               </div>
             </div>
           );
@@ -359,6 +380,161 @@ export default function AdminCustomersPage() {
                   className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold shadow-lg"
                 >
                   Guardar Cliente
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Customer Modal */}
+      {editingCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl animate-in zoom-in-95">
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                  <Building className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-white">
+                    Modificar Datos de Cliente
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {editingCustomer.businessName}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingCustomer(null)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="p-5 space-y-3 max-h-[70vh] overflow-y-auto text-xs">
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">
+                  Razón Social / Nombre Comercial *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editingCustomer.businessName}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, businessName: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">NIT / Cédula *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingCustomer.nit}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, nit: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs font-mono focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Nombre de Contacto</label>
+                  <input
+                    type="text"
+                    value={editingCustomer.contactName}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, contactName: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Teléfono / WhatsApp</label>
+                  <input
+                    type="text"
+                    value={editingCustomer.phone}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, phone: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    value={editingCustomer.email}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">
+                  Dirección de Entrega (Ruta de Frío)
+                </label>
+                <input
+                  type="text"
+                  value={editingCustomer.address}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Zona / Sector</label>
+                  <select
+                    value={editingCustomer.zone}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, zone: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="Zona Norte (Cedritos - Usaquén)">Zona Norte (Cedritos - Usaquén)</option>
+                    <option value="Zona Centro & Chapinero (Galerías)">Zona Centro & Chapinero (Galerías)</option>
+                    <option value="Zona Occidente (Fontibón - Modelia)">Zona Occidente (Fontibón - Modelia)</option>
+                    <option value="Zona Sur (Kennedy - Restrepo)">Zona Sur (Kennedy - Restrepo)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Estado</label>
+                  <select
+                    value={editingCustomer.status}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, status: e.target.value as "active" | "inactive" })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="active">Activo</option>
+                    <option value="inactive">Inactivo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Condiciones de Pago</label>
+                <select
+                  value={editingCustomer.paymentTerms}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, paymentTerms: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500"
+                >
+                  <option value="Crédito 15 días / Transferencia">Crédito 15 días / Transferencia</option>
+                  <option value="Crédito 30 días">Crédito 30 días</option>
+                  <option value="Contado contra entrega / Transferencia">Contado contra entrega / Transferencia</option>
+                </select>
+              </div>
+
+              <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingCustomer(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold shadow-lg"
+                >
+                  Guardar Cambios
                 </button>
               </div>
             </form>

@@ -22,7 +22,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { NewBatchModal } from "@/components/admin/NewBatchModal";
 
 export default function AdminDashboardPage() {
-  const { allOrders, inventory, products, addInventoryBatch } = useApp();
+  const { allOrders, inventory, products, routes, addInventoryBatch } = useApp();
   const [isNewBatchOpen, setIsNewBatchOpen] = useState(false);
 
   // Metrics
@@ -62,28 +62,14 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Link
-            href="/admin/entregas"
-            className="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xs px-4 py-3.5 rounded-2xl shadow-xl shadow-cyan-950/50 transition-all active:scale-98 border border-cyan-400/40"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Chequear Entregas (POD)</span>
-          </Link>
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsNewBatchOpen(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-teal-700 text-white font-black text-xs px-4 py-3.5 rounded-2xl shadow-xl shadow-emerald-950/50 transition-all active:scale-98 border border-emerald-400/30"
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-teal-700 text-white font-black text-xs px-5 py-3.5 rounded-2xl shadow-xl shadow-emerald-950/50 transition-all active:scale-98 border border-emerald-400/30"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>Ingresar Lote</span>
+            <span>Ingresar Lote de Carne</span>
           </button>
-          <Link
-            href="/admin/alistamiento"
-            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:from-amber-700 text-slate-950 font-black text-xs px-4 py-3.5 rounded-2xl shadow-xl shadow-amber-950/50 transition-all active:scale-98 border border-amber-300"
-          >
-            <Scale className="w-4 h-4" />
-            <span>Ingresar Pesaje Manual</span>
-          </Link>
         </div>
       </div>
 
@@ -357,31 +343,35 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Quick Shortcuts */}
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-800 rounded-3xl p-5 space-y-3">
-            <h3 className="text-sm font-extrabold text-white">Accesos Directos</h3>
-            <div className="grid grid-cols-3 gap-2 text-xs font-bold">
-              <Link
-                href="/admin/entregas"
-                className="p-3 rounded-2xl bg-slate-800/90 hover:bg-cyan-950/60 border border-cyan-500/30 text-slate-200 hover:text-cyan-300 transition-all text-center flex flex-col items-center gap-1.5"
-              >
-                <ShieldCheck className="w-5 h-5 text-cyan-400" />
-                <span>POD & Entregas</span>
-              </Link>
-              <Link
-                href="/admin/alistamiento"
-                className="p-3 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white transition-all text-center flex flex-col items-center gap-1.5"
-              >
-                <Scale className="w-5 h-5 text-amber-400" />
-                <span>Picking</span>
-              </Link>
-              <Link
-                href="/admin/clientes"
-                className="p-3 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white transition-all text-center flex flex-col items-center gap-1.5"
-              >
-                <Users className="w-5 h-5 text-emerald-400" />
-                <span>Clientes</span>
-              </Link>
+          {/* Active Fleet / Delivery Routes Status */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                <Truck className="w-4 h-4 text-emerald-400" />
+                <span>Flota Refrigerada & Rutas</span>
+              </h3>
+              <span className="text-[10px] font-black uppercase text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                1.8°C Frío
+              </span>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              {routes.slice(0, 3).map((r) => (
+                <div
+                  key={r.id}
+                  className="p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-between"
+                >
+                  <div>
+                    <p className="font-bold text-white">{r.driverName}</p>
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      Furgón {r.vehiclePlate} • {r.orderIds ? r.orderIds.length : 0} paradas
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    {r.status === "in_transit" ? "En Ruta" : r.status === "completed" ? "Completada" : "Planificada"}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

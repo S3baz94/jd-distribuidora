@@ -6,15 +6,9 @@ import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { AdminAuthService, AdminUserProfile } from "@/services/authService";
 import {
-  ShieldAlert,
-  RefreshCw,
-  Truck,
-  UserCheck,
   Menu,
-  Receipt,
   Download,
   LogOut,
-  User,
 } from "lucide-react";
 
 interface AdminHeaderProps {
@@ -22,8 +16,7 @@ interface AdminHeaderProps {
 }
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
-  const pathname = usePathname();
-  const { resetAllDemoData, allOrders, showToast } = useApp();
+  const { showToast } = useApp();
   const [currentUser, setCurrentUser] = useState<AdminUserProfile | null>(null);
 
   useEffect(() => {
@@ -35,10 +28,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
     showToast("Sesión administrativa cerrada", "info");
     window.location.reload();
   };
-
-  const pendingOrdersCount = allOrders.filter(
-    (o) => o.status === "pending" || o.status === "confirmed" || o.status === "preparing"
-  ).length;
 
   return (
     <header className="sticky top-0 z-40 bg-slate-950 text-white border-b border-slate-800 shadow-sm">
@@ -75,41 +64,18 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             </Link>
           </div>
 
-          {/* Right: Controls & Profile */}
+          {/* Right: Active Profile, Download PC & Logout */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Active User Profile Badge */}
             {currentUser && (
-              <div className="hidden md:flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+              <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
                 <div className="text-left">
                   <p className="font-semibold text-slate-200 leading-tight">{currentUser.name}</p>
                   <p className="text-[10px] text-slate-400 font-mono leading-tight">{currentUser.roleTitle}</p>
                 </div>
               </div>
             )}
-
-            {/* Pending orders quick badge */}
-            {pendingOrdersCount > 0 && (
-              <Link
-                href="/admin/pedidos"
-                className="flex items-center gap-1.5 bg-slate-900 text-slate-200 border border-slate-800 hover:border-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors"
-                title="Pedidos pendientes de atención"
-              >
-                <Truck className="w-3.5 h-3.5 text-amber-500" />
-                <span>{pendingOrdersCount} en curso</span>
-              </Link>
-            )}
-
-            {/* POS Facturación shortcut */}
-            <Link
-              href="/admin/facturacion"
-              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-850 text-slate-200 hover:text-white border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-sm"
-              title="Módulo de Facturación & POS"
-            >
-              <Receipt className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden lg:inline">Facturación POS</span>
-              <span className="lg:hidden">POS</span>
-            </Link>
 
             {/* Install Desktop App Button */}
             <button
@@ -122,23 +88,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
               title="Descargar e instalar como software de escritorio en Windows"
             >
               <Download className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden xl:inline">Descargar para PC</span>
-              <span className="xl:hidden">Descargar</span>
-            </button>
-
-            {/* Reset Demo button */}
-            <button
-              onClick={resetAllDemoData}
-              className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-xl transition-colors"
-              title="Reiniciar datos"
-            >
-              <RefreshCw className="w-4 h-4" />
+              <span className="hidden sm:inline">Instalar PC</span>
             </button>
 
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-rose-300 border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
               title="Cerrar sesión administrativa"
             >
               <LogOut className="w-3.5 h-3.5" />
