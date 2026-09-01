@@ -8,7 +8,6 @@ import { priceService } from "@/services/priceService";
 import { whatsappService } from "@/services/whatsappService";
 import { DEMO_COMPANY } from "@/services/mockData";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { WeightAdjustmentModal } from "@/components/admin/WeightAdjustmentModal";
 import { OrderStatus } from "@/types";
 import {
   ArrowLeft,
@@ -32,9 +31,6 @@ export default function AdminOrderDetailPage() {
   const {
     allOrders,
     allCustomers,
-    updateOrderStatus,
-    adjustOrderRealWeight,
-    updateOrderDispatch,
   } = useApp();
 
   const order = allOrders.find(
@@ -42,12 +38,6 @@ export default function AdminOrderDetailPage() {
   );
 
   const customer = allCustomers.find((c) => c.id === order?.customerId);
-
-  const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
-  const [driverName, setDriverName] = useState(order?.driverName || "Juan Camilo Méndez (Furgón #3 JD)");
-  const [sealNumber, setSealNumber] = useState(order?.sealNumber || "PREC-JD-8849");
-  const [internalNotes, setInternalNotes] = useState(order?.internalNotes || "");
-  const [isSavingDispatch, setIsSavingDispatch] = useState(false);
 
   if (!order) {
     return (
@@ -78,18 +68,6 @@ export default function AdminOrderDetailPage() {
 
   const totalKgTheoretical = order.items.reduce((s, i) => s + i.quantity, 0);
   const totalKgReal = order.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0);
-
-  const handleSaveDispatch = () => {
-    setIsSavingDispatch(true);
-    updateOrderDispatch(order.id, {
-      driverName,
-      sealNumber,
-      internalNotes,
-    });
-    setTimeout(() => {
-      setIsSavingDispatch(false);
-    }, 500);
-  };
 
   const handlePrint = () => {
     window.print();
@@ -133,7 +111,7 @@ export default function AdminOrderDetailPage() {
             className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition-colors shadow-md shadow-emerald-950/40"
           >
             <MessageCircle className="w-4 h-4 fill-current" />
-            <span>Notificar Despacho (WhatsApp)</span>
+            <span>Notificar al Cliente (WhatsApp)</span>
           </a>
 
           <button
@@ -143,52 +121,50 @@ export default function AdminOrderDetailPage() {
             <Printer className="w-4 h-4" />
             <span>Imprimir Remisión</span>
           </button>
-
-          <button
-            onClick={() => setIsWeightModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-extrabold shadow-lg shadow-amber-950/50 transition-all active:scale-98"
-          >
-            <Scale className="w-4 h-4" />
-            <span>Ajustar Pesaje Báscula</span>
-          </button>
         </div>
       </div>
 
-      {/* Status Pipeline Controller Bar */}
+      {/* Status Pipeline Visual Timeline (Read-only monitoring) */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-lg space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Línea Operativa de Planta & Despacho
-          </span>
-          <span className="text-xs text-slate-400">
-            Haz clic en un estado para avanzar el pedido
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+            <span className="text-xs font-bold uppercase tracking-wider text-cyan-300">
+              Seguimiento Operativo en Tiempo Real (Planta, Báscula & Despacho)
+            </span>
+          </div>
+          <span className="text-[11px] text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full border border-slate-700">
+            📡 Estado gestionado en vivo desde la App de Operación
           </span>
         </div>
 
-        {/* Pipeline Buttons */}
+        {/* Pipeline Visual Stages */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           {stages.map((stage, idx) => {
             const isCurrent = stage.key === order.status;
             const isPast = currentIdx > idx;
 
             return (
-              <button
+              <div
                 key={stage.key}
-                onClick={() => updateOrderStatus(order.id, stage.key)}
                 className={`p-3 rounded-2xl text-xs font-extrabold text-center transition-all flex flex-col items-center gap-1 border ${
                   isCurrent
-                    ? "bg-brand-600 text-white border-brand-500 shadow-lg shadow-brand-950/50 scale-102"
+                    ? "bg-brand-600 text-white border-brand-500 shadow-lg shadow-brand-950/50 ring-2 ring-brand-400/40"
                     : isPast
-                    ? "bg-slate-800/80 text-emerald-400 border-slate-700 hover:bg-slate-700"
-                    : "bg-slate-900/50 text-slate-500 border-slate-800 hover:bg-slate-800/80 hover:text-slate-300"
+                    ? "bg-slate-800/80 text-emerald-400 border-slate-700"
+                    : "bg-slate-950 text-slate-600 border-slate-800"
                 }`}
               >
                 <div className="flex items-center gap-1">
-                  {isPast && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+                  {isPast ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  ) : isCurrent ? (
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                  ) : null}
                   <span>Paso {idx + 1}</span>
                 </div>
-                <span className="truncate max-w-[100px]">{stage.label}</span>
-              </button>
+                <span className="truncate max-w-[110px]">{stage.label}</span>
+              </div>
             );
           })}
         </div>
@@ -294,50 +270,28 @@ export default function AdminOrderDetailPage() {
               <span>Despacho & Cadena de Frío</span>
             </h3>
 
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-400 font-bold mb-1">
-                  Chofer y Vehículo Frigorífico
-                </label>
-                <input
-                  type="text"
-                  value={driverName}
-                  onChange={(e) => setDriverName(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500"
-                />
+            <div className="space-y-2.5 text-xs text-slate-300">
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Chofer & Furgón Asignado:</span>
+                <strong className="text-white font-bold text-xs">{order.driverName || "Furgón Refrigerado JD (Carlos Pérez)"}</strong>
               </div>
 
-              <div>
-                <label className="block text-slate-400 font-bold mb-1">
-                  No. Precinto de Seguridad INVIMA
-                </label>
-                <input
-                  type="text"
-                  value={sealNumber}
-                  onChange={(e) => setSealNumber(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-brand-500"
-                />
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Precinto de Seguridad INVIMA:</span>
+                <strong className="text-cyan-300 font-mono font-bold text-xs">{order.sealNumber || "PREC-JD-8849"}</strong>
               </div>
 
-              <div>
-                <label className="block text-slate-400 font-bold mb-1">
-                  Notas Internas de Despacho
-                </label>
-                <textarea
-                  rows={2}
-                  value={internalNotes}
-                  onChange={(e) => setInternalNotes(e.target.value)}
-                  placeholder="Ej. Entregar antes de las 9am por la puerta de descarga lateral."
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500 placeholder:text-slate-500"
-                />
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Telemetría de Cava / Furgón:</span>
+                <strong className="text-emerald-400 font-mono font-bold text-xs">❄️ 1.8°C (Rango Óptimo 0°C a 4°C)</strong>
               </div>
 
-              <button
-                onClick={handleSaveDispatch}
-                className="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-extrabold text-xs shadow-md transition-colors"
-              >
-                {isSavingDispatch ? "Guardando..." : "Actualizar Datos de Despacho"}
-              </button>
+              {order.internalNotes && (
+                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Observaciones de Planta:</span>
+                  <p className="text-slate-300 italic text-xs">{order.internalNotes}</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -370,14 +324,6 @@ export default function AdminOrderDetailPage() {
           </div>
         </div>
       </div>
-
-      {/* Modal for adjusting scale weight */}
-      <WeightAdjustmentModal
-        order={order}
-        isOpen={isWeightModalOpen}
-        onClose={() => setIsWeightModalOpen(false)}
-        onSave={(realQuantities) => adjustOrderRealWeight(order.id, realQuantities)}
-      />
     </div>
   );
 }

@@ -269,9 +269,9 @@ export default function AdminDashboardPage() {
                     </span>
                     <Link
                       href={`/admin/pedidos/${order.id}`}
-                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-brand-600 text-slate-200 hover:text-white text-xs font-bold transition-all border border-slate-700 hover:border-transparent"
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold transition-all border border-slate-700 hover:border-slate-600"
                     >
-                      Gestionar
+                      Ver Detalle
                     </Link>
                   </div>
                 </div>

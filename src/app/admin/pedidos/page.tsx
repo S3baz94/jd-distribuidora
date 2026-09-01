@@ -27,7 +27,7 @@ import {
 import { StatusBadge } from "@/components/common/StatusBadge";
 
 export default function AdminOrdersPage() {
-  const { allOrders, allCustomers, inventory, routes, updateOrderStatus, showToast } = useApp();
+  const { allOrders, allCustomers, inventory, routes, showToast } = useApp();
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("all");
   const [selectedBrandFilter, setSelectedBrandFilter] = useState<string>("all");
@@ -96,20 +96,6 @@ export default function AdminOrdersPage() {
     ready: allOrders.filter((o) => o.status === "ready").length,
     dispatched: allOrders.filter((o) => o.status === "dispatched").length,
     delivered: allOrders.filter((o) => o.status === "delivered").length,
-  };
-
-  const handleQuickAdvance = (orderId: string, currentStatus: OrderStatus) => {
-    const nextStatusMap: Partial<Record<OrderStatus, OrderStatus>> = {
-      pending: "confirmed",
-      confirmed: "preparing",
-      preparing: "ready",
-      ready: "dispatched",
-      dispatched: "delivered",
-    };
-    const next = nextStatusMap[currentStatus];
-    if (next) {
-      updateOrderStatus(orderId, next);
-    }
   };
 
   const handleExportCSV = () => {
@@ -400,23 +386,12 @@ export default function AdminOrdersPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {order.status !== "delivered" && order.status !== "cancelled" && (
-                      <button
-                        onClick={() => handleQuickAdvance(order.id, order.status)}
-                        className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md transition-all active:scale-98 flex items-center gap-1"
-                        title="Avanzar al siguiente estado"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Avanzar Estado</span>
-                      </button>
-                    )}
-
                     <Link
                       href={`/admin/pedidos/${order.id}`}
-                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs transition-all border border-slate-700 flex items-center gap-1"
+                      className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs transition-all border border-slate-700 flex items-center gap-1.5"
                     >
-                      <span>Detalle & Báscula</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <span>Ver Detalle & Remisión</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
                     </Link>
                   </div>
                 </div>
