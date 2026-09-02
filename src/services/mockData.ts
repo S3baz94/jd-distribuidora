@@ -4,7 +4,7 @@ export const DEMO_COMPANY = {
   id: "dist-001",
   name: "JD Distribuidora y Gourmet Ahumados",
   shortName: "JD Distribuidora & Gourmet",
-  tagline: "Proveedor directo de cortes de cerdo crudo y línea gourmet ahumados para famas, asaderos y restaurantes",
+  tagline: "Proveedor mayorista de cortes de cerdo 100% despostados y línea gourmet ahumados al leño para famas, asaderos y restaurantes",
   phone: "+57 323 321 8831",
   whatsapp: "+57 323 321 8831",
   address: "Central de Carnes, Bodega Frigorífica JD, Bogotá D.C.",

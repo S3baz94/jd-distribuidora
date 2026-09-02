@@ -119,6 +119,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Card Body with Big Friendly Typography */}
         <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
           <div>
+            <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                🔪 100% Despostado
+              </span>
+              <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                {product.cutType}
+              </span>
+            </div>
+
             <h3 className="font-black text-slate-950 text-lg sm:text-xl leading-tight">
               {product.name}
             </h3>

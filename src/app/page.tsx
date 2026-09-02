@@ -133,7 +133,7 @@ export default function HomePage() {
             Hola, {customer.contactName.split(" ")[0]} 👋 <span className="text-slate-300 font-bold">({customer.businessName})</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            Cortes en canal, piezas despostadas y costillas ahumadas con entrega directa en tu local.
+            Cortes de cerdo 100% despostados, piezas limpias al corte exacto y costillas ahumadas con entrega directa en tu local.
           </p>
         </div>
 
@@ -293,6 +293,27 @@ export default function HomePage() {
           </button>
         </div>
       )}
+
+      {/* Compromiso de Calidad: 100% Despostado */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xl">🔪</span>
+          <div>
+            <p className="font-black text-white flex items-center gap-2">
+              <span>Todo Se Vende 100% Despostado</span>
+              <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-700/60">
+                Sin Mermas de Canal
+              </span>
+            </p>
+            <p className="text-slate-400 text-[11px]">
+              Cortes limpios sin hueso de desecho, pesados al kilo exacto en canastilla y listos para exhibir o cocinar.
+            </p>
+          </div>
+        </div>
+        <span className="text-[10px] font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/30 whitespace-nowrap hidden sm:inline-block">
+          ⚖️ Kilos Netos Útiles
+        </span>
+      </div>
 
       {/* 4. Selector de Marca & Buscador */}
       <div className="space-y-3">

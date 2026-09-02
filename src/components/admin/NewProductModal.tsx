@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { Product, ProductCategory, BrandType } from "@/types";
@@ -22,9 +22,9 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
   const [pricePerKg, setPricePerKg] = useState<number>(22000);
   const [initialStockKg, setInitialStockKg] = useState<number>(100);
   const [minimumQuantity, setMinimumQuantity] = useState<number>(5);
-  const [cutType, setCutType] = useState("Corte fresco seleccionado bajo norma INVIMA");
-  const [presentation, setPresentation] = useState("En canastilla plástica limpia refrigerada (25kg)");
-  const [description, setDescription] = useState("Corte cárnico de cerdo seleccionado con cadena de frío garantizada 0°C a 4°C.");
+  const [cutType, setCutType] = useState("Corte 100% despostado y limpio bajo norma INVIMA");
+  const [presentation, setPresentation] = useState("Despostado en canastilla plástica limpia (25kg)");
+  const [description, setDescription] = useState("Corte de cerdo 100% despostado y porcionado sin mermas de canal. Refrigerado 0°C a 4°C.");
 
   if (!isOpen) return null;
 
@@ -69,10 +69,10 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
             </div>
             <div>
               <h3 className="font-extrabold text-base text-white">
-                Crear Nuevo Producto / Corte Real
+                Crear Corte Real (100% Despostado)
               </h3>
               <p className="text-xs text-slate-400">
-                Alimenta el catálogo de venta y stock con datos reales
+                Alimenta el catálogo y stock con cortes limpios listos para venta (sin canales)
               </p>
             </div>
           </div>

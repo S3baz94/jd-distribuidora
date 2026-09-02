@@ -86,9 +86,9 @@ export const ColdStorageStation: React.FC = () => {
             </div>
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
-                BODEGA & CAVA FRIGORÍFICA
+                BODEGA & CAVA FRIGORÍFICA (TODO DESPOSTADO)
               </span>
-              <h2 className="text-lg font-black text-white">Recepción de Canales & Control de Stock</h2>
+              <h2 className="text-lg font-black text-white">Recepción de Cortes Despostados & Control de Stock</h2>
             </div>
           </div>
 
@@ -98,7 +98,7 @@ export const ColdStorageStation: React.FC = () => {
             className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all self-start sm:self-auto"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>➕ Recepción de Canales / Lote</span>
+            <span>➕ Ingreso de Lote Despostado</span>
           </button>
         </div>
 

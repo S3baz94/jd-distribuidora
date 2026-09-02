@@ -128,7 +128,7 @@ export default function AdminInventoryPage() {
                 Control de Inventario & Lotes en Frío
               </h1>
               <p className="text-xs sm:text-sm text-slate-400">
-                Entrada de canales despostadas, pesaje en báscula, reservas de clientes y stock para venta
+                Inventario de cortes 100% despostados y porcionados, pesaje en báscula digital, reservas y stock para venta
               </p>
             </div>
           </div>

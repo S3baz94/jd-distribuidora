@@ -63,10 +63,10 @@ export default function CatalogPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
               {selectedBrand === "jd_distribuidora"
-                ? "Cortes de Cerdo Fresco Crudo"
+                ? "Cortes de Cerdo 100% Despostados"
                 : selectedBrand === "gourmet_ahumados"
                 ? "Costillas & Chuletas Gourmet Ahumadas"
-                : "Catálogo de Productos JD & Gourmet"}
+                : "Catálogo 100% Despostados & Ahumados JD"}
             </h1>
             <span className="text-xs font-black text-brand-700 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200">
               {filteredProducts.length} productos
@@ -81,7 +81,7 @@ export default function CatalogPage() {
             ) : (
               <>
                 <ThermometerSnowflake className="w-4 h-4 text-cyan-600" />
-                <span>Desposte diario en cadena de frío (0°C a 4°C) para <strong>{customer.businessName}</strong></span>
+                <span>Desposte fino en frío (0°C a 4°C) • 100% piezas limpias para <strong>{customer.businessName}</strong></span>
               </>
             )}
           </p>
@@ -110,6 +110,31 @@ export default function CatalogPage() {
 
       {/* Brand Switcher Card */}
       <BrandSwitcher />
+
+      {/* Compromiso de Calidad: 100% Despostado */}
+      <div className="bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-2 border-amber-200/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-900 flex items-center justify-center font-black text-xl flex-shrink-0 border border-amber-300">
+            🔪
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm sm:text-base font-black text-slate-900">
+                Garantía JD: Todo se Entrega 100% Despostado & Limpio
+              </h3>
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                Sin Mermas de Canal
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 mt-0.5">
+              No vendemos canales enteros. Recibes cortes porcionados y despostados al peso exacto en canastilla, listos para exhibir en carnicería o preparar en restaurante.
+            </p>
+          </div>
+        </div>
+        <div className="text-[11px] font-black text-amber-900 bg-white/90 px-3 py-1.5 rounded-xl border border-amber-300 flex items-center gap-1.5 self-end sm:self-auto shadow-sm">
+          <span>⚖️ Kilos Netos Útiles</span>
+        </div>
+      </div>
 
       {/* Category Tabs (Large touch buttons) */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0">
