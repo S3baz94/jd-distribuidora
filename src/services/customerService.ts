@@ -1,8 +1,8 @@
 import { Customer } from "@/types";
 import { INITIAL_CUSTOMERS } from "./mockData";
 
-const CURRENT_CUSTOMER_KEY = "porcob2b_current_customer_v4";
-const ALL_CUSTOMERS_KEY = "porcob2b_all_customers_v4";
+const CURRENT_CUSTOMER_KEY = "porcob2b_current_customer_v5";
+const ALL_CUSTOMERS_KEY = "porcob2b_all_customers_v5";
 
 export const customerService = {
   getCurrentCustomer: (): Customer => {
@@ -34,7 +34,13 @@ export const customerService = {
     try {
       const stored = localStorage.getItem(ALL_CUSTOMERS_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed: Customer[] = JSON.parse(stored);
+        if (!parsed.some((c) => (c.phone || "").replace(/\D/g, "") === "3233218831")) {
+          const merged = [INITIAL_CUSTOMERS[0], ...parsed];
+          localStorage.setItem(ALL_CUSTOMERS_KEY, JSON.stringify(merged));
+          return merged;
+        }
+        return parsed;
       }
     } catch {
       // Fallback

@@ -13,6 +13,26 @@ export const DEMO_COMPANY = {
 
 export const INITIAL_CUSTOMERS: Customer[] = [
   {
+    id: "cust-sebastian",
+    companyId: "dist-001",
+    businessName: "JD Carnes & Gourmet Principal",
+    contactName: "Sebastián (Cliente VIP)",
+    nit: "901.684.219-3",
+    phone: "323 321 8831",
+    email: "sebastian@jddistribuidora.com",
+    address: "Central de Carnes, Bodega Frigorífica JD, Bogotá D.C.",
+    city: "Bogotá D.C.",
+    zone: "Zona Norte (Cedritos - Usaquén - Suba)",
+    lat: 4.7110,
+    lng: -74.0300,
+    priceListId: "list-famas-a",
+    assignedPriceListName: "Tarifa Institucional VIP (JD & Gourmet)",
+    status: "active",
+    paymentTerms: "Contado contra entrega / Transferencia",
+    minOrderAmount: 300000,
+    deliveryDays: "Lunes a Sábado",
+  },
+  {
     id: "cust-nuevo",
     companyId: "dist-001",
     businessName: "Nuevo Cliente B2B (Primer Pedido)",
