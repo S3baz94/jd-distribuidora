@@ -21,6 +21,10 @@ import {
   ArrowRight,
   ExternalLink,
   Flame,
+  Receipt,
+  AlertTriangle,
+  Sparkles,
+  Check,
 } from "lucide-react";
 
 export default function AdminRutasPage() {
@@ -31,11 +35,17 @@ export default function AdminRutasPage() {
     autoAssignRoutes,
     reorderRouteOrders,
     createRoute,
+    invoiceOrder,
+    invoiceAllPendingOrders,
+    isOrderInvoiced,
+    getOrderInvoice,
     showToast,
   } = useApp();
 
   const [selectedRouteId, setSelectedRouteId] = useState<string>(routes[0]?.id || "");
   const [isNewRouteModalOpen, setIsNewRouteModalOpen] = useState(false);
+  const [isBillingPromptOpen, setIsBillingPromptOpen] = useState(false);
+  const [unassignedFilterTab, setUnassignedFilterTab] = useState<"all" | "invoiced" | "pending_invoice">("all");
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteZone, setNewRouteZone] = useState("Zona Norte");
   const [newDriverName, setNewDriverName] = useState("");
@@ -52,6 +62,17 @@ export default function AdminRutasPage() {
       (!o.routeId || !routes.some((r) => r.id === o.routeId))
   );
 
+  const invoicedUnassignedOrders = unassignedOrders.filter(isOrderInvoiced);
+  const pendingInvoiceOrders = unassignedOrders.filter((o) => !isOrderInvoiced(o));
+
+  const totalInvoicedActive = allOrders.filter(
+    (o) => o.status !== "delivered" && o.status !== "cancelled" && isOrderInvoiced(o)
+  ).length;
+
+  const totalPendingInvoiceActive = allOrders.filter(
+    (o) => o.status !== "delivered" && o.status !== "cancelled" && !isOrderInvoiced(o)
+  ).length;
+
   const selectedRoute = routes.find((r) => r.id === selectedRouteId) || routes[0];
 
   const getRouteOrders = (route: DeliveryRoute): Order[] => {
@@ -60,12 +81,46 @@ export default function AdminRutasPage() {
     );
   };
 
-  const handleRunAutoAssign = () => {
+  const executeAutoAssign = () => {
     setIsAutoAssigning(true);
     setTimeout(() => {
-      const res = autoAssignRoutes();
+      autoAssignRoutes();
       setIsAutoAssigning(false);
+      showToast("✓ Rutas armadas y optimizadas exitosamente con los pedidos facturados", "success");
     }, 400);
+  };
+
+  const handleInitiateRouteAssembly = () => {
+    if (unassignedOrders.length === 0) {
+      showToast("No hay pedidos pendientes por asignar a ruta", "info");
+      return;
+    }
+
+    // Regla de Oro JD: Los pedidos deben facturarse antes de armar la ruta
+    if (pendingInvoiceOrders.length > 0) {
+      setIsBillingPromptOpen(true);
+      return;
+    }
+
+    // Todos los pedidos están facturados -> proceder directamente
+    executeAutoAssign();
+  };
+
+  const handleInvoiceAllAndAssemble = () => {
+    invoiceAllPendingOrders();
+    setIsBillingPromptOpen(false);
+    setTimeout(() => {
+      executeAutoAssign();
+    }, 300);
+  };
+
+  const handleAssembleOnlyInvoiced = () => {
+    setIsBillingPromptOpen(false);
+    if (invoicedUnassignedOrders.length === 0) {
+      showToast("No hay pedidos facturados aún para armar ruta. Factura al menos uno.", "warning");
+      return;
+    }
+    executeAutoAssign();
   };
 
   const handleCreateRoute = (e: React.FormEvent) => {
@@ -127,14 +182,25 @@ export default function AdminRutasPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          {pendingInvoiceOrders.length > 0 && (
+            <button
+              onClick={() => invoiceAllPendingOrders()}
+              className="px-4 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-amber-950/40 transition-all active:scale-95 border border-amber-400/50 animate-pulse"
+              title="Emite las facturas comerciales para todos los pedidos pendientes"
+            >
+              <Receipt className="w-4 h-4" />
+              <span>Facturar Pendientes ({pendingInvoiceOrders.length})</span>
+            </button>
+          )}
+
           <button
-            onClick={handleRunAutoAssign}
+            onClick={handleInitiateRouteAssembly}
             disabled={isAutoAssigning}
             className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95 border border-emerald-400/50"
-            title="Asigna automáticamente todas las órdenes a rutas de máx. 5 paradas por zona"
+            title="Arma y optimiza las rutas una vez facturados los pedidos"
           >
             <span className="text-base">⚡</span>
-            <span>{isAutoAssigning ? "Optimizando..." : "Auto-Asignar Rutas (Máx. 5 Paradas)"}</span>
+            <span>{isAutoAssigning ? "Optimizando..." : "Armar Ruta con Pedidos Facturados"}</span>
           </button>
 
           <Link
@@ -153,17 +219,56 @@ export default function AdminRutasPage() {
         </div>
       </div>
 
-      {/* Regla de Oro / Capacidad Logística Banner */}
-      <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="text-base">🛡️</span>
-          <span className="text-slate-300 font-bold">
-            Política Logística JD: <strong className="text-white">Máximo 5 paradas por furgón refrigerado</strong> agrupadas por zona geográfica y cercanía para preservar la cadena de frío (0°C a 4°C).
-          </span>
+      {/* Regla de Oro / Flujo Operativo: Facturación Previa Obligatoria */}
+      <div className="bg-slate-900/95 border border-slate-800 p-4 rounded-3xl space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">🧾</span>
+            <div>
+              <p className="text-white font-black text-sm flex items-center gap-2">
+                <span>Flujo de Despacho Comercial:</span>
+                <span className="text-[11px] font-normal text-slate-300">
+                  1. Facturar al Cliente ➡️ 2. Armar Ruta y Cargar Furgón
+                </span>
+              </p>
+              <p className="text-slate-400 text-xs mt-0.5">
+                Los pedidos deben llevar su factura / remisión emitida antes de salir a calle con el domiciliario.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-black text-xs flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5" />
+              <span>{totalInvoicedActive} Facturados</span>
+            </span>
+
+            {totalPendingInvoiceActive > 0 ? (
+              <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 font-black text-xs flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>{totalPendingInvoiceActive} Sin Facturar</span>
+              </span>
+            ) : (
+              <span className="px-3 py-1 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-black text-xs">
+                ✓ 100% Facturado
+              </span>
+            )}
+          </div>
         </div>
-        <span className="text-[11px] font-mono text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-full border border-cyan-500/20 font-extrabold flex-shrink-0">
-          🛰️ Auto-Enrutamiento Activo
-        </span>
+
+        {/* Progress Bar */}
+        <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+          <div
+            className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${
+                totalInvoicedActive + totalPendingInvoiceActive > 0
+                  ? Math.round((totalInvoicedActive / (totalInvoicedActive + totalPendingInvoiceActive)) * 100)
+                  : 100
+              }%`,
+            }}
+          />
+        </div>
       </div>
 
       {/* Live Fleet Monitoring KPI Cards (Matching Slide 3) */}
@@ -545,21 +650,68 @@ export default function AdminRutasPage() {
       )}
 
       {/* Unassigned Orders Pool (Bolsa de Pedidos por Asignar) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
             <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
               <span>Bolsa de Pedidos Pendientes por Asignar a Ruta</span>
               {unassignedOrders.length > 0 && (
-                <span className="text-xs font-black bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                <span className="text-xs font-black bg-cyan-500/20 text-cyan-300 px-2.5 py-0.5 rounded-full border border-cyan-500/30">
                   {unassignedOrders.length} sin furgón
                 </span>
               )}
             </h3>
             <p className="text-xs text-slate-400">
-              Asigna los pedidos listos a las rutas de los domiciliarios según la dirección
+              Regla Comercial JD: Los pedidos se facturan al cliente y al quedar facturados se integran al furgón
             </p>
           </div>
+
+          {/* Quick Invoice All button if any pending */}
+          {pendingInvoiceOrders.length > 0 && (
+            <button
+              onClick={() => invoiceAllPendingOrders()}
+              className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs flex items-center gap-2 shadow-md shadow-amber-950/40 transition-all active:scale-95 self-start sm:self-auto"
+            >
+              <Receipt className="w-3.5 h-3.5" />
+              <span>Facturar Todos los Pendientes ({pendingInvoiceOrders.length})</span>
+            </button>
+          )}
+        </div>
+
+        {/* Filter Tabs: Todos / Facturados / Pendientes */}
+        <div className="flex items-center gap-2 text-xs font-bold">
+          <button
+            onClick={() => setUnassignedFilterTab("all")}
+            className={`px-3 py-1.5 rounded-xl transition-all ${
+              unassignedFilterTab === "all"
+                ? "bg-slate-800 text-white border border-slate-700 shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Todos ({unassignedOrders.length})
+          </button>
+          <button
+            onClick={() => setUnassignedFilterTab("invoiced")}
+            className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+              unassignedFilterTab === "invoiced"
+                ? "bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Check className="w-3 h-3 text-emerald-400" />
+            <span>Facturados Listos ({invoicedUnassignedOrders.length})</span>
+          </button>
+          <button
+            onClick={() => setUnassignedFilterTab("pending_invoice")}
+            className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+              unassignedFilterTab === "pending_invoice"
+                ? "bg-amber-950/60 text-amber-300 border border-amber-800/60 shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <AlertTriangle className="w-3 h-3 text-amber-400" />
+            <span>Sin Facturar ({pendingInvoiceOrders.length})</span>
+          </button>
         </div>
 
         {unassignedOrders.length === 0 ? (
@@ -571,60 +723,189 @@ export default function AdminRutasPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {unassignedOrders.map((ord) => {
-              const totalKg = ord.items.reduce((sum, i) => sum + i.quantity, 0);
+            {unassignedOrders
+              .filter((ord) => {
+                if (unassignedFilterTab === "invoiced") return isOrderInvoiced(ord);
+                if (unassignedFilterTab === "pending_invoice") return !isOrderInvoiced(ord);
+                return true;
+              })
+              .map((ord) => {
+                const totalKg = ord.items.reduce(
+                  (sum, i) => sum + (i.realQuantity || i.quantity),
+                  0
+                );
+                const invoiced = isOrderInvoiced(ord);
+                const inv = getOrderInvoice(ord);
 
-              return (
-                <div
-                  key={ord.id}
-                  className="bg-slate-850 border border-slate-750 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-black text-white text-base">
-                        {ord.customerName}
-                      </h4>
-                      <span className="text-xs font-bold text-slate-400">
-                        {ord.orderNumber}
-                      </span>
-                      <span className="text-xs text-brand-300 font-extrabold">
-                        ({totalKg} kg)
-                      </span>
+                return (
+                  <div
+                    key={ord.id}
+                    className={`border p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+                      invoiced
+                        ? "bg-slate-850 border-slate-750"
+                        : "bg-amber-950/20 border-amber-500/30"
+                    }`}
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="font-black text-white text-base">
+                          {ord.customerName}
+                        </h4>
+                        <span className="text-xs font-mono font-bold text-slate-400">
+                          {ord.orderNumber}
+                        </span>
+                        <span className="text-xs text-brand-300 font-extrabold">
+                          ({totalKg.toFixed(1)} kg)
+                        </span>
+
+                        {/* Invoice Status Pill */}
+                        {invoiced ? (
+                          <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                            <Receipt className="w-3 h-3 text-emerald-400" />
+                            <span>Factura #{inv?.number || ord.invoiceNumber || "FAC-JD"}</span>
+                          </span>
+                        ) : (
+                          <span className="bg-amber-500/20 text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1 animate-pulse">
+                            <AlertTriangle className="w-3 h-3 text-amber-400" />
+                            <span>Requiere Factura para Salir a Ruta</span>
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span>{ord.deliveryAddress}</span>
+                        {ord.zone && (
+                          <span className="text-slate-400 font-normal">({ord.zone})</span>
+                        )}
+                      </p>
+
+                      <p className="text-xs text-slate-300 font-mono">
+                        Total Liquidado:{" "}
+                        <strong className="text-white">
+                          {priceService.formatCurrency(ord.realTotal || ord.total)}
+                        </strong>{" "}
+                        • Pago:{" "}
+                        <span className="text-slate-400 uppercase">
+                          {ord.paymentMethod || "Efectivo"}
+                        </span>
+                      </p>
                     </div>
 
-                    <p className="text-xs text-emerald-400 font-bold mt-1 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{ord.deliveryAddress}</span>
-                    </p>
-                  </div>
+                    {/* Actions: Facturar o Asignar */}
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      {!invoiced && (
+                        <button
+                          type="button"
+                          onClick={() => invoiceOrder(ord.id)}
+                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs transition-all flex items-center gap-1.5 shadow-md shadow-emerald-950/40 active:scale-95"
+                          title="Emite la factura comercial y prepara el pedido para despacho"
+                        >
+                          <Receipt className="w-3.5 h-3.5" />
+                          <span>Facturar Pedido</span>
+                        </button>
+                      )}
 
-                  {/* Route Assign Selector */}
-                  <div className="flex items-center gap-2">
-                    <select
-                      defaultValue=""
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          assignOrderToRoute(ord.id, e.target.value);
-                        }
-                      }}
-                      className="px-3 py-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold focus:outline-none focus:border-brand-500"
-                    >
-                      <option value="" disabled>
-                        ➕ Asignar a Furgón / Ruta...
-                      </option>
-                      {routes.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.name} ({r.driverName})
+                      {/* Route Assign Selector */}
+                      <select
+                        defaultValue=""
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            if (!invoiced) {
+                              // Facturar automáticamente al asignar a ruta
+                              invoiceOrder(ord.id);
+                            }
+                            assignOrderToRoute(ord.id, e.target.value);
+                          }
+                        }}
+                        className="px-3 py-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold focus:outline-none focus:border-brand-500"
+                      >
+                        <option value="" disabled>
+                          ➕ Asignar a Furgón / Ruta...
                         </option>
-                      ))}
-                    </select>
+                        {routes.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.name} ({r.driverName})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         )}
       </div>
+
+      {/* Modal: Facturación Previa al Armado de Rutas */}
+      {isBillingPromptOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl p-6 space-y-5 animate-in zoom-in-95 my-8">
+            <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 flex-shrink-0">
+                <Receipt className="w-6 h-6 stroke-[2.5]" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">
+                  Facturación Previa al Armado de Ruta
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Regla de Operación de JD Distribuidora & Gourmet Ahumados
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-amber-950/30 border border-amber-500/30 rounded-2xl space-y-2 text-xs text-slate-300">
+              <p className="font-bold text-amber-300">
+                ⚠️ Hay {pendingInvoiceOrders.length} pedido(s) sin facturar al cliente:
+              </p>
+              <p>
+                Para despachar el furgón refrigerado, cada pedido debe contar con su factura comercial con pesaje verificado y numeración fiscal.
+              </p>
+              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 font-mono text-[11px] text-slate-300 max-h-28 overflow-y-auto divide-y divide-slate-850">
+                {pendingInvoiceOrders.map((o) => (
+                  <div key={o.id} className="py-1 flex items-center justify-between">
+                    <span>{o.orderNumber} - {o.customerName}</span>
+                    <span className="text-amber-400 font-bold">
+                      {o.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0)} kg
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={handleInvoiceAllAndAssemble}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all active:scale-95"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Facturar Todo y Armar Ruta Completa (Recomendado)</span>
+              </button>
+
+              {invoicedUnassignedOrders.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleAssembleOnlyInvoiced}
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-all active:scale-95"
+                >
+                  <Truck className="w-4 h-4 text-cyan-400" />
+                  <span>Armar Ruta Solo con los {invoicedUnassignedOrders.length} Ya Facturados</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsBillingPromptOpen(false)}
+                className="w-full py-2 text-slate-400 hover:text-white text-xs font-bold transition-colors"
+              >
+                Cancelar y Facturar Manualmente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Crear Nueva Ruta */}
       {isNewRouteModalOpen && (

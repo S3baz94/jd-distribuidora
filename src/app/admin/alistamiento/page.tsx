@@ -16,10 +16,19 @@ import {
   ShoppingBag,
   Building2,
   PackageCheck,
+  Receipt,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function AdminPickingPage() {
-  const { allOrders, products } = useApp();
+  const {
+    allOrders,
+    products,
+    invoiceOrder,
+    isOrderInvoiced,
+    getOrderInvoice,
+  } = useApp();
   const [selectedDate, setSelectedDate] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<"cuts" | "customers">("cuts");
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
@@ -291,13 +300,25 @@ export default function AdminPickingPage() {
                       {isOrderChecked && <CheckCircle2 className="w-4 h-4" />}
                     </button>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-black text-sm text-brand-400">
                           {order.orderNumber}
                         </span>
                         <h3 className="font-extrabold text-base text-white">
                           {order.customerName}
                         </h3>
+
+                        {isOrderInvoiced(order) ? (
+                          <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                            <Receipt className="w-3 h-3 text-emerald-400" />
+                            <span>Factura #{getOrderInvoice(order)?.number || order.invoiceNumber || "FAC-JD"}</span>
+                          </span>
+                        ) : (
+                          <span className="bg-amber-500/20 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-amber-400" />
+                            <span>Sin Facturar</span>
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-slate-400">
                         Entrega: <strong className="text-slate-300">{order.deliveryDate}</strong> • {order.deliveryAddress}
@@ -305,13 +326,26 @@ export default function AdminPickingPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 self-end sm:self-auto">
+                  <div className="flex items-center gap-2.5 self-end sm:self-auto flex-wrap">
                     <div className="text-right">
                       <span className="text-xs text-slate-400">Canastilla:</span>
                       <p className="text-lg font-black text-amber-400">
                         {totalKgOrder.toFixed(1)} kg
                       </p>
                     </div>
+
+                    {!isOrderInvoiced(order) && (
+                      <button
+                        type="button"
+                        onClick={() => invoiceOrder(order.id)}
+                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black transition-all flex items-center gap-1 shadow-md shadow-emerald-950/40 active:scale-95"
+                        title="Facturar pedido antes de armar la ruta"
+                      >
+                        <Receipt className="w-3.5 h-3.5" />
+                        <span>Facturar</span>
+                      </button>
+                    )}
+
                     <Link
                       href={`/admin/pedidos/${order.id}`}
                       className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-brand-600 text-white text-xs font-bold transition-all border border-slate-700"

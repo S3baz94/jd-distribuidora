@@ -164,6 +164,14 @@ interface AppContextType {
   ) => void;
   updateBillingSettings: (settings: BillingSettings) => void;
   exportInvoicesCSV: (brandFilter?: "all" | BrandType) => void;
+  invoiceOrder: (
+    orderId: string,
+    paymentType?: InvoicePaymentType,
+    paymentDetails?: Invoice["paymentDetails"]
+  ) => Invoice | null;
+  invoiceAllPendingOrders: () => number;
+  isOrderInvoiced: (order: Order) => boolean;
+  getOrderInvoice: (order: Order) => Invoice | undefined;
 
   // Licenciamiento & Master Kill-Switch
   license: LicenseConfig;
@@ -1325,6 +1333,154 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`📥 Libro contable de ${suffix} exportado a Excel (CSV)`, "success");
   };
 
+  const getOrderInvoice = (order: Order): Invoice | undefined => {
+    return invoices.find(
+      (i) =>
+        (order.invoiceId && i.id === order.invoiceId) ||
+        (order.invoiceNumber && i.number === order.invoiceNumber) ||
+        i.orderId === order.id ||
+        i.orderId === order.orderNumber ||
+        i.orderId === order.orderNumber.replace("#", "")
+    );
+  };
+
+  const isOrderInvoiced = (order: Order): boolean => {
+    return (
+      order.isInvoiced === true ||
+      !!order.invoiceId ||
+      !!order.invoiceNumber ||
+      !!getOrderInvoice(order)
+    );
+  };
+
+  const invoiceOrder = (
+    orderId: string,
+    paymentType?: InvoicePaymentType,
+    paymentDetails?: Invoice["paymentDetails"]
+  ): Invoice | null => {
+    const targetOrder = allOrders.find(
+      (o) => o.id === orderId || o.orderNumber === orderId || o.orderNumber === `#${orderId}`
+    );
+    if (!targetOrder) {
+      showToast("No se encontró el pedido para facturar", "error");
+      return null;
+    }
+
+    // Check if already invoiced
+    const existing = getOrderInvoice(targetOrder);
+    if (existing) {
+      showToast(`El pedido ${targetOrder.orderNumber} ya tiene la factura ${existing.number}`, "info");
+      return existing;
+    }
+
+    const targetCustomer = allCustomers.find((c) => c.id === targetOrder.customerId);
+    const invoiceBrand: BrandType =
+      targetOrder.brand === "gourmet_ahumados" ? "gourmet_ahumados" : "jd_distribuidora";
+
+    // Map items from order
+    const invoiceItems: InvoiceItem[] = targetOrder.items.map((item, idx) => {
+      const kg = item.realQuantity || item.quantity;
+      const subtotal = item.realSubtotal || item.subtotal || kg * item.unitPrice;
+      return {
+        id: `item-${targetOrder.id}-${idx}`,
+        productId: item.productId,
+        sku: item.sku,
+        productName: item.productName,
+        brand: item.brand || invoiceBrand,
+        quantityKg: kg,
+        unitPrice: item.unitPrice,
+        subtotal,
+        taxRate: 0,
+      };
+    });
+
+    const totalKg = invoiceItems.reduce((s, i) => s + i.quantityKg, 0);
+    const subtotal = invoiceItems.reduce((s, i) => s + i.subtotal, 0);
+    const total = subtotal;
+
+    const pType: InvoicePaymentType =
+      paymentType || (targetOrder.paymentMethod as InvoicePaymentType) || "efectivo";
+    const pDetails = paymentDetails || {
+      cashAmount: pType === "efectivo" ? total : undefined,
+      bankAmount: pType === "banco" ? total : undefined,
+      creditAmount: pType === "credito" ? total : undefined,
+      creditDays: pType === "credito" ? 30 : undefined,
+    };
+
+    const newInvoice = createInvoice({
+      orderId: targetOrder.id,
+      customerId: targetOrder.customerId,
+      customerName: targetOrder.customerName,
+      customerNit: targetCustomer?.nit || "901.684.219-3",
+      customerPhone: targetCustomer?.phone,
+      customerAddress: targetOrder.deliveryAddress || targetCustomer?.address,
+      customerZone: targetOrder.zone || targetCustomer?.zone,
+      items: invoiceItems,
+      totalKg,
+      subtotal,
+      discountTotal: 0,
+      taxTotal: 0,
+      total,
+      paymentType: pType,
+      paymentDetails: pDetails,
+      status: pType === "credito" ? "pendiente" : "pagada",
+      origin: "despacho",
+      brand: invoiceBrand,
+      notes: `Factura de venta generada para el pedido ${targetOrder.orderNumber}. ${targetOrder.notes || ""}`,
+      sellerName: targetOrder.driverName || "Despacho Báscula JD",
+    });
+
+    // Update order with invoice details & status ready
+    const updatedOrders = allOrders.map((o) => {
+      if (o.id === targetOrder.id) {
+        return {
+          ...o,
+          invoiceId: newInvoice.id,
+          invoiceNumber: newInvoice.number,
+          isInvoiced: true,
+          invoicedAt: newInvoice.issuedAt,
+          status: o.status === "pending" || o.status === "preparing" ? ("ready" as OrderStatus) : o.status,
+        };
+      }
+      return o;
+    });
+
+    setAllOrders(updatedOrders);
+    setOrders(updatedOrders.filter((o) => o.customerId === customer.id));
+    orderService.saveOrders(updatedOrders);
+
+    sendSyncAction("STATE_UPDATED", {
+      orders: updatedOrders,
+      inventory,
+      customers: allCustomers,
+      routes,
+      lastUpdated: Date.now(),
+    });
+
+    showToast(`✓ Factura ${newInvoice.number} emitida para ${targetOrder.customerName}. ¡Pedido listo para enrutar!`, "success");
+    return newInvoice;
+  };
+
+  const invoiceAllPendingOrders = (): number => {
+    const unInvoiced = allOrders.filter(
+      (o) => o.status !== "delivered" && o.status !== "cancelled" && !isOrderInvoiced(o)
+    );
+
+    if (unInvoiced.length === 0) {
+      showToast("Todos los pedidos activos ya cuentan con factura emitida.", "info");
+      return 0;
+    }
+
+    let count = 0;
+    unInvoiced.forEach((order) => {
+      invoiceOrder(order.id);
+      count++;
+    });
+
+    showToast(`✓ Se facturaron ${count} pedidos exitosamente. ¡Rutas listas para armar!`, "success");
+    return count;
+  };
+
   // ==========================================
   // LICENCIAMIENTO & MASTER KILL-SWITCH
   // ==========================================
@@ -1452,6 +1608,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         processInvoiceRefund,
         updateBillingSettings,
         exportInvoicesCSV,
+        invoiceOrder,
+        invoiceAllPendingOrders,
+        isOrderInvoiced,
+        getOrderInvoice,
         license,
         updateLicenseConfig,
         toggleRemoteLock,

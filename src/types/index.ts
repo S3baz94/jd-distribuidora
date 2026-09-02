@@ -118,6 +118,10 @@ export interface Order {
   sealNumber?: string; // Número de precinto de seguridad del furgón
   weightAdjusted?: boolean;
   paymentMethod?: "efectivo" | "banco" | "credito"; // Forma de pago de la compra del cliente
+  invoiceId?: string; // ID de la factura emitida
+  invoiceNumber?: string; // ej. "FAC-JD-2026-10459"
+  invoicedAt?: string; // Fecha de facturación
+  isInvoiced?: boolean; // Bandera de facturado
   receivedByName?: string;
   deliveredBasketsLeft?: number;
   emptyBasketsCollected?: number;

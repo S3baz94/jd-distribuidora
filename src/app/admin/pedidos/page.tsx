@@ -25,19 +25,36 @@ import {
   Layers,
   Plus,
   Sparkles,
+  Receipt,
 } from "lucide-react";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ManualOrderModal } from "@/components/admin/ManualOrderModal";
 import { ProductionReadyModal } from "@/components/admin/ProductionReadyModal";
 
 export default function AdminOrdersPage() {
-  const { allOrders, allCustomers, inventory, routes, showToast } = useApp();
+  const {
+    allOrders,
+    allCustomers,
+    inventory,
+    routes,
+    invoiceOrder,
+    invoiceAllPendingOrders,
+    isOrderInvoiced,
+    getOrderInvoice,
+    showToast,
+  } = useApp();
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("all");
   const [selectedBrandFilter, setSelectedBrandFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isManualOrderOpen, setIsManualOrderOpen] = useState(false);
   const [isProductionReadyOpen, setIsProductionReadyOpen] = useState(false);
+
+  const unInvoicedCount = useMemo(() => {
+    return allOrders.filter(
+      (o) => o.status !== "delivered" && o.status !== "cancelled" && !isOrderInvoiced(o)
+    ).length;
+  }, [allOrders, isOrderInvoiced]);
 
   const filteredOrders = useMemo(() => {
     return allOrders.filter((order) => {
@@ -135,6 +152,17 @@ export default function AdminOrdersPage() {
 
         {/* Actions */}
         <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+          {unInvoicedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => invoiceAllPendingOrders()}
+              className="px-4 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-950/40 transition-all active:scale-95 border border-amber-400/50 animate-pulse"
+            >
+              <Receipt className="w-4 h-4" />
+              <span>Facturar Pendientes ({unInvoicedCount})</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setIsProductionReadyOpen(true)}
@@ -342,6 +370,19 @@ export default function AdminOrdersPage() {
                       </span>
                     )}
 
+                    {/* Invoice Status Pill */}
+                    {isOrderInvoiced(order) ? (
+                      <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                        <Receipt className="w-3 h-3 text-emerald-400" />
+                        <span>Factura #{getOrderInvoice(order)?.number || order.invoiceNumber || "FAC-JD"}</span>
+                      </span>
+                    ) : (
+                      <span className="bg-amber-500/20 text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-amber-400" />
+                        <span>Sin Facturar</span>
+                      </span>
+                    )}
+
                     {order.weightAdjusted ? (
                       <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-500/30">
                         Báscula Verificada
@@ -410,6 +451,18 @@ export default function AdminOrdersPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {!isOrderInvoiced(order) && (
+                      <button
+                        type="button"
+                        onClick={() => invoiceOrder(order.id)}
+                        className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs transition-all flex items-center gap-1.5 shadow-md shadow-emerald-950/40 active:scale-95"
+                        title="Emite la factura comercial y prepara el pedido para despacho en ruta"
+                      >
+                        <Receipt className="w-3.5 h-3.5" />
+                        <span>Facturar Pedido</span>
+                      </button>
+                    )}
+
                     <Link
                       href={`/admin/pedidos/${order.id}`}
                       className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs transition-all border border-slate-700 flex items-center gap-1.5"

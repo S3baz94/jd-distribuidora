@@ -23,7 +23,9 @@ import {
   ShieldCheck,
   MessageCircle,
   Navigation,
+  Receipt,
 } from "lucide-react";
+import { InvoiceModal } from "@/components/admin/InvoiceModal";
 
 export default function AdminOrderDetailPage() {
   const params = useParams();
@@ -32,7 +34,13 @@ export default function AdminOrderDetailPage() {
   const {
     allOrders,
     allCustomers,
+    invoiceOrder,
+    isOrderInvoiced,
+    getOrderInvoice,
+    billingSettings,
   } = useApp();
+
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   const order = allOrders.find(
     (o) => o.id === orderId || o.orderNumber === orderId || o.orderNumber === `#${orderId}`
@@ -91,11 +99,23 @@ export default function AdminOrderDetailPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl sm:text-2xl font-black text-white">
                 Pedido {order.orderNumber}
               </h1>
               <StatusBadge status={order.status} />
+
+              {/* Invoice Status Pill */}
+              {isOrderInvoiced(order) ? (
+                <span className="bg-emerald-500/20 text-emerald-300 text-xs font-black px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                  <Receipt className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Factura #{getOrderInvoice(order)?.number || order.invoiceNumber || "FAC-JD"}</span>
+                </span>
+              ) : (
+                <span className="bg-amber-500/20 text-amber-300 text-xs font-black px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+                  <span>Sin Facturar</span>
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-400">
               Cliente: <strong className="text-white">{order.customerName}</strong>
@@ -104,6 +124,30 @@ export default function AdminOrderDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Invoice Action Button */}
+          {isOrderInvoiced(order) ? (
+            <button
+              type="button"
+              onClick={() => setIsInvoiceModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-black transition-colors shadow-md shadow-cyan-950/40"
+            >
+              <Receipt className="w-4 h-4" />
+              <span>Ver Factura #{getOrderInvoice(order)?.number || order.invoiceNumber || "FAC-JD"}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                invoiceOrder(order.id);
+                setIsInvoiceModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black transition-all shadow-lg shadow-emerald-950/50 active:scale-95"
+            >
+              <Receipt className="w-4 h-4" />
+              <span>Facturar Pedido al Cliente</span>
+            </button>
+          )}
+
           {/* WhatsApp Direct Notification */}
           <a
             href={adminWaLink}
@@ -338,6 +382,14 @@ export default function AdminOrderDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Invoice Modal */}
+      <InvoiceModal
+        invoice={getOrderInvoice(order) || null}
+        settings={billingSettings}
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+      />
     </div>
   );
 }
