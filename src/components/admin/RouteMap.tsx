@@ -3,20 +3,27 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DeliveryRoute, Order } from "@/types";
 import { priceService } from "@/services/priceService";
+import { calculateDistanceKm, reorderRouteByLocation } from "@/services/routeOptimizer";
 import {
   MapPin,
   Truck,
   ExternalLink,
   Navigation,
   Layers,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
+  Locate,
+  Crosshair,
+  Sparkles,
+  Building2,
+  CheckCircle2,
+  Compass,
 } from "lucide-react";
 
 interface RouteMapProps {
   route: DeliveryRoute;
   orders: Order[];
+  onReorderFromLocation?: (reorderedOrders: Order[]) => void;
+  titlePrefix?: string;
+  showReorderButton?: boolean;
 }
 
 const HUB_LOCATION = {
@@ -26,13 +33,29 @@ const HUB_LOCATION = {
   lng: -74.135,
 };
 
-export const RouteMap: React.FC<RouteMapProps> = ({ route, orders }) => {
+export const RouteMap: React.FC<RouteMapProps> = ({
+  route,
+  orders,
+  onReorderFromLocation,
+  titlePrefix,
+  showReorderButton = true,
+}) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const polylineRef = useRef<any>(null);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Current Location / GPS State
+  const [originMode, setOriginMode] = useState<"hub" | "gps">("hub");
+  const [gpsLocation, setGpsLocation] = useState<{
+    lat: number;
+    lng: number;
+    accuracy?: number;
+  } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -97,44 +120,88 @@ export const RouteMap: React.FC<RouteMapProps> = ({ route, orders }) => {
         polylineRef.current = null;
       }
 
-      const points: [number, number][] = [[HUB_LOCATION.lat, HUB_LOCATION.lng]];
+      const points: [number, number][] = [];
 
-      // 1. Add Central Hub Marker (Bodega JD)
-      const hubIcon = L.divIcon({
-        className: "custom-hub-icon",
-        html: `
-          <div style="
-            background: #0f172a;
-            color: white;
-            border: 3px solid #10b981;
-            border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            cursor: pointer;
-          ">
-            🏢
-          </div>
-        `,
-        iconSize: [38, 38],
-        iconAnchor: [19, 19],
-      });
+      // 1. Determine Origin Point: GPS vs Central Hub
+      if (originMode === "gps" && gpsLocation) {
+        const originCoord: [number, number] = [gpsLocation.lat, gpsLocation.lng];
+        points.push(originCoord);
 
-      const hubMarker = L.marker([HUB_LOCATION.lat, HUB_LOCATION.lng], { icon: hubIcon })
-        .addTo(map)
-        .bindPopup(`
-          <div style="font-family: sans-serif; padding: 4px;">
-            <p style="font-weight: 900; font-size: 13px; margin: 0; color: #0f172a;">🏢 ${HUB_LOCATION.name}</p>
-            <p style="font-size: 11px; margin: 4px 0 0 0; color: #64748b;">${HUB_LOCATION.address}</p>
-            <p style="font-size: 10px; font-weight: bold; color: #10b981; margin: 4px 0 0 0;">PUNTO DE SALIDA DEL FURGÓN</p>
-          </div>
-        `);
+        const gpsIcon = L.divIcon({
+          className: "custom-gps-icon",
+          html: `
+            <div style="
+              background: #0284c7;
+              color: white;
+              border: 3px solid #38bdf8;
+              border-radius: 50%;
+              width: 42px;
+              height: 42px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 20px;
+              box-shadow: 0 0 0 8px rgba(56, 189, 248, 0.4), 0 4px 12px rgba(0,0,0,0.5);
+              cursor: pointer;
+            ">
+              📍
+            </div>
+          `,
+          iconSize: [42, 42],
+          iconAnchor: [21, 21],
+        });
 
-      markersRef.current.push(hubMarker);
+        const gpsMarker = L.marker(originCoord, { icon: gpsIcon })
+          .addTo(map)
+          .bindPopup(`
+            <div style="font-family: sans-serif; padding: 4px;">
+              <p style="font-weight: 900; font-size: 13px; margin: 0; color: #0284c7;">📍 TU UBICACIÓN ACTUAL (GPS)</p>
+              <p style="font-size: 11px; margin: 4px 0 0 0; color: #64748b;">Coordenadas: ${gpsLocation.lat.toFixed(4)}, ${gpsLocation.lng.toFixed(4)}</p>
+              <p style="font-size: 10px; font-weight: bold; color: #0284c7; margin: 4px 0 0 0;">ORIGEN SELECCIONADO PARA FORMAR RUTAS</p>
+            </div>
+          `);
+
+        markersRef.current.push(gpsMarker);
+      } else {
+        const hubCoord: [number, number] = [HUB_LOCATION.lat, HUB_LOCATION.lng];
+        points.push(hubCoord);
+
+        const hubIcon = L.divIcon({
+          className: "custom-hub-icon",
+          html: `
+            <div style="
+              background: #0f172a;
+              color: white;
+              border: 3px solid #10b981;
+              border-radius: 50%;
+              width: 38px;
+              height: 38px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 18px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+              cursor: pointer;
+            ">
+              🏢
+            </div>
+          `,
+          iconSize: [38, 38],
+          iconAnchor: [19, 19],
+        });
+
+        const hubMarker = L.marker(hubCoord, { icon: hubIcon })
+          .addTo(map)
+          .bindPopup(`
+            <div style="font-family: sans-serif; padding: 4px;">
+              <p style="font-weight: 900; font-size: 13px; margin: 0; color: #0f172a;">🏢 ${HUB_LOCATION.name}</p>
+              <p style="font-size: 11px; margin: 4px 0 0 0; color: #64748b;">${HUB_LOCATION.address}</p>
+              <p style="font-size: 10px; font-weight: bold; color: #10b981; margin: 4px 0 0 0;">PUNTO DE SALIDA DEL FURGÓN</p>
+            </div>
+          `);
+
+        markersRef.current.push(hubMarker);
+      }
 
       // 2. Add Customer Stop Markers
       const firstPendingIndex = orders.findIndex((o) => o.status !== "delivered" && o.status !== "cancelled");
@@ -209,25 +276,88 @@ export const RouteMap: React.FC<RouteMapProps> = ({ route, orders }) => {
         markersRef.current.push(stopMarker);
       });
 
-      // 3. Draw Route Polyline
+      // 3. Draw Route Polyline from Selected Origin to All Stops
       if (points.length > 1) {
         const polyline = L.polyline(points, {
-          color: "#0284c7",
+          color: originMode === "gps" ? "#38bdf8" : "#0284c7",
           weight: 4,
-          opacity: 0.85,
-          dashArray: "8, 8",
+          opacity: 0.9,
+          dashArray: originMode === "gps" ? "6, 6" : "8, 8",
         }).addTo(map);
 
         polylineRef.current = polyline;
 
-        // Auto-fit bounds to frame all stops
         const bounds = L.latLngBounds(points);
         map.fitBounds(bounds, { padding: [50, 50] });
       }
     };
 
     renderMarkers();
-  }, [route, orders, isLoaded]);
+  }, [route, orders, originMode, gpsLocation, isLoaded]);
+
+  // Handle GPS Button
+  const handleUseGps = () => {
+    setIsLocating(true);
+    setLocationMessage(null);
+
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      const fallback = { lat: 4.6525, lng: -74.072, accuracy: 30 };
+      setGpsLocation(fallback);
+      setOriginMode("gps");
+      setIsLocating(false);
+      setLocationMessage("📍 Ubicación fijada en punto central de Bogotá (Galerías)");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        };
+        setGpsLocation(coords);
+        setOriginMode("gps");
+        setIsLocating(false);
+        setLocationMessage(
+          `📍 Ubicación GPS satelital activa (Precisión: ±${Math.round(pos.coords.accuracy || 15)}m)`
+        );
+
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo([coords.lat, coords.lng], 14, { duration: 1.2 });
+        }
+      },
+      (err) => {
+        console.warn("Geolocation warning:", err.message);
+        const fallback = { lat: 4.6525, lng: -74.072, accuracy: 40 };
+        setGpsLocation(fallback);
+        setOriginMode("gps");
+        setIsLocating(false);
+        setLocationMessage("📍 Ubicación fijada en coordenadas de zona central de Bogotá");
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+  };
+
+  const handleUseHub = () => {
+    setOriginMode("hub");
+    setLocationMessage("🏢 Punto de partida establecido en Planta Central JD (Guadalupe)");
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([HUB_LOCATION.lat, HUB_LOCATION.lng], 13, { duration: 1 });
+    }
+  };
+
+  const handleReorderStops = () => {
+    const origin =
+      originMode === "gps" && gpsLocation
+        ? gpsLocation
+        : { lat: HUB_LOCATION.lat, lng: HUB_LOCATION.lng };
+
+    const reordered = reorderRouteByLocation(orders, origin);
+    if (onReorderFromLocation) {
+      onReorderFromLocation(reordered);
+    }
+  };
 
   const handleCenterStop = async (ord: Order, idx: number) => {
     if (!mapInstanceRef.current) return;
@@ -239,7 +369,6 @@ export const RouteMap: React.FC<RouteMapProps> = ({ route, orders }) => {
     mapInstanceRef.current.flyTo([lat, lng], 15, { duration: 1.2 });
     setActiveStopId(ord.id);
 
-    // Open popup
     if (markersRef.current[idx + 1]) {
       markersRef.current[idx + 1].openPopup();
     }
@@ -251,7 +380,12 @@ export const RouteMap: React.FC<RouteMapProps> = ({ route, orders }) => {
     const defaultLats = [4.6525, 4.7215, 4.675, 4.668];
     const defaultLngs = [-74.072, -74.032, -74.138, -74.055];
 
-    const points: [number, number][] = [[HUB_LOCATION.lat, HUB_LOCATION.lng]];
+    const origin =
+      originMode === "gps" && gpsLocation
+        ? [gpsLocation.lat, gpsLocation.lng]
+        : [HUB_LOCATION.lat, HUB_LOCATION.lng];
+
+    const points: [number, number][] = [origin as [number, number]];
     orders.forEach((ord, idx) => {
       points.push([
         ord.lat || defaultLats[idx % defaultLats.length],
@@ -264,37 +398,119 @@ export const RouteMap: React.FC<RouteMapProps> = ({ route, orders }) => {
     }
   };
 
+  // Distance from selected origin to first stop
+  const firstStop = orders[0];
+  const distanceToFirstStop =
+    firstStop && (originMode === "gps" ? gpsLocation : HUB_LOCATION)
+      ? calculateDistanceKm(
+          originMode === "gps" && gpsLocation ? gpsLocation.lat : HUB_LOCATION.lat,
+          originMode === "gps" && gpsLocation ? gpsLocation.lng : HUB_LOCATION.lng,
+          firstStop.lat || 4.6525,
+          firstStop.lng || -74.072
+        ).toFixed(1)
+      : null;
+
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl space-y-0">
       {/* Map Header Controls */}
-      <div className="p-4 bg-slate-850 border-b border-slate-750 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-brand-600/20 text-brand-400 flex items-center justify-center border border-brand-500/30">
-            <Navigation className="w-4 h-4" />
+      <div className="p-4 bg-slate-850 border-b border-slate-750 flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-brand-600/20 text-brand-400 flex items-center justify-center border border-brand-500/30">
+              <Navigation className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
+                <span>{titlePrefix || "Mapa Satelital de Entregas"}</span>
+                <span
+                  className={`text-[10px] px-2 py-0.5 rounded-full border uppercase font-black ${
+                    originMode === "gps"
+                      ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 animate-pulse"
+                      : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                  }`}
+                >
+                  {originMode === "gps" ? "📍 GPS Ubicación Actual" : "🏢 Planta Guadalupe"}
+                </span>
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Ruta: <strong className="text-white">{route.name}</strong> • Conductor:{" "}
+                <strong className="text-emerald-400">{route.driverName}</strong>
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
-              <span>Mapa Satelital de Entregas en Vivo</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 uppercase font-black">
-                GPS Activo
-              </span>
-            </h3>
-            <p className="text-[11px] text-slate-400">
-              Ruta: <strong className="text-white">{route.name}</strong> • Conductor:{" "}
-              <strong className="text-emerald-400">{route.driverName}</strong>
-            </p>
+
+          {/* Action Toolbar */}
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            {/* Origin Mode Switch */}
+            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+              <button
+                type="button"
+                onClick={handleUseHub}
+                className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 transition-all ${
+                  originMode === "hub"
+                    ? "bg-slate-800 text-white shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Planta JD</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleUseGps}
+                disabled={isLocating}
+                className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 transition-all ${
+                  originMode === "gps"
+                    ? "bg-cyan-600 text-white shadow-sm"
+                    : "text-slate-400 hover:text-cyan-300"
+                }`}
+                title="Tomar ubicación satelital GPS actual como punto de partida"
+              >
+                <Locate className={`w-3.5 h-3.5 ${isLocating ? "animate-spin" : "text-cyan-300"}`} />
+                <span>{isLocating ? "Buscando GPS..." : "Mi Ubicación"}</span>
+              </button>
+            </div>
+
+            {/* Reorder Button */}
+            {showReorderButton && onReorderFromLocation && orders.length > 1 && (
+              <button
+                type="button"
+                onClick={handleReorderStops}
+                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                title="Reorganizar las paradas en orden de menor distancia desde el punto de partida"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Formar Ruta por Cercanía</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleResetView}
+              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold border border-slate-700 flex items-center gap-1 transition-colors"
+              title="Encuadrar paradas"
+            >
+              <Layers className="w-3.5 h-3.5 text-brand-400" />
+              <span>Encuadrar</span>
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={handleResetView}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold border border-slate-700 flex items-center gap-1.5 transition-colors"
-          >
-            <Layers className="w-3.5 h-3.5 text-brand-400" />
-            <span>Encuadrar Toda la Ruta</span>
-          </button>
-        </div>
+        {/* Status / Distance Bar */}
+        {(locationMessage || distanceToFirstStop) && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
+            <div className="flex items-center gap-2 text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping flex-shrink-0" />
+              <span className="font-semibold">{locationMessage || "Punto de salida activo"}</span>
+            </div>
+            {distanceToFirstStop && (
+              <span className="text-cyan-300 font-black text-[11px] bg-cyan-950/60 px-2.5 py-1 rounded-lg border border-cyan-800/60 self-start sm:self-auto">
+                ⚡ Distancia a Parada #1 ({firstStop.customerName}): ~{distanceToFirstStop} km
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Interactive Leaflet Map Container */}

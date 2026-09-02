@@ -112,6 +112,7 @@ interface AppContextType {
   ) => void;
   assignOrderToRoute: (orderId: string, routeId: string, stopOrder?: number) => void;
   autoAssignRoutes: () => { totalAssigned: number; routesCount: number };
+  reorderRouteOrders: (routeId: string, orderedOrders: Order[]) => void;
   updateRouteStatus: (routeId: string, status: "planned" | "in_transit" | "completed") => void;
   createRoute: (newRoute: DeliveryRoute) => void;
   addInventoryBatch: (productId: string, addedKg: number, note?: string) => void;
@@ -829,6 +830,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   };
 
+  const reorderRouteOrders = (routeId: string, orderedOrders: Order[]) => {
+    const orderIdToStopOrder = new Map<string, number>();
+    orderedOrders.forEach((o, idx) => {
+      orderIdToStopOrder.set(o.id, idx + 1);
+    });
+
+    const updatedOrders = allOrders.map((o) => {
+      if (orderIdToStopOrder.has(o.id)) {
+        return {
+          ...o,
+          stopOrder: orderIdToStopOrder.get(o.id)!,
+        };
+      }
+      return o;
+    });
+
+    setAllOrders(updatedOrders);
+    setOrders(updatedOrders.filter((o) => o.customerId === customer.id));
+    orderService.saveOrders(updatedOrders);
+
+    const updatedRoutes = routes.map((r) => {
+      if (r.id === routeId) {
+        return {
+          ...r,
+          orderIds: orderedOrders.map((o) => o.id),
+        };
+      }
+      return r;
+    });
+
+    setRoutes(updatedRoutes);
+    routeService.saveRoutes(updatedRoutes);
+
+    sendSyncAction("STATE_UPDATED", {
+      orders: updatedOrders,
+      routes: updatedRoutes,
+      inventory,
+      customers: allCustomers,
+      lastUpdated: Date.now(),
+    });
+
+    showToast(`✓ Ruta reordenada por cercanía a la ubicación actual (${orderedOrders.length} paradas)`, "success");
+  };
+
   const updateRouteStatus = (routeId: string, status: "planned" | "in_transit" | "completed") => {
     const updatedRoutes = routeService.updateRouteStatus(routeId, status);
     setRoutes(updatedRoutes);
@@ -1145,6 +1190,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateOrderDispatch,
         assignOrderToRoute,
         autoAssignRoutes,
+        reorderRouteOrders,
         updateRouteStatus,
         createRoute,
         addInventoryBatch,

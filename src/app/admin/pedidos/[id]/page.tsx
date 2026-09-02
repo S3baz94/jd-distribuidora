@@ -22,6 +22,7 @@ import {
   User,
   ShieldCheck,
   MessageCircle,
+  Navigation,
 } from "lucide-react";
 
 export default function AdminOrderDetailPage() {
@@ -306,10 +307,23 @@ export default function AdminOrderDetailPage() {
               <p className="font-bold text-sm text-white">{order.customerName}</p>
               <p className="text-slate-400">NIT: <strong className="text-slate-200">{customer?.nit || "900.542.118-4"}</strong></p>
               <p className="text-slate-400">Teléfono: <strong className="text-slate-200">{customer?.phone || "312 456 7890"}</strong></p>
-              <p className="flex items-start gap-2 text-slate-400">
+              <div className="flex items-start gap-2 text-slate-400">
                 <MapPin className="w-3.5 h-3.5 text-brand-400 flex-shrink-0 mt-0.5" />
-                <span>{order.deliveryAddress}</span>
-              </p>
+                <div>
+                  <span>{order.deliveryAddress}</span>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                      order.deliveryAddress
+                    )}&travelmode=driving`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-bold text-xs mt-1"
+                  >
+                    <Navigation className="w-3 h-3" />
+                    <span>Trazar ruta desde ubicación actual →</span>
+                  </a>
+                </div>
+              </div>
               <p className="flex items-center gap-2 text-slate-400">
                 <Calendar className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                 <span>Fecha Programada: <strong className="text-white">{order.deliveryDate}</strong></span>

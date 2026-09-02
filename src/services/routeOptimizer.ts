@@ -200,3 +200,72 @@ export function autoAssignOrdersToRoutes(
     },
   };
 }
+
+/**
+ * Haversine formula to compute great-circle distance between two points in km
+ */
+export function calculateDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Reorders orders of a route starting from an origin point (Current GPS location)
+ * using Nearest-Neighbor heuristic so the closest stops are visited first.
+ */
+export function reorderRouteByLocation(
+  orders: Order[],
+  origin: { lat: number; lng: number }
+): Order[] {
+  if (orders.length <= 1) return orders;
+
+  const remaining = [...orders];
+  const ordered: Order[] = [];
+  let currentPos = { lat: origin.lat, lng: origin.lng };
+
+  const defaultLats = [4.6525, 4.7215, 4.675, 4.668, 4.708, 4.693];
+  const defaultLngs = [-74.072, -74.032, -74.138, -74.055, -74.076, -74.051];
+
+  while (remaining.length > 0) {
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    for (let i = 0; i < remaining.length; i++) {
+      const ord = remaining[i];
+      const ordLat = ord.lat || defaultLats[i % defaultLats.length];
+      const ordLng = ord.lng || defaultLngs[i % defaultLngs.length];
+      const dist = calculateDistanceKm(currentPos.lat, currentPos.lng, ordLat, ordLng);
+
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIndex = i;
+      }
+    }
+
+    const [nextOrder] = remaining.splice(closestIndex, 1);
+    const nextLat = nextOrder.lat || defaultLats[ordered.length % defaultLats.length];
+    const nextLng = nextOrder.lng || defaultLngs[ordered.length % defaultLngs.length];
+    currentPos = { lat: nextLat, lng: nextLng };
+
+    ordered.push({
+      ...nextOrder,
+      stopOrder: ordered.length + 1,
+    });
+  }
+
+  return ordered;
+}

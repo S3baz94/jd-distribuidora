@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   PhoneCall,
+  Navigation,
 } from "lucide-react";
 
 export default function OrderDetailPage() {
@@ -304,6 +305,17 @@ export default function OrderDetailPage() {
             <span>Dirección de Despacho</span>
           </div>
           <p className="text-sm font-bold text-slate-900">{order.deliveryAddress}</p>
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+              order.deliveryAddress
+            )}&travelmode=driving`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-xl border border-brand-200 transition-colors"
+          >
+            <Navigation className="w-3.5 h-3.5" />
+            <span>Trazar Ruta GPS desde Ubicación Actual →</span>
+          </a>
           <p className="text-xs text-slate-500">Cliente: {order.customerName}</p>
         </div>
       </div>

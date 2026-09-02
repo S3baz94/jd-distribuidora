@@ -29,6 +29,7 @@ export default function AdminRutasPage() {
     routes,
     assignOrderToRoute,
     autoAssignRoutes,
+    reorderRouteOrders,
     createRoute,
     showToast,
   } = useApp();
@@ -402,7 +403,11 @@ export default function AdminRutasPage() {
           </div>
 
           {/* Interactive Route Map with GPS & Stops */}
-          <RouteMap route={selectedRoute} orders={getRouteOrders(selectedRoute)} />
+          <RouteMap
+            route={selectedRoute}
+            orders={getRouteOrders(selectedRoute)}
+            onReorderFromLocation={(ordered) => reorderRouteOrders(selectedRoute.id, ordered)}
+          />
 
           {/* Sequence of Delivery Stops */}
           <div className="space-y-3">

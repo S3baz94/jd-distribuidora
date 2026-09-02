@@ -62,6 +62,7 @@ export default function OperacionPage() {
     updateOrderStatus,
     confirmDelivery,
     updateRouteStatus,
+    reorderRouteOrders,
     showToast,
   } = useApp();
 
@@ -71,6 +72,9 @@ export default function OperacionPage() {
 
   // Active operations role mode: Domiciliario / Chofer vs Operario de Planta vs Operario de Bodega
   const [operationsMode, setOperationsMode] = useState<"domiciliario" | "planta" | "bodega">("domiciliario");
+
+  // GPS Route Map visibility in driver cab
+  const [showRouteMap, setShowRouteMap] = useState(true);
 
   useEffect(() => {
     const session = OperationsAuthService.getCurrentSession();
@@ -685,15 +689,15 @@ export default function OperacionPage() {
             {/* Quick Action Navigation & Delivery for Next Stop */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
                   nextStop.deliveryAddress
-                )}`}
+                )}&travelmode=driving`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="py-3 px-3 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-black text-xs flex items-center justify-center gap-2 border border-slate-700 transition-all active:scale-95"
               >
                 <Navigation className="w-4 h-4 text-cyan-400" />
-                <span>Navegar Maps</span>
+                <span>Navegar GPS</span>
               </a>
 
               <a
@@ -882,6 +886,34 @@ export default function OperacionPage() {
           </div>
         )}
 
+        {/* Live Satellite Map with Real-time GPS & Reordering */}
+        {activeRoute && routeOrders.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-black text-sm uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                <MapIcon className="w-4 h-4 text-cyan-400" />
+                <span>Mapa Satelital de Ruta (GPS en Cabina)</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowRouteMap(!showRouteMap)}
+                className="text-xs font-bold text-slate-300 hover:text-white px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 transition-colors"
+              >
+                {showRouteMap ? "Ocultar Mapa" : "Ver Mapa Satelital"}
+              </button>
+            </div>
+
+            {showRouteMap && (
+              <RouteMap
+                route={activeRoute}
+                orders={routeOrders}
+                titlePrefix="Navegación GPS del Furgón"
+                onReorderFromLocation={(reordered) => reorderRouteOrders(activeRoute.id, reordered)}
+              />
+            )}
+          </div>
+        )}
+
         {/* Sequential Stop Cards */}
         <div className="space-y-4">
           <div className="flex items-center justify-between pt-1">
@@ -1059,9 +1091,9 @@ export default function OperacionPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           {/* GPS Button */}
                           <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
                               order.deliveryAddress
-                            )}`}
+                            )}&travelmode=driving`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="py-3 px-3 rounded-2xl bg-slate-800 hover:bg-slate-750 active:bg-slate-700 text-slate-200 font-black text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-all active:scale-95"
