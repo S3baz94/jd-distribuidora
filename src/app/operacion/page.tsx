@@ -50,17 +50,20 @@ import {
 } from "lucide-react";
 import { PlantPackingStation } from "@/components/operations/PlantPackingStation";
 import { ColdStorageStation } from "@/components/operations/ColdStorageStation";
+import { CratesTareScaleModal } from "@/components/operations/CratesTareScaleModal";
 
 export default function OperacionPage() {
   const {
     routes,
     allOrders,
     allCustomers,
+    products,
     getMagicLinkForCustomer,
     expenses,
     addDriverExpense,
     updateOrderStatus,
     confirmDelivery,
+    adjustOrderRealWeight,
     updateRouteStatus,
     reorderRouteOrders,
     showToast,
@@ -75,6 +78,10 @@ export default function OperacionPage() {
 
   // GPS Route Map visibility in driver cab
   const [showRouteMap, setShowRouteMap] = useState(true);
+
+  // Báscula Digital de Canastillas & Tara de Cortes
+  const [isTareScaleModalOpen, setIsTareScaleModalOpen] = useState(false);
+  const [tareScaleOrder, setTareScaleOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     const session = OperationsAuthService.getCurrentSession();
@@ -528,6 +535,21 @@ export default function OperacionPage() {
                 </select>
               </div>
             )}
+
+            {/* Báscula & Tara de Canastillas Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setTareScaleOrder(pendingOrders[0] || null);
+                setIsTareScaleModalOpen(true);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md shadow-amber-950/40 active:scale-95 transition-all flex-shrink-0"
+              title="Báscula para restar tara de canastillas vacías y calcular gramaje neto de factura"
+            >
+              <Scale className="w-4 h-4 stroke-[2.5]" />
+              <span className="hidden sm:inline">Báscula Tara</span>
+              <span className="sm:hidden">Tara</span>
+            </button>
 
             {/* Logout / Switch Role button */}
             <button
@@ -1128,8 +1150,21 @@ export default function OperacionPage() {
                           </button>
                         </div>
 
-                        {/* Extra Driver Row: Share App Link with Customer & Report Incident */}
+                        {/* Extra Driver Row: Share App Link with Customer, Scale Tare & Report Incident */}
                         <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTareScaleOrder(order);
+                              setIsTareScaleModalOpen(true);
+                            }}
+                            className="w-full sm:w-auto py-2 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-white text-xs font-black transition-colors flex items-center justify-center gap-1.5 border border-amber-500/30"
+                            title="Pesar canastillas con producto y restar tara de vacías para liquidar gramaje exacto de factura"
+                          >
+                            <Scale className="w-3.5 h-3.5 text-amber-400" />
+                            <span>⚖️ Tara Canastillas</span>
+                          </button>
+
                           <a
                             href={`https://wa.me/57${
                               (allCustomers.find((c) => c.id === order.customerId || c.businessName === order.customerName)?.phone || "3233218831").replace(/\D/g, "")
@@ -1142,7 +1177,7 @@ export default function OperacionPage() {
                             title="Compartir link exclusivo con el dueño o administrador del local"
                           >
                             <Share2 className="w-3.5 h-3.5 text-emerald-400" />
-                            <span>Compartir Enlace con Cliente</span>
+                            <span>Compartir Enlace</span>
                           </a>
 
                           <button
@@ -1215,6 +1250,19 @@ export default function OperacionPage() {
                   </strong>
                 </div>
               </div>
+
+              {/* Botón directo para pesar y restar tara de canastillas */}
+              <button
+                type="button"
+                onClick={() => {
+                  setTareScaleOrder(deliveryModalOrder);
+                  setIsTareScaleModalOpen(true);
+                }}
+                className="w-full py-2.5 px-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-black text-xs flex items-center justify-center gap-2 border border-amber-500/40 transition-all shadow-md active:scale-95"
+              >
+                <Scale className="w-4 h-4 text-amber-400" />
+                <span>⚖️ Báscula Digital: Restar Tara de Canastillas</span>
+              </button>
 
               {/* 1. Recipient Name */}
               <div>
@@ -1967,6 +2015,27 @@ export default function OperacionPage() {
           </div>
         </div>
       )}
+
+      {/* Modal 6: Báscula Digital de Canastillas & Tara de Cortes */}
+      <CratesTareScaleModal
+        isOpen={isTareScaleModalOpen}
+        onClose={() => {
+          setIsTareScaleModalOpen(false);
+          setTareScaleOrder(null);
+        }}
+        order={tareScaleOrder}
+        products={products}
+        onApplyWeights={(orderId, realQuantities, tareDetails) => {
+          adjustOrderRealWeight(orderId, realQuantities, tareDetails);
+          // Si el modal de entrega estaba abierto para este pedido, refrescar los datos
+          if (deliveryModalOrder && deliveryModalOrder.id === orderId) {
+            const fresh = allOrders.find((o) => o.id === orderId);
+            if (fresh) {
+              setDeliveryModalOrder(fresh);
+            }
+          }
+        }}
+      />
     </div>
   );
 }

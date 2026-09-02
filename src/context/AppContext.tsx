@@ -104,7 +104,8 @@ interface AppContextType {
   ) => void;
   adjustOrderRealWeight: (
     orderId: string,
-    realQuantities: { productId: string; realQuantity: number }[]
+    realQuantities: { productId: string; realQuantity: number }[],
+    tareDetails?: { tareNote?: string; totalGrossKg?: number; totalTareKg?: number; totalNetKg?: number }
   ) => void;
   updateOrderDispatch: (
     orderId: string,
@@ -824,16 +825,73 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const adjustOrderRealWeight = (
     orderId: string,
-    realQuantities: { productId: string; realQuantity: number }[]
+    realQuantities: { productId: string; realQuantity: number }[],
+    tareDetails?: { tareNote?: string; totalGrossKg?: number; totalTareKg?: number; totalNetKg?: number }
   ) => {
     const updated = orderService.adjustRealWeight(orderId, realQuantities);
     if (updated) {
+      if (tareDetails?.tareNote) {
+        updated.notes = `${updated.notes || ""}\n[Báscula Tara Canastillas]: ${tareDetails.tareNote}`.trim();
+        const currentList = orderService.getAllOrders().map((o) => (o.id === updated.id ? updated : o));
+        orderService.saveOrders(currentList);
+      }
+
+      // Si el pedido ya tiene factura emitida, actualizar los ítems, kilos y total de la factura
+      const existingInvoice = getOrderInvoice(updated);
+      if (existingInvoice) {
+        const updatedInvoiceItems = existingInvoice.items.map((invItem) => {
+          const matchedOrderItem = updated.items.find((oi) => oi.productId === invItem.productId);
+          if (matchedOrderItem && matchedOrderItem.realQuantity !== undefined) {
+            return {
+              ...invItem,
+              quantityKg: matchedOrderItem.realQuantity,
+              subtotal: matchedOrderItem.realSubtotal || matchedOrderItem.realQuantity * invItem.unitPrice,
+            };
+          }
+          return invItem;
+        });
+
+        const newTotalKg = updatedInvoiceItems.reduce((s, i) => s + i.quantityKg, 0);
+        const newSubtotal = updatedInvoiceItems.reduce((s, i) => s + i.subtotal, 0);
+
+        const tareNotice = tareDetails?.tareNote
+          ? `\n[Liquidación Báscula Tara]: ${tareDetails.tareNote}`
+          : `\n[Liquidación Báscula]: ${newTotalKg.toFixed(2)} kg netos.`;
+
+        const updatedInvoice: Invoice = {
+          ...existingInvoice,
+          items: updatedInvoiceItems,
+          totalKg: newTotalKg,
+          subtotal: newSubtotal,
+          total: newSubtotal,
+          paymentDetails: {
+            ...existingInvoice.paymentDetails,
+            cashAmount: existingInvoice.paymentType === "efectivo" ? newSubtotal : existingInvoice.paymentDetails?.cashAmount,
+            bankAmount: existingInvoice.paymentType === "banco" ? newSubtotal : existingInvoice.paymentDetails?.bankAmount,
+            creditAmount: existingInvoice.paymentType === "credito" ? newSubtotal : existingInvoice.paymentDetails?.creditAmount,
+          },
+          notes: `${existingInvoice.notes || ""}${tareNotice}`.trim(),
+        };
+
+        const currentInvoices = BillingService.getInvoices();
+        const updatedInvoicesList = currentInvoices.map((inv) =>
+          inv.id === updatedInvoice.id ? updatedInvoice : inv
+        );
+        BillingService.saveInvoices(updatedInvoicesList);
+        setInvoices(updatedInvoicesList);
+      }
+
       const allOrd = orderService.getAllOrders();
       setAllOrders(allOrd);
       setOrders(allOrd.filter((o) => o.customerId === customer.id));
 
-      sendSyncAction("ADJUST_REAL_WEIGHT", { orderId, realQuantities });
-      showToast(`Pesaje real de báscula registrado para ${updated.orderNumber}`, "success");
+      sendSyncAction("ADJUST_REAL_WEIGHT", { orderId, realQuantities, tareDetails });
+      showToast(
+        `⚖️ Gramaje neto aplicado a Factura & Pedido ${updated.orderNumber} (${priceService.formatCurrency(
+          updated.realTotal || updated.total
+        )})`,
+        "success"
+      );
     }
   };
 

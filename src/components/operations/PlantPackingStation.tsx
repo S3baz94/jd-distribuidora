@@ -20,6 +20,7 @@ import {
   ClipboardList,
   Save,
 } from "lucide-react";
+import { CratesTareScaleModal } from "@/components/operations/CratesTareScaleModal";
 
 interface PlantPackingStationProps {
   selectedRouteId?: string;
@@ -30,7 +31,7 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
   selectedRouteId,
   onRouteChange,
 }) => {
-  const { routes, allOrders, updateOrderStatus, adjustOrderRealWeight, showToast } = useApp();
+  const { routes, allOrders, products, updateOrderStatus, adjustOrderRealWeight, showToast } = useApp();
 
   const [activeRouteId, setActiveRouteId] = useState<string>(
     selectedRouteId || routes[0]?.id || "route-001"
@@ -41,6 +42,10 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
   const [weightsMap, setWeightsMap] = useState<{ [productId: string]: number }>({});
   const [basketCount, setBasketCount] = useState<number>(2);
   const [sealNumber, setSealNumber] = useState<string>("PREC-JD-8821");
+
+  // Báscula Digital de Canastillas & Tara
+  const [isTareScaleOpen, setIsTareScaleOpen] = useState(false);
+  const [tareScaleOrder, setTareScaleOrder] = useState<Order | null>(null);
 
   const currentRoute = routes.find((r) => r.id === activeRouteId) || routes[0];
 
@@ -289,11 +294,24 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
                   <div className="flex items-center gap-2 self-end sm:self-center">
                     <button
                       type="button"
-                      onClick={() => handleOpenScaleModal(order)}
-                      className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                      onClick={() => {
+                        setTareScaleOrder(order);
+                        setIsTareScaleOpen(true);
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                      title="Pesar canastillas con producto y restar tara de canastillas vacías"
                     >
-                      <Scale className="w-4 h-4" />
-                      <span>Pesar en Báscula</span>
+                      <Scale className="w-4 h-4 stroke-[2.5]" />
+                      <span>Báscula Tara</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenScaleModal(order)}
+                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-700 active:scale-95 transition-all"
+                    >
+                      <Scale className="w-4 h-4 text-amber-400" />
+                      <span>Pesaje Rápido</span>
                     </button>
 
                     {!isReady && (
@@ -380,8 +398,21 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
             </div>
 
             <form onSubmit={handleSaveScaleWeight} className="p-5 space-y-4 max-h-[70vh] overflow-y-auto text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setTareScaleOrder(editingOrderWeight);
+                  setIsTareScaleOpen(true);
+                  setEditingOrderWeight(null);
+                }}
+                className="w-full py-2.5 px-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-black text-xs flex items-center justify-center gap-2 border border-amber-500/40 transition-all shadow-md active:scale-95"
+              >
+                <Scale className="w-4 h-4 text-amber-400" />
+                <span>⚖️ Abrir Báscula Digital: Restar Tara de Canastillas</span>
+              </button>
+
               <p className="text-slate-300">
-                Digita los kilos exactos que marcó la báscula para cada corte antes de montarlo a las canastillas del furgón:
+                O digita directamente los kilos para cada corte antes de montarlo al furgón:
               </p>
 
               <div className="space-y-3">
@@ -473,6 +504,21 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
           </div>
         </div>
       )}
+
+      {/* Modal: Báscula Digital de Canastillas & Tara de Cortes */}
+      <CratesTareScaleModal
+        isOpen={isTareScaleOpen}
+        onClose={() => {
+          setIsTareScaleOpen(false);
+          setTareScaleOrder(null);
+        }}
+        order={tareScaleOrder}
+        products={products}
+        onApplyWeights={(orderId, realQuantities, tareDetails) => {
+          adjustOrderRealWeight(orderId, realQuantities, tareDetails);
+          updateOrderStatus(orderId, "confirmed");
+        }}
+      />
     </div>
   );
 };

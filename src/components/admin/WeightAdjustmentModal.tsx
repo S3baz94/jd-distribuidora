@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Order } from "@/types";
 import { priceService } from "@/services/priceService";
 import { Scale, X, Check, AlertCircle } from "lucide-react";
+import { CratesTareScaleModal } from "@/components/operations/CratesTareScaleModal";
 
 interface WeightAdjustmentModalProps {
   order: Order;
@@ -18,6 +19,7 @@ export const WeightAdjustmentModal: React.FC<WeightAdjustmentModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const [isTareModalOpen, setIsTareModalOpen] = useState(false);
   const [weights, setWeights] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     order.items.forEach((item) => {
@@ -91,6 +93,16 @@ export const WeightAdjustmentModal: React.FC<WeightAdjustmentModalProps> = ({
               Ingresa el peso exacto registrado en la báscula digital de planta antes de sellar la canastilla. El valor total de la remisión se recalculará automáticamente.
             </p>
           </div>
+
+          {/* Botón directo para Báscula con Tara de Canastillas */}
+          <button
+            type="button"
+            onClick={() => setIsTareModalOpen(true)}
+            className="w-full py-2.5 px-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-black text-xs flex items-center justify-center gap-2 border border-amber-500/40 transition-all shadow-md active:scale-95"
+          >
+            <Scale className="w-4 h-4 text-amber-400" />
+            <span>⚖️ Abrir Báscula Digital: Restar Tara de Canastillas Vacías</span>
+          </button>
 
           <div className="space-y-3">
             {order.items.map((item) => {
@@ -174,6 +186,18 @@ export const WeightAdjustmentModal: React.FC<WeightAdjustmentModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Crates Tare Scale Modal */}
+      <CratesTareScaleModal
+        isOpen={isTareModalOpen}
+        onClose={() => setIsTareModalOpen(false)}
+        order={order}
+        onApplyWeights={(_, payload) => {
+          onSave(payload);
+          setIsTareModalOpen(false);
+          onClose();
+        }}
+      />
     </div>
   );
 };
