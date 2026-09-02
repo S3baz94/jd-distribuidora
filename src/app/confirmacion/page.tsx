@@ -16,12 +16,13 @@ import {
   Sparkles,
   Scale,
   MessageCircle,
+  Receipt,
 } from "lucide-react";
 
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const { orders, customer } = useApp();
+  const { orders, customer, getOrderInvoice } = useApp();
 
   const order = orders.find(
     (o) =>
@@ -100,8 +101,19 @@ function ConfirmationContent() {
             </span>
           </div>
 
+          {/* Factura Automática Emitida */}
+          <div className="flex items-center justify-between border-t border-slate-200 pt-2 text-xs">
+            <span className="text-slate-600 font-medium flex items-center gap-1.5">
+              <Receipt className="w-4 h-4 text-emerald-600" />
+              Factura Comercial Emitida:
+            </span>
+            <span className="font-mono font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              {order.invoiceNumber || getOrderInvoice(order)?.number || "FAC-JD-2026-AUTO"}
+            </span>
+          </div>
+
           <div className="flex items-center justify-between border-t border-slate-200 pt-2 text-sm font-bold">
-            <span className="text-slate-700">Total Estimado ({totalKg} kg):</span>
+            <span className="text-slate-700">Total Liquidado ({totalKg} kg):</span>
             <span className="text-brand-600 text-base font-black">
               {priceService.formatCurrency(order.total)}
             </span>

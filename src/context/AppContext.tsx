@@ -634,9 +634,70 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       notes: data.notes,
     });
 
-    const updatedInv = inventoryService.getInventory();
-    const updatedAllOrders = orderService.getAllOrders();
+    // ==========================================
+    // FACTURACIÓN AUTOMÁTICA INMEDIATA AL CREAR PEDIDO
+    // ==========================================
+    const targetBrand: BrandType = inferredBrand === "gourmet_ahumados" ? "gourmet_ahumados" : "jd_distribuidora";
+    const companySettings = BillingService.getCompanySettings(targetBrand);
+    const { number: invoiceNumber } = BillingService.getNextInvoiceNumber(targetBrand);
 
+    const invoiceItems: InvoiceItem[] = orderItems.map((item, idx) => ({
+      id: `item-${newOrder.id}-${idx}`,
+      productId: item.productId,
+      sku: item.sku,
+      productName: item.productName,
+      brand: item.brand || targetBrand,
+      quantityKg: item.quantity,
+      unitPrice: item.unitPrice,
+      subtotal: item.subtotal,
+      taxRate: 0,
+    }));
+
+    const totalKg = invoiceItems.reduce((s, i) => s + i.quantityKg, 0);
+
+    const autoInvoice: Invoice = {
+      id: `inv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      number: invoiceNumber,
+      prefix: companySettings.prefix,
+      brand: targetBrand,
+      companyName: companySettings.companyName,
+      companyNit: companySettings.nit,
+      orderId: newOrder.id,
+      customerId: customer.id,
+      customerName: customer.businessName,
+      customerNit: customer.nit || "901.684.219-3",
+      customerPhone: customer.phone,
+      customerAddress: data.deliveryAddress || customer.address,
+      customerZone: customer.zone,
+      items: invoiceItems,
+      totalKg,
+      subtotal,
+      discountTotal: 0,
+      taxTotal: 0,
+      total: subtotal,
+      paymentType: "efectivo",
+      paymentDetails: { cashAmount: subtotal },
+      status: "pendiente",
+      origin: "pedido_web",
+      notes: `Factura generada automáticamente al confirmar el pedido web ${newOrder.orderNumber}. ${data.notes || ""}`,
+      sellerName: "Portal Clientes Web JD",
+      issuedAt: new Date().toISOString(),
+    };
+
+    // Actualizar pedido con los datos fiscales de inmediato
+    newOrder.invoiceId = autoInvoice.id;
+    newOrder.invoiceNumber = autoInvoice.number;
+    newOrder.isInvoiced = true;
+    newOrder.invoicedAt = autoInvoice.issuedAt;
+    newOrder.status = "ready";
+
+    // Guardar factura en almacenamiento fiscal
+    const currentInvoices = BillingService.getInvoices();
+    const updatedInvoices = [autoInvoice, ...currentInvoices];
+    BillingService.saveInvoices(updatedInvoices);
+    setInvoices(updatedInvoices);
+
+    const updatedInv = inventoryService.getInventory();
     setInventory(updatedInv);
     clearCart();
 
@@ -648,9 +709,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRoutes(optResult.updatedRoutes);
     routeService.saveRoutes(optResult.updatedRoutes);
 
-    sendSyncAction("CREATE_ORDER", { order: newOrder, routes: optResult.updatedRoutes });
+    sendSyncAction("CREATE_ORDER", {
+      order: newOrder,
+      invoice: autoInvoice,
+      routes: optResult.updatedRoutes,
+    });
 
-    showToast(`¡Pedido ${newOrder.orderNumber} registrado y asignado a ruta automática!`, "success");
+    showToast(
+      `¡Pedido ${newOrder.orderNumber} registrado y FACTURADO automáticamente (${autoInvoice.number})!`,
+      "success"
+    );
     return newOrder;
   };
 
@@ -1053,14 +1121,84 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       newOrder.items.map((item) => ({ productId: item.productId, quantity: item.quantity }))
     );
 
+    // ==========================================
+    // FACTURACIÓN AUTOMÁTICA INMEDIATA PARA PEDIDO MANUAL
+    // ==========================================
+    const targetBrand: BrandType = newOrder.brand === "gourmet_ahumados" ? "gourmet_ahumados" : "jd_distribuidora";
+    const companySettings = BillingService.getCompanySettings(targetBrand);
+    const { number: invoiceNumber } = BillingService.getNextInvoiceNumber(targetBrand);
+
+    const targetCustomer = allCustomers.find((c) => c.id === newOrder.customerId);
+
+    const invoiceItems: InvoiceItem[] = newOrder.items.map((item, idx) => ({
+      id: `item-${newOrder.id}-${idx}`,
+      productId: item.productId,
+      sku: item.sku,
+      productName: item.productName,
+      brand: item.brand || targetBrand,
+      quantityKg: item.quantity,
+      unitPrice: item.unitPrice,
+      subtotal: item.subtotal || item.quantity * item.unitPrice,
+      taxRate: 0,
+    }));
+
+    const totalKg = invoiceItems.reduce((s, i) => s + i.quantityKg, 0);
+    const subtotal = invoiceItems.reduce((s, i) => s + i.subtotal, 0);
+
+    const pType: InvoicePaymentType = (newOrder.paymentMethod as InvoicePaymentType) || "efectivo";
+
+    const autoInvoice: Invoice = {
+      id: `inv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      number: invoiceNumber,
+      prefix: companySettings.prefix,
+      brand: targetBrand,
+      companyName: companySettings.companyName,
+      companyNit: companySettings.nit,
+      orderId: newOrder.id,
+      customerId: newOrder.customerId,
+      customerName: newOrder.customerName,
+      customerNit: targetCustomer?.nit || "901.684.219-3",
+      customerPhone: targetCustomer?.phone,
+      customerAddress: newOrder.deliveryAddress || targetCustomer?.address,
+      customerZone: newOrder.zone || targetCustomer?.zone,
+      items: invoiceItems,
+      totalKg,
+      subtotal,
+      discountTotal: 0,
+      taxTotal: 0,
+      total: subtotal,
+      paymentType: pType,
+      paymentDetails: {
+        cashAmount: pType === "efectivo" ? subtotal : undefined,
+        bankAmount: pType === "banco" ? subtotal : undefined,
+        creditAmount: pType === "credito" ? subtotal : undefined,
+      },
+      status: pType === "credito" ? "pendiente" : "pagada",
+      origin: "mostrador",
+      notes: `Factura automática generada con el pedido manual ${newOrder.orderNumber}. ${newOrder.notes || ""}`,
+      sellerName: "Administración / Mostrador JD",
+      issuedAt: new Date().toISOString(),
+    };
+
+    newOrder.invoiceId = autoInvoice.id;
+    newOrder.invoiceNumber = autoInvoice.number;
+    newOrder.isInvoiced = true;
+    newOrder.invoicedAt = autoInvoice.issuedAt;
+    newOrder.status = "ready";
+
+    const currentInvoices = BillingService.getInvoices();
+    const updatedInvoices = [autoInvoice, ...currentInvoices];
+    BillingService.saveInvoices(updatedInvoices);
+    setInvoices(updatedInvoices);
+
     const updatedOrders = [newOrder, ...allOrders];
     setAllOrders(updatedOrders);
     setOrders(updatedOrders.filter((o) => o.customerId === customer.id));
     orderService.saveOrders(updatedOrders);
     setInventory(inventoryService.getInventory());
 
-    sendSyncAction("NEW_ORDER", { order: newOrder });
-    showToast(`✓ Pedido ${newOrder.orderNumber} registrado para ${newOrder.customerName}`, "success");
+    sendSyncAction("NEW_ORDER", { order: newOrder, invoice: autoInvoice });
+    showToast(`✓ Pedido ${newOrder.orderNumber} registrado y FACTURADO (${autoInvoice.number})`, "success");
     return newOrder;
   };
 
