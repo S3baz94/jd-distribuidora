@@ -42,6 +42,8 @@ interface AppContextType {
   customer: Customer;
   allCustomers: Customer[];
   switchCustomer: (customerId: string) => void;
+  loginCustomerByIdentifier: (term: string) => { success: boolean; customer?: Customer; error?: string };
+  getMagicLinkForCustomer: (customerId: string) => string;
   products: Product[];
   inventory: InventoryItem[];
   orders: Order[];
@@ -299,10 +301,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // ignore
     }
 
-    const currentCustomer = customerService.getCurrentCustomer();
+    let currentCustomer = customerService.getCurrentCustomer();
     const customerList = customerService.getAllDemoCustomers();
     const orderList = orderService.getAllOrders();
     const routeList = routeService.getRoutes();
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const clientParam =
+        params.get("c") ||
+        params.get("cliente") ||
+        params.get("nit") ||
+        params.get("tel") ||
+        params.get("phone");
+
+      if (clientParam) {
+        const cleanParam = clientParam.trim().toLowerCase().replace(/[\s\-\.]/g, "");
+        const matched = customerList.find((c) => {
+          const cleanPhone = (c.phone || "").replace(/[\s\-\.]/g, "").toLowerCase();
+          const cleanNit = (c.nit || "").replace(/[\s\-\.]/g, "").toLowerCase();
+          const cleanId = c.id.toLowerCase();
+          return (
+            cleanId === cleanParam ||
+            cleanPhone === cleanParam ||
+            cleanPhone.endsWith(cleanParam) ||
+            cleanNit === cleanParam
+          );
+        });
+
+        if (matched) {
+          currentCustomer = matched;
+          customerService.setCurrentCustomer(matched);
+          setTimeout(() => {
+            showToast(
+              `🥩 ¡Acceso Mágico Directo! Comprando para: ${matched.businessName}`,
+              "success"
+            );
+          }, 800);
+        }
+      }
+    }
 
     setCustomer(currentCustomer);
     setAllCustomers(customerList);
@@ -389,6 +427,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setOrders(currentOrders);
       showToast(`Sesión cambiada a: ${found.businessName}`, "info");
     }
+  };
+
+  const getMagicLinkForCustomer = (customerId: string): string => {
+    if (typeof window !== "undefined") {
+      const baseUrl = window.location.origin;
+      return `${baseUrl}/?c=${customerId}`;
+    }
+    return `https://jd-distribuidora.vercel.app/?c=${customerId}`;
+  };
+
+  const loginCustomerByIdentifier = (
+    term: string
+  ): { success: boolean; customer?: Customer; error?: string } => {
+    const cleanTerm = term.trim().toLowerCase().replace(/[\s\-\.]/g, "");
+    if (!cleanTerm) {
+      return { success: false, error: "Ingresa tu número de celular o NIT registrado." };
+    }
+
+    const found = allCustomers.find((c) => {
+      const cleanPhone = (c.phone || "").replace(/[\s\-\.]/g, "").toLowerCase();
+      const cleanNit = (c.nit || "").replace(/[\s\-\.]/g, "").toLowerCase();
+      const cleanId = c.id.toLowerCase();
+      const cleanName = c.businessName.toLowerCase();
+
+      return (
+        cleanPhone === cleanTerm ||
+        cleanPhone.endsWith(cleanTerm) ||
+        cleanNit === cleanTerm ||
+        cleanNit.includes(cleanTerm) ||
+        cleanId === cleanTerm ||
+        cleanName.includes(cleanTerm)
+      );
+    });
+
+    if (found) {
+      setCustomer(found);
+      customerService.setCurrentCustomer(found);
+      const currentOrders = allOrders.filter((o) => o.customerId === found.id);
+      setOrders(currentOrders);
+      showToast(`¡Bienvenido! Sesión activa: ${found.businessName}`, "success");
+      return { success: true, customer: found };
+    }
+
+    return {
+      success: false,
+      error: "No encontramos un negocio con ese celular o NIT. Comunícate a nuestra línea de WhatsApp.",
+    };
   };
 
   const getProductStock = (productId: string) => {
@@ -1025,6 +1110,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         customer,
         allCustomers,
         switchCustomer,
+        loginCustomerByIdentifier,
+        getMagicLinkForCustomer,
         products,
         inventory,
         orders,

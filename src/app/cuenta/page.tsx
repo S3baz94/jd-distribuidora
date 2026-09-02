@@ -16,10 +16,23 @@ import {
   Sparkles,
   ShieldCheck,
   Truck,
+  QrCode,
+  Copy,
+  Share2,
+  Printer,
+  ExternalLink,
 } from "lucide-react";
 
 export default function AccountPage() {
-  const { customer, allCustomers, switchCustomer, updateCustomerData, createCustomer, showToast } = useApp();
+  const {
+    customer,
+    allCustomers,
+    switchCustomer,
+    updateCustomerData,
+    createCustomer,
+    getMagicLinkForCustomer,
+    showToast,
+  } = useApp();
 
   const [isEditing, setIsEditing] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -363,6 +376,96 @@ export default function AccountPage() {
                 <Plus className="w-4 h-4 stroke-[3]" />
                 <span>REGISTRAR OTRA SEDE / LOCAL</span>
               </button>
+            </div>
+
+            {/* 📲 Magic Link & QR Code Card for Business */}
+            <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border-2 border-emerald-500/30 text-white space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold text-xl border border-emerald-500/30 flex-shrink-0">
+                    <QrCode className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      ACCESO EXCLUSIVO DE TU NEGOCIO
+                    </span>
+                    <h4 className="font-black text-base text-white mt-0.5">
+                      Enlace Mágico & QR de Mostrador
+                    </h4>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-300">
+                Cualquier persona de tu negocio (administrador, cajero o despostador) puede abrir este enlace desde su celular para hacer pedidos directamente con tus precios y dirección sin escribir claves.
+              </p>
+
+              {/* Enlace Box */}
+              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                <div className="w-full sm:w-auto truncate text-xs font-mono text-emerald-400 font-bold">
+                  {getMagicLinkForCustomer(customer.id)}
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const link = getMagicLinkForCustomer(customer.id);
+                      navigator.clipboard.writeText(link);
+                      showToast("¡Enlace directo copiado al portapapeles!", "success");
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-white text-xs font-bold transition-colors flex items-center gap-1.5"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copiar</span>
+                  </button>
+
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      `Hola, este es el enlace directo para hacer pedidos de carne para ${customer.businessName}: ${getMagicLinkForCustomer(
+                        customer.id
+                      )}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Compartir por WhatsApp</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* QR Preview & Sticker Print */}
+              <div className="p-4 rounded-xl bg-white text-slate-950 flex flex-col sm:flex-row items-center justify-between gap-4 border-2 border-slate-200">
+                <div className="flex items-center gap-3.5">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
+                      getMagicLinkForCustomer(customer.id)
+                    )}`}
+                    alt="Código QR de tu negocio"
+                    className="w-20 h-20 rounded-lg border-2 border-slate-900 object-contain shadow-sm"
+                  />
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                      STICKER DE MOSTRADOR
+                    </span>
+                    <h5 className="font-black text-sm text-slate-950 mt-1">{customer.businessName}</h5>
+                    <p className="text-[11px] text-slate-600 font-medium">
+                      Escanea con la cámara del celular para pedir carne en 1 toque.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 rounded-xl bg-slate-950 hover:bg-slate-850 text-white font-black text-xs flex items-center gap-2 shadow-md transition-colors"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Imprimir Sticker</span>
+                </button>
+              </div>
             </div>
           </div>
         )}

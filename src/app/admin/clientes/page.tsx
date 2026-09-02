@@ -28,13 +28,29 @@ import {
   Receipt,
   FileText,
   Printer,
+  MessageCircle,
+  QrCode,
+  Copy,
+  Share2,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react";
 
 export default function AdminCustomersPage() {
-  const { allCustomers, allOrders, invoices, updateInvoicePayment, createCustomer, updateCustomerData, showToast } = useApp();
+  const {
+    allCustomers,
+    allOrders,
+    invoices,
+    updateInvoicePayment,
+    createCustomer,
+    updateCustomerData,
+    getMagicLinkForCustomer,
+    showToast,
+  } = useApp();
   const [isNewCustModalOpen, setIsNewCustModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [statementCustomer, setStatementCustomer] = useState<Customer | null>(null);
+  const [qrCustomer, setQrCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState<Partial<Customer>>({
     businessName: "",
     contactName: "",
@@ -373,6 +389,58 @@ export default function AdminCustomersPage() {
                     <strong className="text-brand-300 font-black text-xs sm:text-sm">
                       {priceService.formatCurrency(avgTicket)}
                     </strong>
+                  </div>
+                </div>
+
+                {/* Acceso Directo B2B & Enlace Mágico */}
+                <div className="p-3 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-slate-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Acceso Directo / Sin Clave:</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold truncate max-w-[130px]">
+                      ?c={cust.id}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <a
+                      href={`https://wa.me/57${(cust.phone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
+                        `Hola ${cust.contactName}, este es tu enlace exclusivo para pedir carne en JD Distribuidora & Gourmet para ${cust.businessName}:\n\n${getMagicLinkForCustomer(cust.id)}\n\n¡Toca el enlace para entrar sin contraseñas!`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2 px-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] flex items-center justify-center gap-1 shadow-sm transition-colors text-center"
+                      title="Enviar enlace al WhatsApp del cliente"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>WhatsApp</span>
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const link = getMagicLinkForCustomer(cust.id);
+                        navigator.clipboard.writeText(link);
+                        showToast(`¡Enlace copiado para ${cust.businessName}!`, "success");
+                      }}
+                      className="py-2 px-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] flex items-center justify-center gap-1 transition-colors border border-slate-700 text-center"
+                      title="Copiar enlace directo"
+                    >
+                      <Copy className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                      <span>Copiar</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setQrCustomer(cust)}
+                      className="py-2 px-1.5 rounded-xl bg-slate-800 hover:bg-amber-950/60 hover:text-amber-300 text-slate-200 font-bold text-[11px] flex items-center justify-center gap-1 transition-colors border border-slate-700 text-center"
+                      title="Ver e imprimir código QR de mostrador"
+                    >
+                      <QrCode className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                      <span>QR Sticker</span>
+                    </button>
                   </div>
                 </div>
 
@@ -894,6 +962,112 @@ export default function AdminCustomersPage() {
                   className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
                 >
                   Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Modal: Customer Magic Link & Counter QR Sticker */}
+      {qrCustomer && (() => {
+        const clientLink = getMagicLinkForCustomer(qrCustomer.id);
+        const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(clientLink)}`;
+        const cleanPhone = (qrCustomer.phone || "").replace(/\D/g, "");
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-slate-900 border-2 border-slate-700 rounded-3xl max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 text-white">
+              <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                    <QrCode className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-base text-white">Sticker QR & Enlace Mágico</h3>
+                    <p className="text-xs text-slate-400">Acceso exclusivo sin contraseña</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setQrCustomer(null)}
+                  className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-4">
+                {/* Physical Sticker Card Preview */}
+                <div className="p-5 rounded-2xl bg-white text-slate-950 text-center space-y-3 border-4 border-slate-900 shadow-xl">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-[10px] font-black uppercase tracking-wider">
+                    <span>🥩 JD DISTRIBUIDORA & GOURMET</span>
+                  </div>
+
+                  <h4 className="font-black text-lg text-slate-950 leading-tight">
+                    {qrCustomer.businessName}
+                  </h4>
+                  <p className="text-[11px] text-slate-600 font-bold">
+                    {qrCustomer.contactName} • {qrCustomer.zone}
+                  </p>
+
+                  <div className="p-2 bg-slate-50 rounded-xl inline-block border-2 border-slate-200">
+                    <img
+                      src={qrImgUrl}
+                      alt="Código QR de Acceso"
+                      className="w-44 h-44 mx-auto object-contain"
+                    />
+                  </div>
+
+                  <p className="text-xs font-black text-emerald-800 bg-emerald-50 py-1 px-3 rounded-lg border border-emerald-200">
+                    📸 Apunta tu cámara aquí para pedir carne en 1 toque
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-mono">
+                    Tarifa asignada: {qrCustomer.assignedPriceListName}
+                  </p>
+                </div>
+
+                {/* Direct Link Box */}
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Enlace directo para enviar:</span>
+                  <div className="text-xs font-mono text-emerald-400 font-bold truncate">
+                    {clientLink}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <a
+                    href={`https://wa.me/57${cleanPhone}?text=${encodeURIComponent(
+                      `Hola ${qrCustomer.contactName}, este es tu enlace directo para pedir carne fresca en JD Distribuidora & Gourmet con los precios mayoristas de tu local (${qrCustomer.businessName}):\n\n${clientLink}\n\n¡Toca el enlace para abrir tu cuenta!`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-md transition-all text-center"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Enviar a WhatsApp</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(clientLink);
+                      showToast(`¡Enlace copiado para ${qrCustomer.businessName}!`, "success");
+                    }}
+                    className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 transition-colors border border-slate-700"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span>Copiar Enlace</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
+                >
+                  <Printer className="w-4 h-4 stroke-[2.5]" />
+                  <span>IMPRIMIR STICKER DE MOSTRADOR</span>
                 </button>
               </div>
             </div>

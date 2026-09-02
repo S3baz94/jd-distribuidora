@@ -46,6 +46,7 @@ import {
   Boxes,
   LogOut,
   UserCheck,
+  Share2,
 } from "lucide-react";
 import { PlantPackingStation } from "@/components/operations/PlantPackingStation";
 import { ColdStorageStation } from "@/components/operations/ColdStorageStation";
@@ -54,6 +55,8 @@ export default function OperacionPage() {
   const {
     routes,
     allOrders,
+    allCustomers,
+    getMagicLinkForCustomer,
     expenses,
     addDriverExpense,
     updateOrderStatus,
@@ -1069,7 +1072,9 @@ export default function OperacionPage() {
 
                           {/* WhatsApp / Call Button */}
                           <a
-                            href={`https://wa.me/573233218831?text=${encodeURIComponent(
+                            href={`https://wa.me/57${
+                              (allCustomers.find((c) => c.id === order.customerId || c.businessName === order.customerName)?.phone || "3233218831").replace(/\D/g, "")
+                            }?text=${encodeURIComponent(
                               `Hola ${order.customerName}, soy ${activeRoute?.driverName || "Carlos Pérez"} de JD Distribuidora. Ya estoy afuera con su pedido de carne (${orderKg} kg).`
                             )}`}
                             target="_blank"
@@ -1091,15 +1096,32 @@ export default function OperacionPage() {
                           </button>
                         </div>
 
-                        {/* Incident / Problem button */}
-                        <button
-                          type="button"
-                          onClick={() => setIncidentModalOrder(order)}
-                          className="w-full py-2 rounded-xl text-slate-400 hover:text-amber-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-                        >
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Reportar Novedad en este local</span>
-                        </button>
+                        {/* Extra Driver Row: Share App Link with Customer & Report Incident */}
+                        <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                          <a
+                            href={`https://wa.me/57${
+                              (allCustomers.find((c) => c.id === order.customerId || c.businessName === order.customerName)?.phone || "3233218831").replace(/\D/g, "")
+                            }?text=${encodeURIComponent(
+                              `Hola ${order.customerName}, te comparto tu enlace exclusivo para pedir carne fresca en JD Distribuidora & Gourmet con los precios mayoristas de tu local:\n\n${getMagicLinkForCustomer(order.customerId)}\n\n¡Ábrelo desde tu celular para hacer pedidos en 1 toque!`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full sm:flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 border border-slate-700"
+                            title="Compartir link exclusivo con el dueño o administrador del local"
+                          >
+                            <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Compartir Enlace con Cliente</span>
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => setIncidentModalOrder(order)}
+                            className="w-full sm:w-auto py-2 px-3 rounded-xl text-slate-400 hover:text-amber-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Reportar Novedad</span>
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

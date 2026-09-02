@@ -41,6 +41,8 @@ export default function HomePage() {
     cartKg,
     repeatOrder,
     setIsCartOpen,
+    getMagicLinkForCustomer,
+    showToast,
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -142,28 +144,52 @@ export default function HomePage() {
               📍
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-white text-xs sm:text-sm truncate">
-                {customer.businessName}
-              </p>
-              <p className="text-[11px] sm:text-xs text-emerald-300 font-bold truncate">
-                {customer.address} • <span className="text-slate-400">{customer.zone}</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-bold text-white text-xs sm:text-sm truncate">
+                  {customer.businessName}
+                </p>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60">
+                  {customer.assignedPriceListName || "Tarifa Mayorista"}
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-slate-300 font-medium truncate mt-0.5">
+                {customer.address} • <span className="text-slate-400">{customer.zone}</span> • NIT: {customer.nit}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+          <div className="flex items-center gap-1.5 flex-shrink-0 self-end sm:self-auto flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                const link = getMagicLinkForCustomer(customer.id);
+                navigator.clipboard.writeText(link);
+                showToast("¡Enlace directo de tu negocio copiado!", "success");
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs whitespace-nowrap transition-colors shadow-sm flex items-center gap-1"
+              title="Copiar tu enlace directo de WhatsApp"
+            >
+              <span>📲 Mi Link</span>
+            </button>
             <Link
               href="/cuenta"
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs whitespace-nowrap transition-colors border border-slate-700"
+              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs whitespace-nowrap transition-colors border border-slate-700"
             >
-              Editar Datos
+              Mi QR & Perfil
             </Link>
             <Link
               href="/pedidos"
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs whitespace-nowrap transition-colors border border-slate-700 flex items-center gap-1.5"
+              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs whitespace-nowrap transition-colors border border-slate-700 flex items-center gap-1"
             >
               <Package className="w-3.5 h-3.5 text-amber-400" />
-              <span>Mis Pedidos</span>
+              <span>Pedidos</span>
+            </Link>
+            <Link
+              href="/login"
+              className="px-2 py-1.5 rounded-xl bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 font-bold text-[11px] whitespace-nowrap transition-colors border border-slate-800"
+              title="Salir o cambiar a otro cliente"
+            >
+              Salir
             </Link>
           </div>
         </div>
