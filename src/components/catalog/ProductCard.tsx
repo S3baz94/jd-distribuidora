@@ -7,7 +7,7 @@ import { priceService } from "@/services/priceService";
 import { AvailabilityBadge } from "../common/AvailabilityBadge";
 import { QuantityStepper } from "../common/QuantityStepper";
 import { FutureStockModal } from "./FutureStockModal";
-import { ShoppingBag, Calendar, Check, ThermometerSnowflake, Plus } from "lucide-react";
+import { ShoppingBag, Calendar, Check, ThermometerSnowflake, Plus, Flame } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
@@ -97,10 +97,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </div>
           )}
 
-          {/* Meat temperature badge */}
-          <div className="absolute bottom-3 left-3 text-white text-xs font-bold flex items-center gap-1 bg-black/60 px-2.5 py-1 rounded-xl backdrop-blur-sm">
-            <ThermometerSnowflake className="w-3.5 h-3.5 text-cyan-300" />
-            <span>Cerdo Fresco (0°C a 4°C)</span>
+          {/* Meat temperature and Brand Badges */}
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-1">
+            <div className="text-white text-[11px] font-bold flex items-center gap-1 bg-black/70 px-2.5 py-1 rounded-xl backdrop-blur-sm">
+              <ThermometerSnowflake className="w-3.5 h-3.5 text-cyan-300" />
+              <span>0°C a 4°C</span>
+            </div>
+            {product.companyId === "gourmet_ahumados" ? (
+              <span className="text-[11px] font-black text-amber-300 bg-amber-950/80 px-2.5 py-1 rounded-xl backdrop-blur-sm border border-amber-500/40 flex items-center gap-1">
+                <Flame className="w-3.5 h-3.5 fill-current text-amber-400" />
+                <span>Gourmet Ahumado</span>
+              </span>
+            ) : (
+              <span className="text-[11px] font-black text-rose-300 bg-rose-950/80 px-2.5 py-1 rounded-xl backdrop-blur-sm border border-rose-500/40">
+                🥩 JD Crudo Certificado
+              </span>
+            )}
           </div>
         </div>
 
@@ -168,21 +180,47 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                   onChange={setSelectedQty}
                   size="lg"
                 />
+
+                {/* Quick-add Canastillas buttons */}
+                <div className="flex items-center gap-1.5 w-full pt-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 mr-0.5">Rápido:</span>
+                  {[5, 10, 25].map((addKg) => (
+                    <button
+                      key={addKg}
+                      type="button"
+                      onClick={() => setSelectedQty((prev) => Math.min(stock.availableQuantity, prev + addKg))}
+                      className="flex-1 py-1.5 px-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 active:bg-emerald-100 text-slate-700 hover:text-emerald-800 border border-slate-200 text-xs font-black transition-colors"
+                      title={`Sumar ${addKg} kg a la cantidad`}
+                    >
+                      +{addKg} kg
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedQty(product.minimumQuantity)}
+                    className="py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-[10px] font-bold"
+                    title="Restablecer al mínimo"
+                  >
+                    Mín
+                  </button>
+                </div>
               </div>
 
-              {/* Big Direct Action Button */}
+              {/* Big Direct Action Button with Live Price */}
               <button
                 type="button"
                 onClick={handleAdd}
-                className={`w-full min-h-[50px] py-3.5 px-4 rounded-2xl font-black text-sm tracking-wide flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-98 ${
+                className={`w-full min-h-[50px] py-3.5 px-4 rounded-2xl font-black text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 ${
                   cartItem
                     ? "bg-slate-900 hover:bg-slate-800 text-white"
                     : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/20"
                 }`}
               >
-                <ShoppingBag className="w-5 h-5 stroke-[2.5]" />
-                <span>
-                  {cartItem ? "ACTUALIZAR KILOS EN PEDIDO" : `AGREGAR AL PEDIDO (${selectedQty} KG)`}
+                <ShoppingBag className="w-4 h-4 stroke-[2.5] flex-shrink-0" />
+                <span className="truncate">
+                  {cartItem
+                    ? `ACTUALIZAR (${selectedQty} KG = ${priceService.formatCurrency(selectedQty * unitPrice)})`
+                    : `AGREGAR (${selectedQty} KG = ${priceService.formatCurrency(selectedQty * unitPrice)})`}
                 </span>
               </button>
             </div>

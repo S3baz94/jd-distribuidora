@@ -216,20 +216,60 @@ export const CartDrawer: React.FC = () => {
                     })}
                   </div>
 
-                  {/* Minimum order check */}
-                  {!isMinimumMet && (
-                    <div className="p-3.5 bg-amber-50 border-2 border-amber-300 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900">
-                      <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  {/* Minimum order progress bar */}
+                  <div className="p-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                        <Scale className="w-4 h-4 text-emerald-600" />
+                        <span>Progreso Pedido Mayorista:</span>
+                      </span>
+                      <strong className={isMinimumMet ? "text-emerald-700 font-black" : "text-amber-700 font-black"}>
+                        {Math.min(100, Math.round((cartTotal / customer.minOrderAmount) * 100))}%
+                      </strong>
+                    </div>
+
+                    {/* Visual Progress Track */}
+                    <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 rounded-full ${
+                          isMinimumMet
+                            ? "bg-emerald-500 shadow-[0_0_10px_#10b981]"
+                            : "bg-amber-500"
+                        }`}
+                        style={{ width: `${Math.min(100, (cartTotal / customer.minOrderAmount) * 100)}%` }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] pt-0.5">
+                      <span className="text-slate-500">
+                        Mínimo: <strong>{priceService.formatCurrency(customer.minOrderAmount)}</strong>
+                      </span>
+                      {isMinimumMet ? (
+                        <span className="text-emerald-700 font-black flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>¡Mínimo alcanzado!</span>
+                        </span>
+                      ) : (
+                        <span className="text-amber-700 font-black">
+                          Faltan {priceService.formatCurrency(customer.minOrderAmount - cartTotal)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Plastic Baskets Estimator */}
+                  <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📦</span>
                       <div>
-                        <p className="font-black text-sm">
-                          Pedido mínimo: {priceService.formatCurrency(customer.minOrderAmount)}
-                        </p>
-                        <p className="text-amber-800 mt-0.5 font-medium">
-                          Te faltan {priceService.formatCurrency(customer.minOrderAmount - cartTotal)} para poder enviar tu pedido.
-                        </p>
+                        <span className="font-bold text-slate-900 block">Canastillas Refrigeradas JD:</span>
+                        <span className="text-[11px] text-slate-600">Equivale a aprox. <strong>{Math.ceil(cartKg / 20) || 1} canastillas</strong> ({cartKg.toFixed(1)} kg)</span>
                       </div>
                     </div>
-                  )}
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-lg border border-emerald-200">
+                      Capacidad 20-25 kg c/u
+                    </span>
+                  </div>
                 </div>
 
                 {/* 2. Delivery Day Selector (Big simple touch buttons) */}

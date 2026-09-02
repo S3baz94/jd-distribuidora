@@ -96,39 +96,46 @@ export const Header: React.FC = () => {
         {/* Right side: Client Business Badge & Cart Button */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Customer info selector */}
-          <div className="relative">
-            <select
-              value={customer.id}
-              onChange={(e) => switchCustomer(e.target.value)}
-              className="bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-slate-700 cursor-pointer max-w-[170px] sm:max-w-[220px] truncate"
-              title="Cambiar cliente o probar como Cliente Nuevo"
-            >
-              {allCustomers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.id === "cust-nuevo" ? "🆕 " : "🏪 "}
-                  {c.businessName}
-                </option>
-              ))}
-            </select>
+          <div className="relative flex items-center">
+            <div className="flex items-center gap-1.5 bg-slate-950/90 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm max-w-[150px] sm:max-w-[220px]">
+              <Store className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+              <select
+                value={customer.id}
+                onChange={(e) => switchCustomer(e.target.value)}
+                className="bg-transparent text-slate-200 text-xs font-bold focus:outline-none cursor-pointer truncate w-full"
+                title="Cambiar cliente o probar como Cliente Nuevo"
+              >
+                {allCustomers.map((c) => (
+                  <option key={c.id} value={c.id} className="bg-slate-900 text-white py-1">
+                    {c.id === "cust-nuevo" ? "🆕 " : "🏪 "}
+                    {c.businessName}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* Cart Button */}
+          {/* Cart Button with vibrant counter */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-semibold shadow-sm transition-all relative flex-shrink-0"
+            className={`flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl border text-xs font-bold shadow-md transition-all active:scale-95 relative flex-shrink-0 ${
+              cartItemsCount > 0
+                ? "bg-amber-500/20 text-amber-300 border-amber-500/50 hover:bg-amber-500/30 shadow-amber-950/30"
+                : "bg-slate-800 hover:bg-slate-750 text-white border-slate-700"
+            }`}
             title="Ver pedido actual"
           >
-            <ShoppingBag className="w-4 h-4 text-slate-300" />
+            <ShoppingBag className={`w-4 h-4 ${cartItemsCount > 0 ? "text-amber-400" : "text-slate-300"}`} />
             <span className="hidden sm:inline">
               {cartKg > 0 ? `${cartKg.toFixed(1)} kg` : "Pedido"}
             </span>
             {cartTotal > 0 && (
-              <span className="hidden lg:inline text-slate-300 font-mono">
+              <span className="hidden lg:inline text-amber-300 font-mono font-black">
                 ({priceService.formatCurrency(cartTotal)})
               </span>
             )}
             {cartItemsCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 text-[11px] font-bold flex items-center justify-center -mr-1">
+              <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 text-[11px] font-black flex items-center justify-center -mr-1 shadow-sm">
                 {cartItemsCount}
               </span>
             )}

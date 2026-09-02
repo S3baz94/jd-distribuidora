@@ -1005,22 +1005,51 @@ export default function FacturacionPage() {
 
                 {/* Sub-inputs based on payment type */}
                 {paymentType === "efectivo" && (
-                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <label className="text-slate-400 block mb-1">Efectivo Recibido:</label>
-                      <input
-                        type="number"
-                        value={cashGiven || ""}
-                        onChange={(e) => setCashGiven(parseFloat(e.target.value) || 0)}
-                        placeholder={`$${newInvoiceSubtotal.toLocaleString()}`}
-                        className="w-full bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-xl px-3 py-2 font-mono text-white text-xs focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-slate-400 block mb-1">Cambio / Vueltas:</label>
-                      <div className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 font-mono font-bold text-emerald-400 text-xs">
-                        ${cashChange.toLocaleString()}
+                  <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-3 text-xs">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1 font-bold">Efectivo Recibido:</label>
+                        <input
+                          type="number"
+                          value={cashGiven || ""}
+                          onChange={(e) => setCashGiven(parseFloat(e.target.value) || 0)}
+                          placeholder={`$${newInvoiceSubtotal.toLocaleString()}`}
+                          className="w-full bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-xl px-3 py-2 font-mono text-white text-xs focus:outline-none"
+                        />
                       </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1 font-bold">Cambio / Vueltas:</label>
+                        <div className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 font-mono font-bold text-emerald-400 text-xs flex items-center justify-between">
+                          <span>${cashChange.toLocaleString()}</span>
+                          {cashChange >= 0 && cashGiven > 0 && (
+                            <span className="text-[10px] text-emerald-500 bg-emerald-950/60 px-2 py-0.5 rounded-md">
+                              ✓ Vueltas
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Bill Denominations for Colombian Currency */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-800/80">
+                      <span className="text-[10px] uppercase font-bold text-slate-500 mr-1">Billetes:</span>
+                      {[50000, 100000, 200000].map((bill) => (
+                        <button
+                          key={bill}
+                          type="button"
+                          onClick={() => setCashGiven(bill)}
+                          className="py-1 px-2.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-[11px] font-mono font-bold transition-colors"
+                        >
+                          ${bill.toLocaleString()}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setCashGiven(newInvoiceSubtotal)}
+                        className="py-1 px-2.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 text-emerald-400 border border-emerald-800/60 text-[11px] font-bold transition-colors"
+                      >
+                        Pago Exacto
+                      </button>
                     </div>
                   </div>
                 )}
