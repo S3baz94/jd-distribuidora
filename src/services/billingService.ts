@@ -318,7 +318,7 @@ export class BillingService {
     if (typeof window === "undefined") return INITIAL_INVOICES;
     try {
       const stored = localStorage.getItem(BILLING_STORAGE_KEY);
-      if (stored) {
+      if (stored !== null) {
         return JSON.parse(stored);
       }
     } catch (e) {
@@ -334,6 +334,17 @@ export class BillingService {
     } catch (e) {
       console.error("Error saving invoices:", e);
     }
+  }
+
+  static clearAllInvoices(): Invoice[] {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(BILLING_STORAGE_KEY, JSON.stringify([]));
+      } catch (e) {
+        console.error("Error clearing invoices:", e);
+      }
+    }
+    return [];
   }
 
   static processRefund(

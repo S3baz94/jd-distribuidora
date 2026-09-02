@@ -16,11 +16,9 @@ export const orderService = {
 
     try {
       const stored = localStorage.getItem(ORDERS_KEY);
-      if (stored) {
+      if (stored !== null) {
         const orders: Order[] = JSON.parse(stored);
-        if (orders.length > 0) {
-          return customerId ? orders.filter((o) => o.customerId === customerId) : orders;
-        }
+        return customerId ? orders.filter((o) => o.customerId === customerId) : orders;
       }
     } catch {
       // Fallback
@@ -30,6 +28,17 @@ export const orderService = {
     return customerId
       ? INITIAL_ORDERS.filter((o) => o.customerId === customerId)
       : INITIAL_ORDERS;
+  },
+
+  clearAllOrders: (): Order[] => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(ORDERS_KEY, JSON.stringify([]));
+      } catch (e) {
+        console.error("Error clearing orders:", e);
+      }
+    }
+    return [];
   },
 
   getAllOrders: (): Order[] => {

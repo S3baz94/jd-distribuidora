@@ -17,13 +17,22 @@ import {
   Calendar,
   Users,
   ShieldCheck,
+  Sparkles,
+  ClipboardList,
+  Database,
 } from "lucide-react";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { NewBatchModal } from "@/components/admin/NewBatchModal";
+import { NewProductModal } from "@/components/admin/NewProductModal";
+import { ProductionReadyModal } from "@/components/admin/ProductionReadyModal";
+import { ManualOrderModal } from "@/components/admin/ManualOrderModal";
 
 export default function AdminDashboardPage() {
-  const { allOrders, inventory, products, routes, addInventoryBatch } = useApp();
+  const { allOrders, inventory, products, routes, addInventoryBatch, createProduct } = useApp();
   const [isNewBatchOpen, setIsNewBatchOpen] = useState(false);
+  const [isNewProductOpen, setIsNewProductOpen] = useState(false);
+  const [isProductionReadyOpen, setIsProductionReadyOpen] = useState(false);
+  const [isManualOrderOpen, setIsManualOrderOpen] = useState(false);
 
   // Metrics
   const activeOrders = allOrders.filter(
@@ -62,13 +71,41 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={() => setIsNewBatchOpen(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-teal-700 text-white font-black text-xs px-5 py-3.5 rounded-2xl shadow-xl shadow-emerald-950/50 transition-all active:scale-98 border border-emerald-400/30"
+            type="button"
+            onClick={() => setIsProductionReadyOpen(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xs px-4 py-3 rounded-2xl shadow-xl shadow-cyan-950/50 transition-all active:scale-95 border border-cyan-400/40"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Puesta en Marcha (Datos Reales)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsNewProductOpen(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-black text-xs px-4 py-3 rounded-2xl shadow-xl shadow-amber-950/50 transition-all active:scale-95 border border-amber-400/40"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>Ingresar Lote de Carne</span>
+            <span>Crear Corte / Producto</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsManualOrderOpen(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs px-4 py-3 rounded-2xl shadow-xl shadow-indigo-950/50 transition-all active:scale-95 border border-purple-400/40"
+          >
+            <ClipboardList className="w-4 h-4" />
+            <span>Tomar Pedido Manual</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsNewBatchOpen(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs px-4 py-3 rounded-2xl shadow-xl shadow-emerald-950/50 transition-all active:scale-95 border border-emerald-400/30"
+          >
+            <Scale className="w-4 h-4" />
+            <span>Ingresar Lote Báscula</span>
           </button>
         </div>
       </div>
@@ -377,12 +414,28 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Modal for adding batch */}
+      {/* Modals for Production & Real Data */}
       <NewBatchModal
         products={products}
         isOpen={isNewBatchOpen}
         onClose={() => setIsNewBatchOpen(false)}
         onSave={addInventoryBatch}
+      />
+
+      <NewProductModal
+        isOpen={isNewProductOpen}
+        onClose={() => setIsNewProductOpen(false)}
+        onSave={createProduct}
+      />
+
+      <ProductionReadyModal
+        isOpen={isProductionReadyOpen}
+        onClose={() => setIsProductionReadyOpen(false)}
+      />
+
+      <ManualOrderModal
+        isOpen={isManualOrderOpen}
+        onClose={() => setIsManualOrderOpen(false)}
       />
     </div>
   );

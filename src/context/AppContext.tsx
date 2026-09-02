@@ -122,6 +122,15 @@ interface AppContextType {
   ) => void;
   createCustomer: (customer: Customer) => void;
   updateCustomerData: (customerId: string, updates: Partial<Customer>) => void;
+  deleteCustomer: (customerId: string) => void;
+  createProduct: (product: Product, initialStockKg: number, initialPrice: number) => void;
+  updateProduct: (productId: string, updates: Partial<Product>, newPrice?: number) => void;
+  deleteProduct: (productId: string) => void;
+  updateProductPrice: (productId: string, newPrice: number) => void;
+  createManualOrder: (order: Partial<Order>) => Order;
+  clearDemoData: (options?: { wipeOrders?: boolean; wipeInvoices?: boolean; wipeDemoCustomers?: boolean }) => void;
+  exportSystemBackup: () => void;
+  importSystemBackup: (backupJson: string) => boolean;
   expenses: DriverExpense[];
   addDriverExpense: (expense: Omit<DriverExpense, "id" | "createdAt">) => void;
   resetAllDemoData: () => void;
@@ -350,7 +359,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setOrders(orderList.filter((o) => o.customerId === currentCustomer.id));
     setRoutes(routeList);
 
-    productService.getProducts(currentCustomer.companyId).then(setProducts);
+    setProducts(productService.getProducts(currentCustomer.companyId));
 
     try {
       const storedCart = localStorage.getItem(CART_STORAGE_KEY);
@@ -936,6 +945,232 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast("Cliente actualizado", "success");
   };
 
+  const deleteCustomer = (customerId: string) => {
+    const updated = customerService.deleteCustomer(customerId);
+    setAllCustomers(updated);
+    showToast("Cliente eliminado correctamente", "info");
+  };
+
+  const createProduct = (newProduct: Product, initialStockKg: number, initialPrice: number) => {
+    const updated = productService.addProduct(newProduct);
+    setProducts(updated);
+
+    const newInvItem: InventoryItem = {
+      productId: newProduct.id,
+      companyId: newProduct.companyId,
+      physicalQuantity: initialStockKg,
+      availableQuantity: initialStockKg,
+      reservedQuantity: 0,
+      futureQuantity: 0,
+      canReserveFuture: true,
+    };
+    const updatedInv = [...inventory, newInvItem];
+    setInventory(updatedInv);
+    inventoryService.saveInventory(updatedInv);
+
+    priceService.setPriceForProduct(newProduct.id, initialPrice);
+
+    sendSyncAction("STATE_UPDATED", {
+      orders: allOrders,
+      inventory: updatedInv,
+      customers: allCustomers,
+      routes,
+      lastUpdated: Date.now(),
+    });
+
+    showToast(`✓ Producto "${newProduct.name}" registrado con éxito (${initialStockKg} kg iniciales)`, "success");
+  };
+
+  const updateProduct = (productId: string, updates: Partial<Product>, newPrice?: number) => {
+    const updated = productService.updateProduct(productId, updates);
+    setProducts(updated);
+
+    if (newPrice !== undefined) {
+      priceService.setPriceForProduct(productId, newPrice);
+    }
+
+    sendSyncAction("STATE_UPDATED", {
+      orders: allOrders,
+      inventory,
+      customers: allCustomers,
+      routes,
+      lastUpdated: Date.now(),
+    });
+
+    showToast("✓ Producto y precio actualizados", "success");
+  };
+
+  const deleteProduct = (productId: string) => {
+    const updated = productService.deleteProduct(productId);
+    setProducts(updated);
+
+    const updatedInv = inventory.filter((i) => i.productId !== productId);
+    setInventory(updatedInv);
+    inventoryService.saveInventory(updatedInv);
+
+    showToast("Producto eliminado del catálogo", "info");
+  };
+
+  const updateProductPrice = (productId: string, newPrice: number) => {
+    priceService.setPriceForProduct(productId, newPrice);
+    setProducts((prev) => [...prev]);
+    showToast(`✓ Precio actualizado a ${priceService.formatCurrency(newPrice)}/kg`, "success");
+  };
+
+  const createManualOrder = (orderData: Partial<Order>): Order => {
+    const nextOrderNum = 10542 + allOrders.length + 1;
+    const orderNumber = `#${nextOrderNum}`;
+
+    const newOrder: Order = {
+      id: `ord-${nextOrderNum}`,
+      orderNumber,
+      companyId: orderData.companyId || "dist-001",
+      customerId: orderData.customerId || allCustomers[0]?.id || "cust-sebastian",
+      customerName: orderData.customerName || allCustomers[0]?.businessName || "Cliente Mostrador",
+      brand: orderData.brand || "jd_distribuidora",
+      items: orderData.items || [],
+      subtotal: orderData.subtotal || 0,
+      total: orderData.total || 0,
+      deliveryDate: orderData.deliveryDate || "Hoy / Despacho Inmediato",
+      deliveryAddress: orderData.deliveryAddress || "Entrega en Mostrador Planta",
+      zone: orderData.zone || "Zona Centro",
+      notes: orderData.notes || "Pedido manual tomado desde Administración",
+      status: (orderData.status as OrderStatus) || "pending",
+      paymentMethod: orderData.paymentMethod || "efectivo",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    inventoryService.deductStock(
+      newOrder.items.map((item) => ({ productId: item.productId, quantity: item.quantity }))
+    );
+
+    const updatedOrders = [newOrder, ...allOrders];
+    setAllOrders(updatedOrders);
+    setOrders(updatedOrders.filter((o) => o.customerId === customer.id));
+    orderService.saveOrders(updatedOrders);
+    setInventory(inventoryService.getInventory());
+
+    sendSyncAction("NEW_ORDER", { order: newOrder });
+    showToast(`✓ Pedido ${newOrder.orderNumber} registrado para ${newOrder.customerName}`, "success");
+    return newOrder;
+  };
+
+  const clearDemoData = (options?: { wipeOrders?: boolean; wipeInvoices?: boolean; wipeDemoCustomers?: boolean }) => {
+    const wipeOrders = options?.wipeOrders !== false;
+    const wipeInvoices = options?.wipeInvoices !== false;
+    const wipeDemoCust = options?.wipeDemoCustomers === true;
+
+    if (wipeOrders) {
+      orderService.clearAllOrders();
+      setAllOrders([]);
+      setOrders([]);
+    }
+
+    if (wipeInvoices) {
+      BillingService.clearAllInvoices();
+      setInvoices([]);
+    }
+
+    if (wipeDemoCust) {
+      const vipOnly = allCustomers.filter(
+        (c) => (c.phone || "").replace(/\D/g, "") === "3233218831" || c.id === "cust-sebastian"
+      );
+      customerService.saveAllCustomers(vipOnly);
+      setAllCustomers(vipOnly);
+    }
+
+    sendSyncAction("STATE_UPDATED", {
+      orders: wipeOrders ? [] : allOrders,
+      inventory,
+      customers: allCustomers,
+      routes,
+      lastUpdated: Date.now(),
+    });
+
+    showToast("🧹 Datos de prueba limpiados. El sistema está listo para ingresar tus datos reales.", "success");
+  };
+
+  const exportSystemBackup = () => {
+    const backup = {
+      appName: "JD Distribuidora & Gourmet Ahumados",
+      backupDate: new Date().toISOString(),
+      version: CURRENT_VERSION,
+      products: productService.getAllProductsRaw(),
+      inventory: inventoryService.getInventory(),
+      customers: customerService.getAllDemoCustomers(),
+      orders: orderService.getAllOrders(),
+      invoices: BillingService.getInvoices(),
+      billingSettings,
+      routes,
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `JD_Distribuidora_Respaldo_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+
+    showToast("💾 Copia de respaldo exportada exitosamente en JSON", "success");
+  };
+
+  const importSystemBackup = (backupJson: string): boolean => {
+    try {
+      const data = JSON.parse(backupJson);
+      if (!data || !data.customers || !data.inventory) {
+        showToast("Archivo de respaldo inválido", "error");
+        return false;
+      }
+
+      if (data.products && Array.isArray(data.products)) {
+        productService.saveProducts(data.products);
+        setProducts(data.products);
+      }
+      if (data.inventory && Array.isArray(data.inventory)) {
+        inventoryService.saveInventory(data.inventory);
+        setInventory(data.inventory);
+      }
+      if (data.customers && Array.isArray(data.customers)) {
+        customerService.saveAllCustomers(data.customers);
+        setAllCustomers(data.customers);
+      }
+      if (data.orders && Array.isArray(data.orders)) {
+        orderService.saveOrders(data.orders);
+        setAllOrders(data.orders);
+        setOrders(data.orders.filter((o: Order) => o.customerId === customer.id));
+      }
+      if (data.invoices && Array.isArray(data.invoices)) {
+        BillingService.saveInvoices(data.invoices);
+        setInvoices(data.invoices);
+      }
+      if (data.routes && Array.isArray(data.routes)) {
+        routeService.saveRoutes(data.routes);
+        setRoutes(data.routes);
+      }
+      if (data.billingSettings) {
+        BillingService.saveSettings(data.billingSettings);
+        setBillingSettings(data.billingSettings);
+      }
+
+      sendSyncAction("STATE_UPDATED", {
+        orders: data.orders || [],
+        inventory: data.inventory || [],
+        customers: data.customers || [],
+        routes: data.routes || [],
+        lastUpdated: Date.now(),
+      });
+
+      showToast("✓ Copia de seguridad restaurada correctamente", "success");
+      return true;
+    } catch (err) {
+      console.error("Error importing backup:", err);
+      showToast("Error al importar archivo de respaldo", "error");
+      return false;
+    }
+  };
+
   const addDriverExpense = (expData: Omit<DriverExpense, "id" | "createdAt">) => {
     const newExp: DriverExpense = {
       ...expData,
@@ -1197,6 +1432,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateInventoryStock,
         createCustomer,
         updateCustomerData,
+        deleteCustomer,
+        createProduct,
+        updateProduct,
+        deleteProduct,
+        updateProductPrice,
+        createManualOrder,
+        clearDemoData,
+        exportSystemBackup,
+        importSystemBackup,
         expenses,
         addDriverExpense,
         resetAllDemoData,

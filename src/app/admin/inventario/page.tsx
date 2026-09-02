@@ -17,16 +17,33 @@ import {
   Download,
   Flame,
   Plus,
-  Minus,
   Sparkles,
   Scale,
   ThermometerSnowflake,
+  Trash2,
+  DollarSign,
 } from "lucide-react";
+import { priceService } from "@/services/priceService";
 import { NewBatchModal } from "@/components/admin/NewBatchModal";
+import { NewProductModal } from "@/components/admin/NewProductModal";
+import { ProductionReadyModal } from "@/components/admin/ProductionReadyModal";
 
 export default function AdminInventoryPage() {
-  const { products, inventory, addInventoryBatch, updateInventoryStock, showToast } = useApp();
+  const {
+    products,
+    inventory,
+    addInventoryBatch,
+    updateInventoryStock,
+    createProduct,
+    updateProductPrice,
+    deleteProduct,
+    showToast,
+  } = useApp();
   const [isNewBatchOpen, setIsNewBatchOpen] = useState(false);
+  const [isNewProductOpen, setIsNewProductOpen] = useState(false);
+  const [isProductionReadyOpen, setIsProductionReadyOpen] = useState(false);
+  const [editingPriceProductId, setEditingPriceProductId] = useState<string | null>(null);
+  const [newPriceInput, setNewPriceInput] = useState<number>(0);
   const [selectedProductForBatch, setSelectedProductForBatch] = useState<string | undefined>(undefined);
   const [selectedBrandTab, setSelectedBrandTab] = useState<BrandType | "all">("jd_distribuidora");
   const [searchTerm, setSearchTerm] = useState("");
@@ -119,20 +136,38 @@ export default function AdminInventoryPage() {
 
         <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
           <button
+            type="button"
+            onClick={() => setIsProductionReadyOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-black text-xs flex items-center gap-2 border border-cyan-500/30 transition-all active:scale-95 shadow-lg shadow-cyan-950/30"
+          >
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span>Puesta en Marcha (Datos Reales)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsNewProductOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-950/40 transition-all active:scale-95"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Crear Corte / Producto</span>
+          </button>
+
+          <button
             onClick={handleExportCSV}
             className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs flex items-center gap-2 border border-slate-700 transition-all"
             title="Descargar inventario para Excel"
           >
             <Download className="w-4 h-4 text-slate-400" />
-            <span>Descargar Inventario (.CSV)</span>
+            <span>Descargar (.CSV)</span>
           </button>
 
           <button
             onClick={() => handleOpenBatchForProduct(undefined)}
             className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
           >
-            <PlusCircle className="w-5 h-5 stroke-[2.5]" />
-            <span>➕ INGRESAR LOTE DE CARNE (BÁSCULA)</span>
+            <PlusCircle className="w-4 h-4 stroke-[2.5]" />
+            <span>Ingresar Lote Báscula</span>
           </button>
         </div>
       </div>
@@ -318,6 +353,79 @@ export default function AdminInventoryPage() {
                   </div>
                 </div>
 
+                {/* Price Display & Quick Price Edit */}
+                <div className="flex items-center justify-between bg-slate-950 px-3 py-2 rounded-2xl border border-slate-800">
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[11px] text-slate-400 font-bold">Precio / kg:</span>
+                    <strong className="text-xs font-black text-emerald-300">
+                      {priceService.formatCurrency(
+                        priceService.getPriceForCustomer("list-famas-a", product.id)
+                      )}
+                    </strong>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingPriceProductId(product.id);
+                        setNewPriceInput(priceService.getPriceForCustomer("list-famas-a", product.id));
+                      }}
+                      className="text-[10px] font-black text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1 rounded-lg transition-colors"
+                    >
+                      ✏️ Precio
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`¿Eliminar "${product.name}" del catálogo?`)) {
+                          deleteProduct(product.id);
+                        }
+                      }}
+                      className="text-[10px] text-slate-500 hover:text-rose-400 p-1 rounded-lg transition-colors"
+                      title="Eliminar producto"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {editingPriceProductId === product.id && (
+                  <div className="p-2.5 bg-slate-950 border border-amber-500/40 rounded-xl space-y-2 animate-in zoom-in-95">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-amber-300 font-bold">Nuevo Precio:</span>
+                      <input
+                        type="number"
+                        min={1000}
+                        step={500}
+                        value={newPriceInput}
+                        onChange={(e) => setNewPriceInput(Number(e.target.value))}
+                        className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white font-mono text-xs focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEditingPriceProductId(null)}
+                        className="text-[10px] text-slate-400 hover:text-white px-2 py-0.5"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateProductPrice(product.id, newPriceInput);
+                          setEditingPriceProductId(null);
+                        }}
+                        className="text-[10px] font-black bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-lg"
+                      >
+                        Guardar Precio
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Inline Quick Editor if Editing */}
                 {isEditing && (
                   <div className="p-3 bg-slate-800 rounded-2xl border border-brand-500/50 space-y-2.5 text-xs animate-in zoom-in-95">
@@ -424,6 +532,19 @@ export default function AdminInventoryPage() {
           setSelectedProductForBatch(undefined);
         }}
         onSave={addInventoryBatch}
+      />
+
+      {/* New Product Modal */}
+      <NewProductModal
+        isOpen={isNewProductOpen}
+        onClose={() => setIsNewProductOpen(false)}
+        onSave={createProduct}
+      />
+
+      {/* Production Ready Modal */}
+      <ProductionReadyModal
+        isOpen={isProductionReadyOpen}
+        onClose={() => setIsProductionReadyOpen(false)}
       />
     </div>
   );

@@ -34,7 +34,11 @@ import {
   Share2,
   Sparkles,
   ExternalLink,
+  Trash2,
+  Upload,
 } from "lucide-react";
+import { BulkCustomerModal } from "@/components/admin/BulkCustomerModal";
+import { ProductionReadyModal } from "@/components/admin/ProductionReadyModal";
 
 export default function AdminCustomersPage() {
   const {
@@ -44,10 +48,13 @@ export default function AdminCustomersPage() {
     updateInvoicePayment,
     createCustomer,
     updateCustomerData,
+    deleteCustomer,
     getMagicLinkForCustomer,
     showToast,
   } = useApp();
   const [isNewCustModalOpen, setIsNewCustModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isProductionReadyOpen, setIsProductionReadyOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [statementCustomer, setStatementCustomer] = useState<Customer | null>(null);
   const [qrCustomer, setQrCustomer] = useState<Customer | null>(null);
@@ -164,12 +171,30 @@ export default function AdminCustomersPage() {
 
         <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
           <button
+            type="button"
+            onClick={() => setIsProductionReadyOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-black text-xs flex items-center gap-2 border border-cyan-500/30 transition-all active:scale-95 shadow-lg shadow-cyan-950/30"
+          >
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span>Puesta en Marcha (Datos Reales)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsBulkModalOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-purple-950/40 transition-all active:scale-95"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Carga Masiva (CSV / Texto)</span>
+          </button>
+
+          <button
             onClick={handleExportCustomersCSV}
             className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
             title="Descargar base de datos de clientes en Excel"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Descargar Clientes (.CSV)</span>
+            <span>Descargar (.CSV)</span>
           </button>
 
           <button
@@ -177,7 +202,7 @@ export default function AdminCustomersPage() {
             className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-2xl shadow-lg shadow-brand-950/50 transition-all active:scale-98"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Registrar Nuevo Cliente</span>
+            <span>Registrar Cliente</span>
           </button>
         </div>
       </div>
@@ -444,11 +469,11 @@ export default function AdminCustomersPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => setStatementCustomer(cust)}
-                    className="py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-amber-500/30"
+                    className="py-2.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs flex items-center justify-center gap-1 transition-colors border border-amber-500/30"
                     title="Ver extracto y facturas de cartera"
                   >
                     <Receipt className="w-3.5 h-3.5" />
@@ -458,7 +483,7 @@ export default function AdminCustomersPage() {
                   <button
                     type="button"
                     onClick={() => setEditingCustomer(cust)}
-                    className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+                    className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1 transition-colors border border-slate-700"
                   >
                     <Building className="w-3.5 h-3.5 text-slate-400" />
                     <span>Editar</span>
@@ -466,12 +491,31 @@ export default function AdminCustomersPage() {
 
                   <Link
                     href={`/admin/pedidos`}
-                    className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+                    className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1 transition-colors border border-slate-700"
                     title="Ver pedidos de este cliente"
                   >
                     <Package className="w-3.5 h-3.5 text-brand-400" />
                     <span>Pedidos</span>
                   </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const isVip = (cust.phone || "").replace(/\D/g, "") === "3233218831" || cust.id === "cust-sebastian";
+                      if (isVip) {
+                        showToast("La cuenta VIP de Sebastián (323 321 8831) está protegida y no se puede eliminar.", "warning");
+                        return;
+                      }
+                      if (confirm(`¿Eliminar al cliente "${cust.businessName}"?`)) {
+                        deleteCustomer(cust.id);
+                      }
+                    }}
+                    className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 font-bold text-xs flex items-center justify-center gap-1 transition-colors border border-slate-700"
+                    title="Eliminar cliente"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Eliminar</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1074,6 +1118,18 @@ export default function AdminCustomersPage() {
           </div>
         );
       })()}
+
+      {/* Bulk Customer Import Modal */}
+      <BulkCustomerModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+      />
+
+      {/* Production Ready Modal */}
+      <ProductionReadyModal
+        isOpen={isProductionReadyOpen}
+        onClose={() => setIsProductionReadyOpen(false)}
+      />
     </div>
   );
 }

@@ -23,8 +23,12 @@ import {
   FileSpreadsheet,
   Flame,
   Layers,
+  Plus,
+  Sparkles,
 } from "lucide-react";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { ManualOrderModal } from "@/components/admin/ManualOrderModal";
+import { ProductionReadyModal } from "@/components/admin/ProductionReadyModal";
 
 export default function AdminOrdersPage() {
   const { allOrders, allCustomers, inventory, routes, showToast } = useApp();
@@ -32,6 +36,8 @@ export default function AdminOrdersPage() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("all");
   const [selectedBrandFilter, setSelectedBrandFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isManualOrderOpen, setIsManualOrderOpen] = useState(false);
+  const [isProductionReadyOpen, setIsProductionReadyOpen] = useState(false);
 
   const filteredOrders = useMemo(() => {
     return allOrders.filter((order) => {
@@ -129,20 +135,38 @@ export default function AdminOrdersPage() {
 
         {/* Actions */}
         <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+          <button
+            type="button"
+            onClick={() => setIsProductionReadyOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-black text-xs flex items-center gap-2 border border-cyan-500/30 transition-all active:scale-95 shadow-lg shadow-cyan-950/30"
+          >
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span>Puesta en Marcha (Datos Reales)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsManualOrderOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Tomar Pedido Manual</span>
+          </button>
+
           <Link
             href="/admin/facturacion"
             className="px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-950/40 transition-all active:scale-95"
           >
-            <span>➕ Crear Pedido / Factura POS</span>
+            <span>Factura POS</span>
           </Link>
 
           <button
             onClick={handleExportCSV}
-            className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
+            className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-extrabold text-xs flex items-center gap-2 border border-slate-700 transition-all active:scale-95"
             title="Descargar base de datos para Excel"
           >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>Descargar en Excel (.CSV)</span>
+            <FileSpreadsheet className="w-4 h-4 text-slate-400" />
+            <span>Descargar (.CSV)</span>
           </button>
         </div>
       </div>
@@ -400,6 +424,18 @@ export default function AdminOrdersPage() {
           })
         )}
       </div>
+
+      {/* Manual Order Modal */}
+      <ManualOrderModal
+        isOpen={isManualOrderOpen}
+        onClose={() => setIsManualOrderOpen(false)}
+      />
+
+      {/* Production Ready Modal */}
+      <ProductionReadyModal
+        isOpen={isProductionReadyOpen}
+        onClose={() => setIsProductionReadyOpen(false)}
+      />
     </div>
   );
 }

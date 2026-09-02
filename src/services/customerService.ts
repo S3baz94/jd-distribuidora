@@ -78,4 +78,16 @@ export const customerService = {
 
     return updated;
   },
+
+  deleteCustomer: (customerId: string): Customer[] => {
+    const list = customerService.getAllDemoCustomers();
+    // Protect principal VIP account 3233218831
+    const updated = list.filter((c) => {
+      const isVip = (c.phone || "").replace(/\D/g, "") === "3233218831" || c.id === "cust-sebastian";
+      if (isVip && c.id === customerId) return true; // keep VIP
+      return c.id !== customerId;
+    });
+    customerService.saveAllCustomers(updated);
+    return updated;
+  },
 };

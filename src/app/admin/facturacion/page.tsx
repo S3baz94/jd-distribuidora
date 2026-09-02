@@ -39,6 +39,7 @@ import {
   RotateCcw,
   Landmark,
 } from "lucide-react";
+import { ProductionReadyModal } from "@/components/admin/ProductionReadyModal";
 
 export default function FacturacionPage() {
   const {
@@ -59,6 +60,7 @@ export default function FacturacionPage() {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
+  const [isProductionReadyOpen, setIsProductionReadyOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | InvoiceStatus | "devolucion">("all");
   const [paymentFilter, setPaymentFilter] = useState<"all" | InvoicePaymentType>("all");
@@ -381,6 +383,15 @@ export default function FacturacionPage() {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setIsProductionReadyOpen(true)}
+            className="py-2.5 px-4 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-black text-xs flex items-center gap-2 border border-cyan-500/30 transition-all active:scale-95 shadow-lg shadow-cyan-950/30"
+          >
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span>Puesta en Marcha (Datos Reales)</span>
+          </button>
+
           <button
             onClick={() => exportInvoicesCSV(brandFilter)}
             className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-2 border border-slate-700 transition-all"
@@ -1339,6 +1350,12 @@ export default function FacturacionPage() {
         settings={billingSettings}
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
+      />
+
+      {/* Production Ready Modal */}
+      <ProductionReadyModal
+        isOpen={isProductionReadyOpen}
+        onClose={() => setIsProductionReadyOpen(false)}
       />
     </div>
   );
