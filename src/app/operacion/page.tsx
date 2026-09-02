@@ -39,7 +39,6 @@ import {
   Map as MapIcon,
   ListOrdered,
   Layers,
-  Compass,
   CornerDownRight,
   Scale,
   ThermometerSnowflake,
@@ -651,23 +650,6 @@ export default function OperacionPage() {
                 </span>
               </a>
             </div>
-          </div>
-        )}
-
-        {/* Interactive GPS Route Map (Always Visible & Prominent) */}
-        {activeRoute && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="font-black text-xs uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <Compass className="w-4 h-4 text-cyan-400" />
-                <span>Trazado de Ruta en Mapa Satelital (Paso a Paso)</span>
-              </h3>
-              <span className="text-[11px] text-cyan-300 font-bold">
-                {completedOrders.length}/{routeOrders.length} Paradas Listas
-              </span>
-            </div>
-
-            <RouteMap route={activeRoute} orders={routeOrders} />
           </div>
         )}
 
