@@ -1,5 +1,5 @@
-// JD Distribuidora - Service Worker para Soporte de Aplicación de Escritorio PWA en Windows
-const CACHE_NAME = "jd-distribuidora-cache-v1";
+// JD Distribuidora - Service Worker con Purga Automática de Caché
+const CACHE_NAME = "jd-distribuidora-cache-v3-stitch";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -20,9 +20,13 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Pass through fetch requests
+  // Network first para garantizar que siempre se vean las actualizaciones en vivo
   if (event.request.method !== "GET") return;
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request)
+      .then((networkResponse) => {
+        return networkResponse;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

@@ -408,223 +408,226 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
             </div>
           )}
 
-          {/* Section 1: Pesaje de Canastillas con Producto (PESO BRUTO) */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3.5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                  <h3 className="font-extrabold text-sm text-white">
-                    1. Canastillas con {currentItem.productName} (Peso Bruto)
-                  </h3>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Registra el peso en báscula de cada canastilla cargada con carne
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleAddGrossCrate}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition-all self-start sm:self-auto"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Agregar otra canastilla</span>
-              </button>
-            </div>
-
-            {/* List of Gross Crates */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {currentWeighing.grossWeights.map((weight, idx) => (
-                <div
-                  key={idx}
-                  className="bg-slate-900 border border-slate-750 p-2.5 rounded-2xl flex items-center justify-between gap-2"
-                >
-                  <span className="font-bold text-slate-300 text-xs flex items-center gap-1.5">
-                    <Boxes className="w-4 h-4 text-rose-400" />
-                    <span>Canastilla #{idx + 1}:</span>
-                  </span>
-
+          {/* Dual Weighing Section: Peso Bruto con Carne (Left) vs Tara Canastillas Vacías (Right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Section 1: Pesaje de Canastillas con Producto (PESO BRUTO) */}
+            <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                <div>
                   <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <input
-                        type="number"
-                        step="0.05"
-                        min="0"
-                        value={weight || ""}
-                        onChange={(e) => handleUpdateGrossWeight(idx, e.target.value)}
-                        className="w-24 px-2.5 py-1.5 text-right font-mono font-black text-sm text-white bg-slate-950 border border-slate-700 rounded-xl focus:outline-none focus:border-rose-500"
-                        placeholder="0.0"
-                      />
-                      <span className="absolute right-7 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold pointer-events-none">
-                        kg
-                      </span>
-                    </div>
-
-                    {currentWeighing.grossWeights.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveGrossCrate(idx)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                        title="Eliminar canastilla"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                    <h3 className="font-extrabold text-sm text-white">
+                      1. Canastillas con Carne (Peso Bruto)
+                    </h3>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Gross Subtotal Pill */}
-            <div className="flex items-center justify-between pt-1 text-xs">
-              <span className="text-slate-400">
-                {currentWeighing.grossWeights.length} canastilla(s) con producto:
-              </span>
-              <span className="font-mono font-extrabold text-rose-300 bg-rose-950/50 px-2.5 py-1 rounded-xl border border-rose-800/50">
-                Suma Bruta: {totalGrossKg.toFixed(2)} kg
-              </span>
-            </div>
-          </div>
-
-          {/* Section 2: Pesaje de Canastillas Vacías (TARA) */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3.5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
-                  <h3 className="font-extrabold text-sm text-white">
-                    2. Canastillas Vacías (Tara a Restar)
-                  </h3>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Ingresa el peso exacto de cada canastilla vacía limpia
-                </p>
-              </div>
-
-              {/* Mode Toggle */}
-              <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-700 self-start sm:self-auto">
-                <button
-                  type="button"
-                  onClick={() => updateCurrentWeighing((prev) => ({ ...prev, tareMode: "individual" }))}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                    currentWeighing.tareMode === "individual"
-                      ? "bg-cyan-600 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  Pesaje Individual
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateCurrentWeighing((prev) => ({ ...prev, tareMode: "standard" }))}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                    currentWeighing.tareMode === "standard"
-                      ? "bg-cyan-600 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  Tara Fija (2.0kg)
-                </button>
-              </div>
-            </div>
-
-            {currentWeighing.tareMode === "individual" ? (
-              <div className="space-y-2.5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {currentWeighing.individualTares.map((tareWeight, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-slate-900 border border-slate-750 p-2.5 rounded-2xl flex items-center justify-between gap-2"
-                    >
-                      <span className="font-bold text-slate-300 text-xs flex items-center gap-1.5">
-                        <Boxes className="w-4 h-4 text-cyan-400" />
-                        <span>Tara Vacía #{idx + 1}:</span>
-                      </span>
-
-                      <div className="flex items-center gap-2">
-                        <div className="relative">
-                          <input
-                            type="number"
-                            step="0.05"
-                            min="0"
-                            value={tareWeight || ""}
-                            onChange={(e) => handleUpdateTareWeight(idx, e.target.value)}
-                            className="w-24 px-2.5 py-1.5 text-right font-mono font-black text-sm text-cyan-300 bg-slate-950 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-500"
-                            placeholder="2.0"
-                          />
-                          <span className="absolute right-7 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold pointer-events-none">
-                            kg
-                          </span>
-                        </div>
-
-                        {currentWeighing.individualTares.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTareCrate(idx)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {currentItem.productName} en canastillas
+                  </p>
                 </div>
 
                 <button
                   type="button"
-                  onClick={handleAddEmptyTare}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs flex items-center gap-1.5 border border-slate-700"
+                  onClick={handleAddGrossCrate}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition-all self-start sm:self-auto"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Pesar otra canastilla vacía</span>
+                  <span>+ Canastilla</span>
                 </button>
               </div>
-            ) : (
-              <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-white text-xs">
-                    Tara Estándar Canastilla JD: 2.00 kg
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    {currentWeighing.grossWeights.length} canastilla(s) × 2.0 kg = -
-                    {(currentWeighing.grossWeights.length * 2.0).toFixed(2)} kg
-                  </p>
-                </div>
-                <span className="font-mono font-black text-cyan-300 text-sm bg-cyan-950/60 px-3 py-1 rounded-xl border border-cyan-800/40">
-                  -{(currentWeighing.grossWeights.length * 2.0).toFixed(2)} kg
+
+              {/* List of Gross Crates */}
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1 no-scrollbar">
+                {currentWeighing.grossWeights.map((weight, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-slate-900 border border-slate-750 p-2.5 rounded-2xl flex items-center justify-between gap-2"
+                  >
+                    <span className="font-bold text-slate-300 text-xs flex items-center gap-1.5">
+                      <Boxes className="w-4 h-4 text-rose-400" />
+                      <span>Canastilla #{idx + 1}:</span>
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.05"
+                          min="0"
+                          value={weight || ""}
+                          onChange={(e) => handleUpdateGrossWeight(idx, e.target.value)}
+                          className="w-24 px-2.5 py-1.5 text-right font-mono font-black text-sm text-white bg-slate-950 border border-slate-700 rounded-xl focus:outline-none focus:border-rose-500"
+                          placeholder="0.0"
+                        />
+                        <span className="absolute right-7 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold pointer-events-none">
+                          kg
+                        </span>
+                      </div>
+
+                      {currentWeighing.grossWeights.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGrossCrate(idx)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                          title="Eliminar canastilla"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Gross Subtotal Pill */}
+              <div className="flex items-center justify-between pt-1 text-xs border-t border-slate-850">
+                <span className="text-slate-400">
+                  {currentWeighing.grossWeights.length} canastilla(s) brutas:
+                </span>
+                <span className="font-mono font-extrabold text-rose-300 bg-rose-950/50 px-2.5 py-1 rounded-xl border border-rose-800/50">
+                  Total Bruto: {totalGrossKg.toFixed(2)} kg
                 </span>
               </div>
-            )}
+            </div>
 
-            {/* Tare Subtotal Pill */}
-            <div className="flex items-center justify-between pt-1 text-xs">
-              <span className="text-slate-400">Total Tara Canastillas Vacías:</span>
-              <span className="font-mono font-extrabold text-cyan-300 bg-cyan-950/50 px-2.5 py-1 rounded-xl border border-cyan-800/50">
-                -{totalTareKg.toFixed(2)} kg
-              </span>
+            {/* Section 2: Pesaje de Canastillas Vacías (TARA) */}
+            <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+                    <h3 className="font-extrabold text-sm text-white">
+                      2. Canastillas Vacías (Tara a Restar)
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Tara de plástico a descontar
+                  </p>
+                </div>
+
+                {/* Mode Toggle */}
+                <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-700 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => updateCurrentWeighing((prev) => ({ ...prev, tareMode: "individual" }))}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      currentWeighing.tareMode === "individual"
+                        ? "bg-cyan-600 text-white shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Individual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateCurrentWeighing((prev) => ({ ...prev, tareMode: "standard" }))}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      currentWeighing.tareMode === "standard"
+                        ? "bg-cyan-600 text-white shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Estándar 2kg
+                  </button>
+                </div>
+              </div>
+
+              {currentWeighing.tareMode === "individual" ? (
+                <div className="space-y-2">
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1 no-scrollbar">
+                    {currentWeighing.individualTares.map((tareWeight, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-slate-900 border border-slate-750 p-2.5 rounded-2xl flex items-center justify-between gap-2"
+                      >
+                        <span className="font-bold text-slate-300 text-xs flex items-center gap-1.5">
+                          <Boxes className="w-4 h-4 text-cyan-400" />
+                          <span>Tara Vacía #{idx + 1}:</span>
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              step="0.05"
+                              min="0"
+                              value={tareWeight || ""}
+                              onChange={(e) => handleUpdateTareWeight(idx, e.target.value)}
+                              className="w-24 px-2.5 py-1.5 text-right font-mono font-black text-sm text-cyan-300 bg-slate-950 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-500"
+                              placeholder="2.0"
+                            />
+                            <span className="absolute right-7 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold pointer-events-none">
+                              kg
+                            </span>
+                          </div>
+
+                          {currentWeighing.individualTares.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTareCrate(idx)}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddEmptyTare}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs flex items-center gap-1.5 border border-slate-700"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Canastilla vacía</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-white text-xs">
+                      Tara Estándar Canastilla JD: 2.00 kg
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      {currentWeighing.grossWeights.length} canastilla(s) × 2.0 kg = -
+                      {(currentWeighing.grossWeights.length * 2.0).toFixed(2)} kg
+                    </p>
+                  </div>
+                  <span className="font-mono font-black text-cyan-300 text-sm bg-cyan-950/60 px-3 py-1 rounded-xl border border-cyan-800/40">
+                    -{(currentWeighing.grossWeights.length * 2.0).toFixed(2)} kg
+                  </span>
+                </div>
+              )}
+
+              {/* Tare Subtotal Pill */}
+              <div className="flex items-center justify-between pt-1 text-xs border-t border-slate-850">
+                <span className="text-slate-400">Total Tara Canastillas Vacías:</span>
+                <span className="font-mono font-extrabold text-cyan-300 bg-cyan-950/50 px-2.5 py-1 rounded-xl border border-cyan-800/50">
+                  -{totalTareKg.toFixed(2)} kg
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Section 3: Pantalla Digital de Báscula (Resultado & Liquidación) */}
-          <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border-2 border-emerald-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
+          {/* Section 3: Pantalla Digital de Báscula (Resultado & Liquidación) matching Stitch */}
+          <div className="bg-[#0b1326] border-2 border-emerald-500 rounded-3xl p-6 shadow-2xl space-y-4 glow-emerald industrial-inset">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
-                  Pantalla Digital de Báscula • Gramaje Neto
+                <span className="w-3 h-3 rounded-full bg-[#4edea3] animate-ping" />
+                <span className="text-xs font-mono font-black uppercase tracking-wider text-[#4edea3]">
+                  BÁSCULA INDUSTRIAL • GRAMAJE NETO LEGAL
                 </span>
               </div>
-              <span className="text-xs font-mono font-bold text-slate-400">
+              <span className="text-xs font-mono font-bold text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
                 {currentItem.productName}
               </span>
             </div>
 
             {/* Arithmetic Formula Layout */}
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">
+            <div className="grid grid-cols-3 gap-2.5 text-center">
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block">
                   Peso Bruto
                 </span>
                 <span className="text-base sm:text-lg font-mono font-black text-rose-300">
@@ -632,8 +635,8 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
                 </span>
               </div>
 
-              <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block">
                   (-) Tara Vacías
                 </span>
                 <span className="text-base sm:text-lg font-mono font-black text-cyan-300">
@@ -641,32 +644,42 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
                 </span>
               </div>
 
-              <div className="bg-emerald-950/80 p-3 rounded-2xl border-2 border-emerald-500/50 shadow-inner">
-                <span className="text-[10px] uppercase font-black text-emerald-300 block">
-                  (=) Gramaje Neto
+              <div className="bg-emerald-950/90 p-3 rounded-2xl border-2 border-[#4edea3] shadow-inner">
+                <span className="text-[10px] font-mono uppercase font-black text-emerald-300 block">
+                  (=) NETO A FACTURAR
                 </span>
-                <span className="text-xl sm:text-2xl font-mono font-black text-emerald-400">
+                <span className="text-xl sm:text-2xl font-mono font-black text-[#4edea3]">
                   {netGrammageKg.toFixed(2)} <span className="text-xs">kg</span>
                 </span>
               </div>
             </div>
 
+            {/* Giant Glowing Digital Readout */}
+            <div className="py-2 text-center bg-slate-950/80 rounded-2xl border border-slate-800/80 p-4">
+              <span className="text-[11px] font-mono font-extrabold uppercase tracking-widest text-[#4edea3] block mb-1">
+                ⚖️ DISPLAY DIGITAL DE BÁSCULA
+              </span>
+              <div className="text-4xl sm:text-6xl font-mono font-black text-[#4edea3] tracking-tight drop-shadow-[0_0_20px_rgba(78,222,163,0.5)]">
+                {netGrammageKg.toFixed(2)} <span className="text-2xl font-bold text-emerald-300">kg</span>
+              </div>
+            </div>
+
             {/* Price Calculation for Invoice */}
-            <div className="bg-slate-900/90 rounded-2xl p-3.5 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="bg-slate-950 rounded-2xl p-4 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div>
-                <span className="text-slate-400 block text-[11px]">
-                  Tarifa por Kilo:
+                <span className="text-slate-400 block text-[11px] font-mono">
+                  Tarifa Oficial de Desposte:
                 </span>
-                <strong className="text-white font-black text-sm">
+                <strong className="text-white font-mono font-black text-sm">
                   {priceService.formatCurrency(currentWeighing.unitPrice)} / kg
                 </strong>
               </div>
 
               <div className="text-left sm:text-right">
-                <span className="text-emerald-400 block text-[11px] font-bold uppercase">
-                  Valor Liquidado a Facturar:
+                <span className="text-[#4edea3] block text-[11px] font-mono font-bold uppercase">
+                  Valor Total Liquidado:
                 </span>
-                <strong className="text-xl sm:text-2xl font-mono font-black text-emerald-400">
+                <strong className="text-2xl sm:text-3xl font-mono font-black text-[#4edea3]">
                   {priceService.formatCurrency(totalAmountCOP)} COP
                 </strong>
               </div>
@@ -674,14 +687,14 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
 
             {/* Theoretical Deviation notice if order exists */}
             {currentItem.orderedQty > 0 && (
-              <div className="text-[11px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-800">
-                <span>Pedido teórico original: {currentItem.orderedQty} kg</span>
+              <div className="text-[11px] font-mono text-slate-400 flex items-center justify-between pt-1 border-t border-slate-800">
+                <span>Pedido teórico: {currentItem.orderedQty} kg</span>
                 <span
-                  className={`font-bold font-mono ${
-                    netGrammageKg >= currentItem.orderedQty ? "text-emerald-400" : "text-amber-400"
+                  className={`font-bold ${
+                    netGrammageKg >= currentItem.orderedQty ? "text-[#4edea3]" : "text-amber-400"
                   }`}
                 >
-                  Diferencia de báscula: {(netGrammageKg - currentItem.orderedQty).toFixed(2)} kg (
+                  Diferencia real: {(netGrammageKg - currentItem.orderedQty).toFixed(2)} kg (
                   {((netGrammageKg / (currentItem.orderedQty || 1) - 1) * 100).toFixed(1)}%)
                 </span>
               </div>
@@ -689,12 +702,12 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-850 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
+        {/* Footer Actions matching Stitch */}
+        <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
           <button
             type="button"
             onClick={handleCopyTicket}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
+            className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
           >
             {isCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
             <span>{isCopied ? "¡Copiado al Portapapeles!" : "Copiar Ticket de Pesaje"}</span>
@@ -704,7 +717,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-xs transition-colors"
+              className="flex-1 sm:flex-none px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-xs transition-colors"
             >
               Cerrar
             </button>
@@ -713,9 +726,9 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
               <button
                 type="button"
                 onClick={handleApplyToOrder}
-                className="flex-1 sm:flex-none px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all"
+                className="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl glow-master-btn active:scale-95 transition-all"
               >
-                <Receipt className="w-4 h-4" />
+                <Receipt className="w-4 h-4 text-slate-950" />
                 <span>Aplicar Gramaje Neto a Factura</span>
               </button>
             )}

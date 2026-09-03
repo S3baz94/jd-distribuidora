@@ -440,13 +440,13 @@ export default function OperacionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-24 font-sans">
-      {/* Top Operations Header */}
-      <div className="bg-slate-950 border-b border-slate-800 sticky top-0 z-30 px-4 py-3 shadow-md">
+    <div className="min-h-screen bg-[#051424] text-white pb-24 font-sans selection:bg-[#4edea3] selection:text-[#051424]">
+      {/* Top Operations Header matching Stitch */}
+      <div className="bg-[#051424]/90 backdrop-blur-xl border-b border-white/10 sticky top-0 z-30 px-4 py-3 shadow-2xl">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center justify-between sm:justify-start gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-xl flex-shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-950 flex items-center justify-center text-xl font-bold flex-shrink-0 shadow-md shadow-emerald-950/40">
                 {currentUser?.role === "operador" ? "👷" : "🚚"}
               </div>
               <div>
@@ -566,8 +566,22 @@ export default function OperacionPage() {
 
       {currentUser?.role === "domiciliario" || operationsMode === "domiciliario" ? (
         <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
-        {/* Prominent Assigned Route Details Card */}
-        {activeRoute && (
+          {/* Executive Cabin Telemetry Status Pill */}
+          <div className="bg-slate-950/90 border border-emerald-500/40 rounded-2xl p-3 shadow-xl flex items-center justify-between gap-2 text-xs glow-emerald-card">
+            <span className="font-bold text-white flex items-center gap-1.5 truncate">
+              <span>🚚</span>
+              <span>Furgón Refrigerado {activeRoute?.vehiclePlate || "NQR-482"}</span>
+            </span>
+            <span className="font-mono text-cyan-300 font-extrabold bg-cyan-950/60 px-2.5 py-0.5 rounded-lg border border-cyan-800/40 flex-shrink-0">
+              ❄️ 1.7°C INVIMA
+            </span>
+            <span className="font-mono text-amber-300 font-bold bg-amber-950/60 px-2 py-0.5 rounded-lg border border-amber-800/40 flex-shrink-0 hidden sm:inline-block">
+              Precinto #84920
+            </span>
+          </div>
+
+          {/* Prominent Assigned Route Details Card */}
+          {activeRoute && (
           <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>

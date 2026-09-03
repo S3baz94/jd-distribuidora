@@ -220,11 +220,14 @@ export default function OrderDetailPage() {
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-2xl font-extrabold text-slate-900">
                 Pedido {order.orderNumber}
               </h1>
               <StatusBadge status={order.status} size="md" />
+              <span className="font-mono text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full text-xs font-bold border border-emerald-300">
+                🧾 Factura: FAC-JD-2026-{order.orderNumber.replace(/[^0-9]/g, "") || "1045"}
+              </span>
               {order.weightAdjusted && (
                 <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-300">
                   Báscula Liquidada

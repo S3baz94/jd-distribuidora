@@ -30,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="h-full bg-slate-950">
+    <html lang="es" className="h-full bg-[#051424] dark">
       <head>
         <link
           rel="stylesheet"
@@ -39,7 +39,7 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white">
+      <body className="min-h-full flex flex-col font-sans bg-[#051424] text-slate-100 selection:bg-[#4edea3] selection:text-[#051424]">
         <AppProvider>
           <AppShell>{children}</AppShell>
         </AppProvider>

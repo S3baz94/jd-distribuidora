@@ -57,13 +57,13 @@ export const OperationsAuthGate: React.FC<OperationsAuthGateProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#051424] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans selection:bg-[#4edea3] selection:text-[#051424]">
       {/* Background Glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#4edea3]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#ffb95f]/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Container */}
-      <div className="max-w-xl w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 z-10">
+      <div className="max-w-xl w-full glass-panel border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 z-10">
         {/* Top Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-brand-500/20 text-amber-300 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider border border-amber-500/30">
