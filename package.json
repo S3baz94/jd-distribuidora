@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "vercel --prod --yes && vercel alias set porcob2b-app.vercel.app jd-distribuidora.vercel.app"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.22",
