@@ -1,4 +1,4 @@
-import { Invoice, InvoiceItem, BillingSettings, BrandType } from "@/types";
+import { Invoice, InvoiceItem, BillingSettings, BrandType, Order } from "@/types";
 
 const BILLING_STORAGE_KEY = "jd_distribuidora_invoices_v1";
 const SETTINGS_STORAGE_KEY = "jd_distribuidora_billing_settings_v1";
@@ -427,6 +427,72 @@ export class BillingService {
     const nextSeq = maxNumber + 1;
     const formatted = `${settings.prefix}-2026-${String(nextSeq).padStart(4, "0")}`;
     return { number: formatted, nextSeq };
+  }
+
+  static generateInvoiceFromOrder(
+    order: Order,
+    customer?: { id?: string; businessName?: string; nit?: string; phone?: string; address?: string; zone?: string } | null
+  ): Invoice {
+    const hasAhumados = order.items.some((i) => i.brand === "gourmet_ahumados");
+    const targetBrand: BrandType = hasAhumados ? "gourmet_ahumados" : "jd_distribuidora";
+    const companySettings = this.getCompanySettings(targetBrand);
+    const { number: invoiceNumber } = this.getNextInvoiceNumber(targetBrand);
+
+    const invoiceItems: InvoiceItem[] = order.items.map((item, idx) => {
+      const qty = item.realQuantity !== undefined ? item.realQuantity : item.quantity;
+      const sub = item.realSubtotal !== undefined ? item.realSubtotal : qty * item.unitPrice;
+      return {
+        id: `item-${order.id}-${idx}`,
+        productId: item.productId,
+        sku: item.sku,
+        productName: item.productName,
+        brand: item.brand || targetBrand,
+        quantityKg: qty,
+        unitPrice: item.unitPrice,
+        subtotal: sub,
+        taxRate: 0,
+      };
+    });
+
+    const totalKg = invoiceItems.reduce((s, i) => s + i.quantityKg, 0);
+    const subtotal = invoiceItems.reduce((s, i) => s + i.subtotal, 0);
+    const pType = (order.paymentMethod as "efectivo" | "banco" | "credito") || "efectivo";
+
+    const autoInvoice: Invoice = {
+      id: `inv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      number: invoiceNumber,
+      prefix: companySettings.prefix,
+      brand: targetBrand,
+      companyName: companySettings.companyName,
+      companyNit: companySettings.nit,
+      orderId: order.id,
+      customerId: customer?.id || order.customerId || "c1",
+      customerName: customer?.businessName || order.customerName,
+      customerNit: customer?.nit || (order as any).customerNit || "901.684.219-3",
+      customerPhone: customer?.phone || "3233218831",
+      customerAddress: customer?.address || order.deliveryAddress,
+      customerZone: customer?.zone || order.zone || "Bogotá D.C.",
+      items: invoiceItems,
+      totalKg,
+      subtotal,
+      discountTotal: 0,
+      taxTotal: 0,
+      total: subtotal,
+      paymentType: pType,
+      paymentDetails: {
+        cashAmount: pType === "efectivo" ? subtotal : undefined,
+        bankAmount: pType === "banco" ? subtotal : undefined,
+        creditAmount: pType === "credito" ? subtotal : undefined,
+        creditDays: pType === "credito" ? 30 : undefined,
+      },
+      status: order.status === "delivered" ? (pType === "credito" ? "pendiente" : "pagada") : "pendiente",
+      origin: "despacho",
+      issuedAt: order.createdAt || new Date().toISOString(),
+      sellerName: "Despacho Automático JD Central",
+      notes: `Factura comercial generada automáticamente para pedido ${order.orderNumber}.`.trim(),
+    };
+
+    return autoInvoice;
   }
 
   static exportToCSV(invoices: Invoice[], brandFilter: "all" | BrandType = "all"): void {

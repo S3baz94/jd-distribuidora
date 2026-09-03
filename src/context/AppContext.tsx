@@ -301,6 +301,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     orderService.saveOrders(data.orders);
     customerService.saveAllCustomers(data.customers);
 
+    // Auto-facturación inmediata para pedidos sincronizados
+    const currentInvoices = BillingService.getInvoices();
+    let remoteInvoicesChanged = false;
+    const allInvs = [...currentInvoices];
+
+    data.orders.forEach((ord) => {
+      let linked = allInvs.find((inv) => inv.orderId === ord.id || inv.number === ord.invoiceNumber);
+      if (!linked) {
+        const cust = data.customers.find((c) => c.id === ord.customerId);
+        linked = BillingService.generateInvoiceFromOrder(ord, cust);
+        allInvs.push(linked);
+        remoteInvoicesChanged = true;
+      }
+    });
+
+    if (remoteInvoicesChanged) {
+      BillingService.saveInvoices(allInvs);
+      setInvoices(allInvs);
+    }
+
     lastServerTimestamp.current = data.lastUpdated || Date.now();
   };
 
@@ -361,11 +381,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
+    // =========================================================
+    // GARANTIZAR FACTURACIÓN 100% AUTOMÁTICA DE TODOS LOS PEDIDOS
+    // =========================================================
+    const loadedInvoices = BillingService.getInvoices();
+    let invoicesUpdated = false;
+    const invoiceList = [...loadedInvoices];
+
+    const ensuredOrders = orderList.map((ord) => {
+      let linkedInvoice = invoiceList.find(
+        (inv) => inv.orderId === ord.id || inv.number === ord.invoiceNumber
+      );
+      if (!linkedInvoice) {
+        const cust = customerList.find((c) => c.id === ord.customerId);
+        linkedInvoice = BillingService.generateInvoiceFromOrder(ord, cust);
+        invoiceList.push(linkedInvoice);
+        invoicesUpdated = true;
+      }
+
+      if (!ord.isInvoiced || ord.invoiceNumber !== linkedInvoice.number) {
+        return {
+          ...ord,
+          invoiceId: linkedInvoice.id,
+          invoiceNumber: linkedInvoice.number,
+          isInvoiced: true,
+          invoicedAt: ord.invoicedAt || linkedInvoice.issuedAt,
+        };
+      }
+      return ord;
+    });
+
+    if (invoicesUpdated) {
+      BillingService.saveInvoices(invoiceList);
+      setInvoices(invoiceList);
+      orderService.saveOrders(ensuredOrders);
+    }
+
     setCustomer(currentCustomer);
     setAllCustomers(customerList);
     setInventory(inventoryService.getInventory());
-    setAllOrders(orderList);
-    setOrders(orderList.filter((o) => o.customerId === currentCustomer.id));
+    setAllOrders(ensuredOrders);
+    setOrders(ensuredOrders.filter((o) => o.customerId === currentCustomer.id));
     setRoutes(routeList);
 
     setProducts(productService.getProducts(currentCustomer.companyId));

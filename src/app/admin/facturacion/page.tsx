@@ -38,8 +38,12 @@ import {
   Sparkles,
   RotateCcw,
   Landmark,
+  MessageCircle,
+  FileText,
+  CalendarDays,
 } from "lucide-react";
 import { ProductionReadyModal } from "@/components/admin/ProductionReadyModal";
+import { priceService } from "@/services/priceService";
 
 export default function FacturacionPage() {
   const {
@@ -65,6 +69,8 @@ export default function FacturacionPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | InvoiceStatus | "devolucion">("all");
   const [paymentFilter, setPaymentFilter] = useState<"all" | InvoicePaymentType>("all");
   const [brandFilter, setBrandFilter] = useState<"all" | "jd_distribuidora" | "gourmet_ahumados">("all");
+  const [billingViewMode, setBillingViewMode] = useState<"diario" | "tabla">("diario");
+  const [selectedDayKey, setSelectedDayKey] = useState<string>("all");
 
   // Refund / Devolución State
   const [refundInvoice, setRefundInvoice] = useState<Invoice | null>(null);
@@ -158,6 +164,75 @@ export default function FacturacionPage() {
       return matchesBrand && matchesSearch && matchesStatus && matchesPayment;
     });
   }, [invoices, brandFilter, searchQuery, statusFilter, paymentFilter]);
+
+  // Daily History Grouping
+  const dailyGroups = useMemo(() => {
+    const groupsMap: {
+      [key: string]: {
+        dateKey: string;
+        displayDate: string;
+        isToday: boolean;
+        isYesterday: boolean;
+        invoices: Invoice[];
+        totalAmount: number;
+        totalKg: number;
+        cashAmount: number;
+        bankAmount: number;
+        creditAmount: number;
+      };
+    } = {};
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+    filteredInvoices.forEach((inv) => {
+      const dateKey = (inv.issuedAt || new Date().toISOString()).slice(0, 10);
+      if (!groupsMap[dateKey]) {
+        const d = new Date(dateKey + "T12:00:00");
+        const formatted = d.toLocaleDateString("es-CO", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        const capitalized = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+
+        groupsMap[dateKey] = {
+          dateKey,
+          displayDate: capitalized,
+          isToday: dateKey === todayStr,
+          isYesterday: dateKey === yesterdayStr,
+          invoices: [],
+          totalAmount: 0,
+          totalKg: 0,
+          cashAmount: 0,
+          bankAmount: 0,
+          creditAmount: 0,
+        };
+      }
+
+      const grp = groupsMap[dateKey];
+      grp.invoices.push(inv);
+      if (inv.status !== "anulada" && inv.status !== "devuelta_total") {
+        grp.totalAmount += inv.total;
+        grp.totalKg += inv.totalKg;
+        if (inv.paymentType === "efectivo") grp.cashAmount += inv.total;
+        if (inv.paymentType === "banco") grp.bankAmount += inv.total;
+        if (inv.paymentType === "credito" || inv.status === "pendiente") {
+          grp.creditAmount += (inv.paymentDetails?.creditAmount || inv.total);
+        }
+      }
+    });
+
+    return Object.values(groupsMap).sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+  }, [filteredInvoices]);
+
+  const activeDayGroups = useMemo(() => {
+    if (selectedDayKey === "all") return dailyGroups;
+    return dailyGroups.filter((g) => g.dateKey === selectedDayKey);
+  }, [dailyGroups, selectedDayKey]);
 
   // Active customer for form
   const currentCustomer = useMemo(() => {
@@ -404,10 +479,63 @@ export default function FacturacionPage() {
           </button>
 
           <button
+            type="button"
             onClick={() => setIsNewInvoiceOpen(true)}
-            className="py-2.5 px-5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-black flex items-center gap-2 shadow-lg shadow-brand-950/50 transition-all hover:scale-[1.02]"
+            className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-2 border border-slate-700 transition-all active:scale-95"
+            title="Opcional: Sólo para registrar ventas directas en mostrador físico. Los pedidos de clientes se facturan 100% en automático."
           >
-            <Plus className="w-4 h-4 stroke-[3]" /> NUEVA FACTURA POS
+            <Plus className="w-4 h-4 text-amber-400" />
+            <span>Venta Mostrador Extra</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Banner Informativo de Facturación 100% Automática Activa */}
+      <div className="bg-gradient-to-r from-emerald-950/70 via-slate-900 to-teal-950/60 border-2 border-emerald-500/50 rounded-3xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl shadow-emerald-950/30">
+        <div className="flex items-start md:items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-950 flex items-center justify-center font-black text-xl flex-shrink-0 shadow-lg shadow-emerald-950/40">
+            <Sparkles className="w-6 h-6 stroke-[2.5]" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-base font-black text-white">
+                Facturación 100% Automática Activa
+              </h2>
+              <span className="text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
+                ⚡ Emisión en Tiempo Real
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-1 max-w-2xl">
+              Las facturas se crean <strong>automáticamente según el pedido del cliente</strong> sin pasos manuales. Cada pedido emite su consecutivo legal oficial (<span className="text-rose-400 font-mono font-bold">FAC-JD</span> o <span className="text-amber-400 font-mono font-bold">FAC-GA</span>) y se clasifica de inmediato en el <strong>Historial por Día</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 bg-slate-950/90 p-1.5 rounded-2xl border border-emerald-500/30 self-start md:self-auto flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setBillingViewMode("diario")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+              billingViewMode === "diario"
+                ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-950/50"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Historial por Día ({dailyGroups.length} Días)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setBillingViewMode("tabla")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+              billingViewMode === "tabla"
+                ? "bg-slate-800 text-white shadow-md border border-slate-700"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Receipt className="w-4 h-4" />
+            <span>Tabla Plana ({filteredInvoices.length})</span>
           </button>
         </div>
       </div>
@@ -593,162 +721,496 @@ export default function FacturacionPage() {
         </div>
       </div>
 
-      {/* Invoices Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-950 text-slate-400 text-[11px] uppercase tracking-wider border-b border-slate-800">
-                <th className="p-3.5">Factura #</th>
-                <th className="p-3.5">Fecha & Hora</th>
-                <th className="p-3.5">Cliente / Adquiriente</th>
-                <th className="p-3.5 text-right">Kilos (KG)</th>
-                <th className="p-3.5 text-right">Total Liquidado</th>
-                <th className="p-3.5 text-center">Medio de Pago</th>
-                <th className="p-3.5 text-center">Estado</th>
-                <th className="p-3.5 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/80 text-xs">
-              {filteredInvoices.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-12 text-slate-500">
-                    No se encontraron facturas con los filtros seleccionados.
-                  </td>
+      {/* =========================================================
+          HISTORIAL POR DÍA (LIBRO DIARIO DE VENTAS) - MODO PRINCIPAL
+          ========================================================= */}
+      {billingViewMode === "diario" ? (
+        <div className="space-y-5">
+          {/* Selector de Días (Chips Horizontales) */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <button
+              type="button"
+              onClick={() => setSelectedDayKey("all")}
+              className={`px-3.5 py-2 rounded-2xl font-black text-xs whitespace-nowrap transition-all border flex items-center gap-2 ${
+                selectedDayKey === "all"
+                  ? "bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-950/40"
+                  : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800"
+              }`}
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>Todos los Días ({filteredInvoices.length})</span>
+            </button>
+
+            {dailyGroups.map((grp) => {
+              const isSelected = selectedDayKey === grp.dateKey;
+              return (
+                <button
+                  key={grp.dateKey}
+                  type="button"
+                  onClick={() => setSelectedDayKey(grp.dateKey)}
+                  className={`px-3.5 py-2 rounded-2xl font-bold text-xs whitespace-nowrap transition-all border flex items-center gap-2 ${
+                    isSelected
+                      ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-950/40 font-black"
+                      : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800"
+                  }`}
+                >
+                  <span>{grp.isToday ? "🟢 Hoy" : grp.isYesterday ? "📅 Ayer" : `📅 ${grp.dateKey.slice(5)}`}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                      isSelected ? "bg-slate-950 text-amber-300" : "bg-slate-800 text-emerald-400"
+                    }`}
+                  >
+                    {grp.invoices.length} • {priceService.formatCurrency(grp.totalAmount)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Feed de Grupos Diarios */}
+          {activeDayGroups.length === 0 ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center text-slate-400 text-xs space-y-2">
+              <Receipt className="w-8 h-8 text-slate-600 mx-auto" />
+              <p className="font-bold text-slate-300 text-sm">
+                No hay facturas registradas en este período.
+              </p>
+              <p className="text-slate-500">
+                Los pedidos que realicen los clientes se facturarán automáticamente y aparecerán aquí clasificados por día.
+              </p>
+            </div>
+          ) : (
+            activeDayGroups.map((grp) => (
+              <div
+                key={grp.dateKey}
+                className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-4 shadow-sm"
+              >
+                {/* Cabecera del Día */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-800/80 pb-3.5">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black flex-shrink-0 ${
+                        grp.isToday
+                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-md shadow-emerald-950/40"
+                          : "bg-slate-800 text-slate-300 border border-slate-700"
+                      }`}
+                    >
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-black text-white">
+                          {grp.displayDate}
+                        </h3>
+                        {grp.isToday && (
+                          <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
+                            🟢 Hoy
+                          </span>
+                        )}
+                        {grp.isYesterday && (
+                          <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                            Ayer
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {grp.invoices.length} factura(s) emitida(s) automáticamente según pedidos de clientes
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Resumen Diario en Píldoras */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Total Facturado</span>
+                      <strong className="text-sm font-black text-emerald-400 font-mono">
+                        {priceService.formatCurrency(grp.totalAmount)}
+                      </strong>
+                    </div>
+
+                    <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 text-[10px] block uppercase font-bold">Kilos Despostados</span>
+                      <strong className="text-sm font-black text-amber-300 font-mono">
+                        {grp.totalKg.toFixed(1)} kg
+                      </strong>
+                    </div>
+
+                    <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center gap-3">
+                      <div>
+                        <span className="text-slate-400 text-[10px] block uppercase font-bold">💵 Efectivo</span>
+                        <span className="font-mono font-bold text-slate-200 text-xs">
+                          {priceService.formatCurrency(grp.cashAmount)}
+                        </span>
+                      </div>
+                      <div className="border-l border-slate-800 pl-3">
+                        <span className="text-slate-400 text-[10px] block uppercase font-bold">🏦 Banco/QR</span>
+                        <span className="font-mono font-bold text-cyan-300 text-xs">
+                          {priceService.formatCurrency(grp.bankAmount)}
+                        </span>
+                      </div>
+                      <div className="border-l border-slate-800 pl-3">
+                        <span className="text-slate-400 text-[10px] block uppercase font-bold">📝 Crédito</span>
+                        <span className="font-mono font-bold text-amber-400 text-xs">
+                          {priceService.formatCurrency(grp.creditAmount)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de Facturas del Día */}
+                <div className="grid grid-cols-1 gap-3">
+                  {grp.invoices.map((inv) => (
+                    <div
+                      key={inv.id}
+                      className="bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-xs"
+                    >
+                      {/* Left Block: Invoice details & Order Link */}
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono font-black text-sm text-white flex items-center gap-1.5">
+                            <Receipt className="w-4 h-4 text-brand-400" />
+                            <span>{inv.number}</span>
+                          </span>
+
+                          {inv.brand === "gourmet_ahumados" ? (
+                            <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-md border border-amber-500/30 font-extrabold flex items-center gap-1">
+                              🔥 Gourmet Ahumados
+                            </span>
+                          ) : (
+                            <span className="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-md border border-rose-500/30 font-extrabold flex items-center gap-1">
+                              🥩 JD Distribuidora
+                            </span>
+                          )}
+
+                          <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40 flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-emerald-400" />
+                            <span>⚡ Automática</span>
+                          </span>
+
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            Hora: {new Date(inv.issuedAt).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+
+                        {/* Customer & Order info */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-300">
+                          <span className="font-bold text-white text-xs">
+                            🏢 {inv.customerName}
+                          </span>
+                          <span className="text-slate-400">
+                            NIT: <strong className="text-slate-300 font-mono">{inv.customerNit}</strong>
+                          </span>
+                          {inv.customerPhone && (
+                            <span className="text-slate-400">
+                              Tel: <strong className="text-slate-300 font-mono">{inv.customerPhone}</strong>
+                            </span>
+                          )}
+                          {inv.orderId && (
+                            <span className="text-brand-300 font-mono font-bold bg-brand-950/40 px-2 py-0.5 rounded border border-brand-800/40">
+                              📦 Pedido #{inv.orderId}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Cuts summary */}
+                        <div className="text-[11px] text-slate-400 pt-0.5 flex flex-wrap items-center gap-1.5">
+                          <span className="font-bold text-slate-500">Cortes despostados:</span>
+                          {inv.items.map((it, idx) => (
+                            <span
+                              key={idx}
+                              className="bg-slate-900 text-slate-300 px-2 py-0.5 rounded-md border border-slate-800"
+                            >
+                              {it.productName.split(" ")[0]} <strong>{it.quantityKg}kg</strong>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Middle Block: Kilos, Total & Payment Status */}
+                      <div className="flex items-center justify-between lg:justify-end gap-5 border-t lg:border-t-0 border-slate-800 pt-2 lg:pt-0">
+                        <div className="text-left lg:text-right">
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">
+                            Kilos Totales
+                          </span>
+                          <strong className="text-sm font-black font-mono text-slate-200">
+                            {inv.totalKg.toFixed(1)} kg
+                          </strong>
+                        </div>
+
+                        <div className="text-left lg:text-right">
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">
+                            Total Liquidado
+                          </span>
+                          <strong className="text-base sm:text-lg font-black font-mono text-emerald-400">
+                            {priceService.formatCurrency(inv.total)}
+                          </strong>
+                        </div>
+
+                        <div className="text-center">
+                          <span
+                            className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border block mb-1 ${
+                              inv.paymentType === "efectivo"
+                                ? "bg-slate-800 text-slate-300 border-slate-700"
+                                : inv.paymentType === "banco"
+                                ? "bg-cyan-950/50 text-cyan-300 border-cyan-800/50"
+                                : "bg-amber-950/50 text-amber-300 border-amber-800/50"
+                            }`}
+                          >
+                            {inv.paymentType === "efectivo"
+                              ? "💵 Efectivo"
+                              : inv.paymentType === "banco"
+                              ? "🏦 Banco / QR"
+                              : `📝 Crédito ${inv.paymentDetails.creditDays || 30}D`}
+                          </span>
+
+                          {inv.status === "pagada" ? (
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-emerald-950/50 text-emerald-400 border border-emerald-800/50 block">
+                              ✓ Pagada
+                            </span>
+                          ) : inv.status === "pendiente" ? (
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-amber-950/50 text-amber-400 border border-amber-800/50 block">
+                              ⏳ A Crédito
+                            </span>
+                          ) : inv.status === "devuelta_total" ? (
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-purple-950/50 text-purple-400 border border-purple-800/50 block">
+                              ↩ Dev. Total
+                            </span>
+                          ) : inv.status === "devuelta_parcial" ? (
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-indigo-950/50 text-indigo-400 border border-indigo-800/50 block">
+                              ↩ Dev. Parcial
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-rose-950/50 text-rose-400 border border-rose-800/50 block">
+                              ✕ Anulada
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Right Action Buttons */}
+                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedInvoice(inv);
+                              setIsInvoiceModalOpen(true);
+                            }}
+                            className="py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center gap-1 border border-slate-700 transition-colors shadow-sm"
+                            title="Ver e Imprimir Factura Legal (Tirilla 80mm o Carta)"
+                          >
+                            <Receipt className="w-3.5 h-3.5 text-brand-400" />
+                            <span>Ver Factura</span>
+                          </button>
+
+                          {/* WhatsApp Button */}
+                          <a
+                            href={`https://wa.me/57${(inv.customerPhone || "3233218831").replace(/\D/g, "")}?text=${encodeURIComponent(
+                              `Hola ${inv.customerName}, te compartimos el soporte de tu Factura Comercial ${inv.number} de JD Distribuidora & Gourmet por valor de ${priceService.formatCurrency(
+                                inv.total
+                              )} (${inv.totalKg.toFixed(1)} kg de carne despostada bajo frío).`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition-colors"
+                            title="Enviar factura a WhatsApp del cliente"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5 fill-current" />
+                          </a>
+
+                          {inv.status === "pendiente" && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateInvoicePayment(inv.id, "banco", {
+                                  bankAmount: inv.total,
+                                  bankReference: "Pago Recibido",
+                                })
+                              }
+                              className="p-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/50 transition-colors"
+                              title="Marcar como pagada"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {inv.status !== "anulada" && inv.status !== "devuelta_total" && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRefundModal(inv)}
+                              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-amber-400 hover:text-amber-300 border border-slate-700 transition-colors"
+                              title="Gestionar devolución o ajuste de pesaje"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        /* =========================================================
+            VISTA DE TABLA PLANA
+            ========================================================= */
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-950 text-slate-400 text-[11px] uppercase tracking-wider border-b border-slate-800">
+                  <th className="p-3.5">Factura #</th>
+                  <th className="p-3.5">Fecha & Hora</th>
+                  <th className="p-3.5">Cliente / Adquiriente</th>
+                  <th className="p-3.5 text-right">Kilos (KG)</th>
+                  <th className="p-3.5 text-right">Total Liquidado</th>
+                  <th className="p-3.5 text-center">Medio de Pago</th>
+                  <th className="p-3.5 text-center">Estado</th>
+                  <th className="p-3.5 text-right">Acciones</th>
                 </tr>
-              ) : (
-                filteredInvoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="p-3.5">
-                      <div className="font-mono font-bold text-white text-xs flex items-center gap-1.5">
-                        <span>{inv.number}</span>
-                        {inv.brand === "gourmet_ahumados" ? (
-                          <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30 font-bold">
-                            🔥 Gourmet
-                          </span>
-                        ) : (
-                          <span className="text-[9px] bg-rose-500/20 text-rose-300 px-1.5 py-0.2 rounded border border-rose-500/30 font-bold">
-                            🥩 JD
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-slate-500 uppercase">{inv.origin}</span>
-                    </td>
-                    <td className="p-3.5 text-slate-300">
-                      <div>{new Date(inv.issuedAt).toLocaleDateString("es-CO")}</div>
-                      <div className="text-[10px] text-slate-500">
-                        {new Date(inv.issuedAt).toLocaleTimeString("es-CO", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </div>
-                    </td>
-                    <td className="p-3.5">
-                      <div className="font-semibold text-white text-xs">{inv.customerName}</div>
-                      <div className="text-[11px] text-slate-400">NIT: {inv.customerNit}</div>
-                    </td>
-                    <td className="p-3.5 text-right font-mono text-slate-200">
-                      {inv.totalKg.toFixed(1)} kg
-                    </td>
-                    <td className="p-3.5 text-right font-mono font-bold text-slate-100 text-xs">
-                      ${inv.total.toLocaleString()}
-                    </td>
-                    <td className="p-3.5 text-center">
-                      <span
-                        className={`text-[10px] font-medium uppercase px-2 py-0.5 rounded-md border inline-block ${
-                          inv.paymentType === "efectivo"
-                            ? "bg-slate-800 text-slate-300 border-slate-700"
-                            : inv.paymentType === "banco"
-                            ? "bg-cyan-950/40 text-cyan-400 border-cyan-800/40"
-                            : "bg-amber-950/40 text-amber-400 border-amber-800/40"
-                        }`}
-                      >
-                        {inv.paymentType === "efectivo"
-                          ? "💵 Efectivo"
-                          : inv.paymentType === "banco"
-                          ? "🏦 Banco / QR"
-                          : `📝 Crédito ${inv.paymentDetails.creditDays || 30}D`}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-center">
-                      {inv.status === "pagada" ? (
-                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-emerald-950/40 text-emerald-400 border border-emerald-800/40">
-                          ✓ Pagada
-                        </span>
-                      ) : inv.status === "pendiente" ? (
-                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-amber-950/40 text-amber-400 border border-amber-800/40">
-                          ⏳ A Crédito
-                        </span>
-                      ) : inv.status === "devuelta_total" ? (
-                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-purple-950/40 text-purple-400 border border-purple-800/40">
-                          ↩ Devuelta (Total)
-                        </span>
-                      ) : inv.status === "devuelta_parcial" ? (
-                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-indigo-950/40 text-indigo-400 border border-indigo-800/40">
-                          ↩ Dev. Parcial
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-rose-950/40 text-rose-400 border border-rose-800/40">
-                          ✕ Anulada
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => {
-                            setSelectedInvoice(inv);
-                            setIsInvoiceModalOpen(true);
-                          }}
-                          className="py-1 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white text-xs font-medium border border-slate-700 flex items-center gap-1 transition-all"
-                        >
-                          <Printer className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Tirilla</span>
-                        </button>
-
-                        {inv.status === "pendiente" && (
-                          <button
-                            onClick={() =>
-                              updateInvoicePayment(inv.id, "banco", {
-                                bankAmount: inv.total,
-                                bankReference: "Pago Recibido",
-                              })
-                            }
-                            className="py-1 px-2 rounded-lg bg-emerald-950/50 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/50 text-xs font-medium transition-all"
-                            title="Marcar Pagada"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        {inv.status !== "anulada" && inv.status !== "devuelta_total" && (
-                          <button
-                            onClick={() => handleOpenRefundModal(inv)}
-                            className="py-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border border-slate-700 text-xs font-medium transition-all"
-                            title="Gestionar Devolución (Total o Parcial)"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        {inv.status !== "anulada" && (
-                          <button
-                            onClick={() => cancelInvoice(inv.id)}
-                            className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
-                            title="Anular Factura"
-                          >
-                            <Ban className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80 text-xs">
+                {filteredInvoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-12 text-slate-500">
+                      No se encontraron facturas con los filtros seleccionados.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredInvoices.map((inv) => (
+                    <tr key={inv.id} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="p-3.5">
+                        <div className="font-mono font-bold text-white text-xs flex items-center gap-1.5">
+                          <span>{inv.number}</span>
+                          {inv.brand === "gourmet_ahumados" ? (
+                            <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30 font-bold">
+                              🔥 Gourmet
+                            </span>
+                          ) : (
+                            <span className="text-[9px] bg-rose-500/20 text-rose-300 px-1.5 py-0.2 rounded border border-rose-500/30 font-bold">
+                              🥩 JD
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-500 uppercase">{inv.origin}</span>
+                      </td>
+                      <td className="p-3.5 text-slate-300">
+                        <div>{new Date(inv.issuedAt).toLocaleDateString("es-CO")}</div>
+                        <div className="text-[10px] text-slate-500">
+                          {new Date(inv.issuedAt).toLocaleTimeString("es-CO", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                      </td>
+                      <td className="p-3.5">
+                        <div className="font-semibold text-white text-xs">{inv.customerName}</div>
+                        <div className="text-[11px] text-slate-400">NIT: {inv.customerNit}</div>
+                      </td>
+                      <td className="p-3.5 text-right font-mono text-slate-200">
+                        {inv.totalKg.toFixed(1)} kg
+                      </td>
+                      <td className="p-3.5 text-right font-mono font-bold text-slate-100 text-xs">
+                        ${inv.total.toLocaleString()}
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <span
+                          className={`text-[10px] font-medium uppercase px-2 py-0.5 rounded-md border inline-block ${
+                            inv.paymentType === "efectivo"
+                              ? "bg-slate-800 text-slate-300 border-slate-700"
+                              : inv.paymentType === "banco"
+                              ? "bg-cyan-950/40 text-cyan-400 border-cyan-800/40"
+                              : "bg-amber-950/40 text-amber-400 border-amber-800/40"
+                          }`}
+                        >
+                          {inv.paymentType === "efectivo"
+                            ? "💵 Efectivo"
+                            : inv.paymentType === "banco"
+                            ? "🏦 Banco / QR"
+                            : `📝 Crédito ${inv.paymentDetails.creditDays || 30}D`}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-center">
+                        {inv.status === "pagada" ? (
+                          <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-emerald-950/40 text-emerald-400 border border-emerald-800/40">
+                            ✓ Pagada
+                          </span>
+                        ) : inv.status === "pendiente" ? (
+                          <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-amber-950/40 text-amber-400 border border-amber-800/40">
+                            ⏳ A Crédito
+                          </span>
+                        ) : inv.status === "devuelta_total" ? (
+                          <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-purple-950/40 text-purple-400 border border-purple-800/40">
+                            ↩ Devuelta (Total)
+                          </span>
+                        ) : inv.status === "devuelta_parcial" ? (
+                          <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-indigo-950/40 text-indigo-400 border border-indigo-800/40">
+                            ↩ Dev. Parcial
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-md bg-rose-950/40 text-rose-400 border border-rose-800/40">
+                            ✕ Anulada
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => {
+                              setSelectedInvoice(inv);
+                              setIsInvoiceModalOpen(true);
+                            }}
+                            className="py-1 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white text-xs font-medium border border-slate-700 flex items-center gap-1 transition-all"
+                          >
+                            <Printer className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Tirilla</span>
+                          </button>
+
+                          {inv.status === "pendiente" && (
+                            <button
+                              onClick={() =>
+                                updateInvoicePayment(inv.id, "banco", {
+                                  bankAmount: inv.total,
+                                  bankReference: "Pago Recibido",
+                                })
+                              }
+                              className="py-1 px-2 rounded-lg bg-emerald-950/50 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/50 text-xs font-medium transition-all"
+                              title="Marcar Pagada"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {inv.status !== "anulada" && inv.status !== "devuelta_total" && (
+                            <button
+                              onClick={() => handleOpenRefundModal(inv)}
+                              className="py-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border border-slate-700 text-xs font-medium transition-all"
+                              title="Gestionar Devolución (Total o Parcial)"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {inv.status !== "anulada" && (
+                            <button
+                              onClick={() => cancelInvoice(inv.id)}
+                              className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+                              title="Anular Factura"
+                            >
+                              <Ban className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* =========================================================
           MODAL DE NUEVA FACTURA POS (Venta Mostrador & Despacho)
