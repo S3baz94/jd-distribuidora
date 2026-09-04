@@ -17,7 +17,7 @@ export const COMPANY_JD_SETTINGS: BillingSettings = {
   fromNumber: 1,
   toNumber: 50000,
   currentNumber: 10459,
-  regime: "Responsable de IVA - Régimen Común / Actividad 4631 (Comercio mayorista de carnes de cerdo frescas exentas según Art. 477 E.T.)",
+  regime: "Responsable de IVA - Régimen Común / Actividad 4631 (Comercio mayorista de carnes de cerdo frescas exentas según Art. 477 del E.T.)",
   posFooterNote: "Factura Comercial de Venta • Carnes frescas de cerdo seleccionadas bajo cadena de frío 0°C a 4°C. ¡Gracias por preferir a JD Distribuidora!",
 };
 
