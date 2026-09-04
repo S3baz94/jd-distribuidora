@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { AdminAuthService, AdminUserProfile } from "@/services/authService";
 import {
@@ -28,8 +27,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
     showToast("Sesión administrativa cerrada", "info");
     window.location.reload();
   };
-
-  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-50 bg-[#051424]/90 backdrop-blur-2xl text-white border-b border-white/10 shadow-2xl">
@@ -59,60 +56,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                 </span>
               </div>
             </Link>
-
-            {/* Desktop Navigation Links matching Stitch */}
-            <nav className="hidden md:flex items-center gap-6 ml-4">
-              <Link
-                href="/admin"
-                className={`text-xs font-bold transition-colors pb-1 border-b-2 ${
-                  pathname === "/admin"
-                    ? "text-[#4edea3] border-[#4edea3]"
-                    : "text-slate-400 border-transparent hover:text-white"
-                }`}
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/admin/rutas"
-                className={`text-xs font-bold transition-colors pb-1 border-b-2 ${
-                  pathname === "/admin/rutas"
-                    ? "text-[#4edea3] border-[#4edea3]"
-                    : "text-slate-400 border-transparent hover:text-white"
-                }`}
-              >
-                Logística & Rutas
-              </Link>
-              <Link
-                href="/admin/inventario"
-                className={`text-xs font-bold transition-colors pb-1 border-b-2 ${
-                  pathname === "/admin/inventario"
-                    ? "text-[#4edea3] border-[#4edea3]"
-                    : "text-slate-400 border-transparent hover:text-white"
-                }`}
-              >
-                Inventario en Frío
-              </Link>
-              <Link
-                href="/admin/facturacion"
-                className={`text-xs font-bold transition-colors pb-1 border-b-2 ${
-                  pathname === "/admin/facturacion"
-                    ? "text-[#4edea3] border-[#4edea3]"
-                    : "text-slate-400 border-transparent hover:text-white"
-                }`}
-              >
-                Facturación Automática
-              </Link>
-              <Link
-                href="/admin/alistamiento"
-                className={`text-xs font-bold transition-colors pb-1 border-b-2 ${
-                  pathname === "/admin/alistamiento"
-                    ? "text-[#4edea3] border-[#4edea3]"
-                    : "text-slate-400 border-transparent hover:text-white"
-                }`}
-              >
-                Báscula & Despacho
-              </Link>
-            </nav>
           </div>
 
           {/* Right: Active Profile, Download PC & Logout */}
