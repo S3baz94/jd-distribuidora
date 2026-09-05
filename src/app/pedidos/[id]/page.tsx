@@ -226,7 +226,7 @@ export default function OrderDetailPage() {
               </h1>
               <StatusBadge status={order.status} size="md" />
               <span className="font-mono text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full text-xs font-bold border border-emerald-300">
-                🧾 Factura: FAC-JD-2026-{order.orderNumber.replace(/[^0-9]/g, "") || "1045"}
+                🧾 Factura: {order.invoiceNumber || (order.brand === "gourmet_ahumados" ? `FAC-GA-2026-${order.orderNumber.replace(/[^0-9]/g, "")}` : `FAC-JD-2026-${order.orderNumber.replace(/[^0-9]/g, "")}`)}
               </span>
               {order.weightAdjusted && (
                 <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-300">

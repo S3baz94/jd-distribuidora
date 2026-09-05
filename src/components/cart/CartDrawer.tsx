@@ -424,6 +424,16 @@ export const CartDrawer: React.FC = () => {
                 </span>
               </div>
 
+              {/* Minimum Order Warning if not met */}
+              {!isMinimumMet && (
+                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span>
+                    Te faltan <strong>{priceService.formatCurrency(customer.minOrderAmount - cartTotal)}</strong> para alcanzar el pedido mínimo de {priceService.formatCurrency(customer.minOrderAmount)}.
+                  </span>
+                </div>
+              )}
+
               {/* Zero online payment reminder */}
               <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-[11px] text-emerald-950 font-bold">
                 <span className="text-base">📋</span>
@@ -440,6 +450,8 @@ export const CartDrawer: React.FC = () => {
                 <span>
                   {isSubmitting
                     ? "ENVIANDO PEDIDO..."
+                    : !isMinimumMet
+                    ? `FALTAN ${priceService.formatCurrency(customer.minOrderAmount - cartTotal)} PARA EL MÍNIMO`
                     : "ENVIAR PEDIDO A LA DISTRIBUIDORA"}
                 </span>
               </button>
