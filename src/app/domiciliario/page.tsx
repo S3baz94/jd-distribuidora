@@ -1,7 +1,7 @@
 "use client";
 
-import OperacionPage from "@/app/operacion/page";
+import DomiciliarioView from "@/components/delivery/DomiciliarioView";
 
 export default function DomiciliarioPage() {
-  return <OperacionPage />;
+  return <DomiciliarioView />;
 }
