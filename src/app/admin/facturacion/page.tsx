@@ -78,6 +78,8 @@ export default function FacturacionPage() {
   const [refundReason, setRefundReason] = useState<string>("Rechazo de calidad / Merma en pesaje");
   const [refundItemsKg, setRefundItemsKg] = useState<{ [productId: string]: number }>({});
   const [bankEntity, setBankEntity] = useState<string>("Bancolombia (QR / Transferencia)");
+  const [isSubmittingInvoice, setIsSubmittingInvoice] = useState(false);
+  const [isSubmittingRefund, setIsSubmittingRefund] = useState(false);
 
   // New Invoice Form State
   const [invoiceBrand, setInvoiceBrand] = useState<"jd_distribuidora" | "gourmet_ahumados">("jd_distribuidora");
@@ -300,61 +302,68 @@ export default function FacturacionPage() {
   // Submit and Issue Invoice
   const handleIssueInvoice = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingInvoice) return;
     if (calculatedItems.length === 0) {
       showToast("Agrega al menos un corte de carne para facturar", "warning");
       return;
     }
 
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + creditDays);
+    setIsSubmittingInvoice(true);
+    try {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + creditDays);
 
-    const formattedBankRef =
-      paymentType === "banco"
-        ? `${bankEntity}${bankReference ? ` - Ref: ${bankReference}` : " - Transferencia Aprobada"}`
-        : undefined;
+      const formattedBankRef =
+        paymentType === "banco"
+          ? `${bankEntity}${bankReference ? ` - Ref: ${bankReference}` : " - Transferencia Aprobada"}`
+          : undefined;
 
-    const newInv = createInvoice({
-      brand: invoiceBrand,
-      customerId: isCounterSale ? "counter" : currentCustomer.id,
-      customerName: isCounterSale ? counterCustomerName : currentCustomer.businessName,
-      customerNit: isCounterSale ? counterCustomerNit : currentCustomer.nit,
-      customerPhone: isCounterSale ? "" : currentCustomer.phone,
-      customerAddress: isCounterSale ? "Mostrador Planta" : currentCustomer.address,
-      customerZone: isCounterSale ? "Planta Central" : currentCustomer.zone,
-      items: calculatedItems,
-      totalKg: newInvoiceTotalKg,
-      subtotal: newInvoiceSubtotal,
-      discountTotal: 0,
-      taxTotal: 0,
-      total: newInvoiceSubtotal,
-      paymentType,
-      paymentDetails: {
-        cashAmount: paymentType === "efectivo" ? newInvoiceSubtotal : undefined,
-        cashGiven: paymentType === "efectivo" ? cashGiven || newInvoiceSubtotal : undefined,
-        cashChange: paymentType === "efectivo" ? cashChange : undefined,
-        bankAmount: paymentType === "banco" ? newInvoiceSubtotal : undefined,
-        bankReference: formattedBankRef,
-        creditAmount: paymentType === "credito" ? newInvoiceSubtotal : undefined,
-        creditDays: paymentType === "credito" ? creditDays : undefined,
-        creditDueDate: paymentType === "credito" ? dueDate.toISOString().slice(0, 10) : undefined,
-      },
-      status: paymentType === "credito" ? "pendiente" : "pagada",
-      origin: isCounterSale ? "mostrador" : "despacho",
-      sellerName,
-      notes: invoiceNotes,
-    });
+      const newInv = createInvoice({
+        brand: invoiceBrand,
+        customerId: isCounterSale ? "counter" : currentCustomer.id,
+        customerName: isCounterSale ? counterCustomerName : currentCustomer.businessName,
+        customerNit: isCounterSale ? counterCustomerNit : currentCustomer.nit,
+        customerPhone: isCounterSale ? "" : currentCustomer.phone,
+        customerAddress: isCounterSale ? "Mostrador Planta" : currentCustomer.address,
+        customerZone: isCounterSale ? "Planta Central" : currentCustomer.zone,
+        items: calculatedItems,
+        totalKg: newInvoiceTotalKg,
+        subtotal: newInvoiceSubtotal,
+        discountTotal: 0,
+        taxTotal: 0,
+        total: newInvoiceSubtotal,
+        paymentType,
+        paymentDetails: {
+          cashAmount: paymentType === "efectivo" ? newInvoiceSubtotal : undefined,
+          cashGiven: paymentType === "efectivo" ? cashGiven || newInvoiceSubtotal : undefined,
+          cashChange: paymentType === "efectivo" ? cashChange : undefined,
+          bankAmount: paymentType === "banco" ? newInvoiceSubtotal : undefined,
+          bankReference: formattedBankRef,
+          creditAmount: paymentType === "credito" ? newInvoiceSubtotal : undefined,
+          creditDays: paymentType === "credito" ? creditDays : undefined,
+          creditDueDate: paymentType === "credito" ? dueDate.toISOString().slice(0, 10) : undefined,
+        },
+        status: paymentType === "credito" ? "pendiente" : "pagada",
+        origin: isCounterSale ? "mostrador" : "despacho",
+        sellerName,
+        notes: invoiceNotes,
+      });
 
-    setIsNewInvoiceOpen(false);
-    setSelectedInvoice(newInv);
-    setIsInvoiceModalOpen(true);
+      setIsNewInvoiceOpen(false);
+      setSelectedInvoice(newInv);
+      setIsInvoiceModalOpen(true);
 
-    // Reset form
-    setCartItems([
-      { productId: "p1", quantityKg: 15.0 },
-      { productId: "p2", quantityKg: 10.0 },
-    ]);
-    setCashGiven(0);
-    setBankReference("");
+      // Reset form
+      setCartItems([
+        { productId: "p1", quantityKg: 15.0 },
+        { productId: "p2", quantityKg: 10.0 },
+      ]);
+      setCashGiven(0);
+      setBankReference("");
+      showToast(`Factura #${newInv.number} emitida con éxito`, "success");
+    } finally {
+      setIsSubmittingInvoice(false);
+    }
   };
 
   // Open Refund Modal
@@ -371,62 +380,67 @@ export default function FacturacionPage() {
 
   // Process Refund Submit
   const handleProcessRefundSubmit = () => {
-    if (!refundInvoice) return;
+    if (!refundInvoice || isSubmittingRefund) return;
 
-    if (refundType === "total") {
-      processInvoiceRefund(refundInvoice.id, {
-        type: "total",
-        refundedAmount: refundInvoice.total,
-        refundedKg: refundInvoice.totalKg,
-        reason: refundReason,
-        refundedItems: refundInvoice.items.map((it) => ({
-          productId: it.productId,
-          productName: it.productName,
-          quantityKg: it.quantityKg,
-          amount: it.subtotal,
-        })),
-      });
-      setRefundInvoice(null);
-    } else {
-      // Parcial
-      const refundedItems: {
-        productId: string;
-        productName: string;
-        quantityKg: number;
-        amount: number;
-      }[] = [];
-
-      let totalRefundAmount = 0;
-      let totalRefundKg = 0;
-
-      refundInvoice.items.forEach((it) => {
-        const kg = refundItemsKg[it.productId] || 0;
-        if (kg > 0) {
-          const itemAmount = kg * it.unitPrice;
-          refundedItems.push({
+    setIsSubmittingRefund(true);
+    try {
+      if (refundType === "total") {
+        processInvoiceRefund(refundInvoice.id, {
+          type: "total",
+          refundedAmount: refundInvoice.total,
+          refundedKg: refundInvoice.totalKg,
+          reason: refundReason,
+          refundedItems: refundInvoice.items.map((it) => ({
             productId: it.productId,
             productName: it.productName,
-            quantityKg: kg,
-            amount: itemAmount,
-          });
-          totalRefundAmount += itemAmount;
-          totalRefundKg += kg;
+            quantityKg: it.quantityKg,
+            amount: it.subtotal,
+          })),
+        });
+        setRefundInvoice(null);
+      } else {
+        // Parcial
+        const refundedItems: {
+          productId: string;
+          productName: string;
+          quantityKg: number;
+          amount: number;
+        }[] = [];
+
+        let totalRefundAmount = 0;
+        let totalRefundKg = 0;
+
+        refundInvoice.items.forEach((it) => {
+          const kg = refundItemsKg[it.productId] || 0;
+          if (kg > 0) {
+            const itemAmount = kg * it.unitPrice;
+            refundedItems.push({
+              productId: it.productId,
+              productName: it.productName,
+              quantityKg: kg,
+              amount: itemAmount,
+            });
+            totalRefundAmount += itemAmount;
+            totalRefundKg += kg;
+          }
+        });
+
+        if (refundedItems.length === 0 || totalRefundAmount <= 0) {
+          showToast("Selecciona al menos un corte y los kilos a devolver", "warning");
+          return;
         }
-      });
 
-      if (refundedItems.length === 0 || totalRefundAmount <= 0) {
-        showToast("Selecciona al menos un corte y los kilos a devolver", "warning");
-        return;
+        processInvoiceRefund(refundInvoice.id, {
+          type: "parcial",
+          refundedAmount: totalRefundAmount,
+          refundedKg: totalRefundKg,
+          reason: refundReason,
+          refundedItems,
+        });
+        setRefundInvoice(null);
       }
-
-      processInvoiceRefund(refundInvoice.id, {
-        type: "parcial",
-        refundedAmount: totalRefundAmount,
-        refundedKg: totalRefundKg,
-        reason: refundReason,
-        refundedItems,
-      });
-      setRefundInvoice(null);
+    } finally {
+      setIsSubmittingRefund(false);
     }
   };
 
@@ -1612,10 +1626,24 @@ export default function FacturacionPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-2 py-2.5 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 shadow-sm flex items-center justify-center gap-2 transition-all"
+                  disabled={isSubmittingInvoice}
+                  className={`flex-2 py-2.5 px-6 rounded-xl text-white font-semibold text-xs border shadow-sm flex items-center justify-center gap-2 transition-all ${
+                    isSubmittingInvoice
+                      ? "bg-slate-850 text-slate-500 border-slate-750 cursor-not-allowed"
+                      : "bg-emerald-600 hover:bg-emerald-500 border-emerald-500/50 active:scale-95 shadow-emerald-950/40"
+                  }`}
                 >
-                  <Printer className="w-4 h-4 text-slate-300" />
-                  <span>EMITIR FACTURA POS</span>
+                  {isSubmittingInvoice ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      <span>EMITIENDO FACTURA...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Printer className="w-4 h-4 text-slate-100" />
+                      <span>EMITIR FACTURA POS</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -1795,11 +1823,25 @@ export default function FacturacionPage() {
 
               <button
                 type="button"
+                disabled={isSubmittingRefund}
                 onClick={handleProcessRefundSubmit}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-amber-400 border border-slate-700 text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-colors"
+                className={`flex-1 py-2.5 px-3 rounded-xl border text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-colors ${
+                  isSubmittingRefund
+                    ? "bg-slate-900 text-slate-500 border-slate-800 cursor-not-allowed"
+                    : "bg-slate-800 hover:bg-slate-750 text-amber-400 border-slate-700 active:scale-95"
+                }`}
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Procesar Devolución</span>
+                {isSubmittingRefund ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+                    <span>Procesando Devolución...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Procesar Devolución</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

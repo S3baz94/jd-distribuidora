@@ -425,7 +425,7 @@ export default function AdminRutasPage() {
 
               <a
                 href={`https://wa.me/${selectedRoute.driverPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-                  `Hola ${selectedRoute.driverName}, te compartimos tu hoja de ruta asignada (${selectedRoute.name}). Puedes ver tus paradas y GPS en vivo en la App de Operación: https://jd-distribuidora.vercel.app/operacion`
+                  `Hola ${selectedRoute.driverName}, te compartimos tu hoja de ruta asignada (${selectedRoute.name}). Puedes ver tus paradas, cobro y GPS en vivo en la App de Domiciliario: https://jd-distribuidora.vercel.app/domiciliario`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"

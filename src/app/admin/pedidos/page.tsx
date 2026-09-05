@@ -49,6 +49,28 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isManualOrderOpen, setIsManualOrderOpen] = useState(false);
   const [isProductionReadyOpen, setIsProductionReadyOpen] = useState(false);
+  const [isProcessingInvoices, setIsProcessingInvoices] = useState(false);
+  const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
+
+  const handleInvoiceAllPending = () => {
+    if (isProcessingInvoices) return;
+    setIsProcessingInvoices(true);
+    try {
+      invoiceAllPendingOrders();
+    } finally {
+      setIsProcessingInvoices(false);
+    }
+  };
+
+  const handleInvoiceSingle = (orderId: string) => {
+    if (processingOrderId) return;
+    setProcessingOrderId(orderId);
+    try {
+      invoiceOrder(orderId);
+    } finally {
+      setProcessingOrderId(null);
+    }
+  };
 
   const unInvoicedCount = useMemo(() => {
     return allOrders.filter(
@@ -155,11 +177,25 @@ export default function AdminOrdersPage() {
           {unInvoicedCount > 0 && (
             <button
               type="button"
-              onClick={() => invoiceAllPendingOrders()}
-              className="px-4 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-950/40 transition-all active:scale-95 border border-amber-400/50 animate-pulse"
+              disabled={isProcessingInvoices}
+              onClick={handleInvoiceAllPending}
+              className={`px-4 py-2.5 rounded-2xl text-white font-black text-xs flex items-center gap-2 shadow-lg transition-all border ${
+                isProcessingInvoices
+                  ? "bg-amber-800 text-amber-300 border-amber-700 cursor-not-allowed"
+                  : "bg-amber-600 hover:bg-amber-500 border-amber-400/50 shadow-amber-950/40 active:scale-95 animate-pulse"
+              }`}
             >
-              <Receipt className="w-4 h-4" />
-              <span>Facturar Pendientes ({unInvoicedCount})</span>
+              {isProcessingInvoices ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <span>Facturando Pendientes...</span>
+                </>
+              ) : (
+                <>
+                  <Receipt className="w-4 h-4" />
+                  <span>Facturar Pendientes ({unInvoicedCount})</span>
+                </>
+              )}
             </button>
           )}
 
@@ -454,12 +490,26 @@ export default function AdminOrdersPage() {
                     {!isOrderInvoiced(order) && (
                       <button
                         type="button"
-                        onClick={() => invoiceOrder(order.id)}
-                        className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs transition-all flex items-center gap-1.5 shadow-md shadow-emerald-950/40 active:scale-95"
+                        disabled={processingOrderId === order.id}
+                        onClick={() => handleInvoiceSingle(order.id)}
+                        className={`px-3.5 py-2.5 rounded-xl text-white font-black text-xs transition-all flex items-center gap-1.5 shadow-md ${
+                          processingOrderId === order.id
+                            ? "bg-emerald-800 text-emerald-300 cursor-not-allowed"
+                            : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-950/40 active:scale-95"
+                        }`}
                         title="Emite la factura comercial y prepara el pedido para despacho en ruta"
                       >
-                        <Receipt className="w-3.5 h-3.5" />
-                        <span>Facturar Pedido</span>
+                        {processingOrderId === order.id ? (
+                          <>
+                            <span className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                            <span>Facturando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Receipt className="w-3.5 h-3.5" />
+                            <span>Facturar Pedido</span>
+                          </>
+                        )}
                       </button>
                     )}
 
