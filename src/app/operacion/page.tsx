@@ -46,6 +46,8 @@ import {
   LogOut,
   UserCheck,
   Share2,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { PlantPackingStation } from "@/components/operations/PlantPackingStation";
 import { ColdStorageStation } from "@/components/operations/ColdStorageStation";
@@ -66,7 +68,13 @@ export default function OperacionPage() {
     updateRouteStatus,
     reorderRouteOrders,
     showToast,
+    isOnline,
+    isSyncing,
+    forceSync,
   } = useApp();
+
+  const [isSubmittingDelivery, setIsSubmittingDelivery] = useState(false);
+  const [isSubmittingExpense, setIsSubmittingExpense] = useState(false);
 
   // Active operations authenticated user: Operador vs Domiciliario
   const [currentUser, setCurrentUser] = useState<OperationsUserProfile | null>(null);
@@ -289,44 +297,49 @@ export default function OperacionPage() {
 
   const handleConfirmDelivery = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!deliveryModalOrder) return;
+    if (!deliveryModalOrder || isSubmittingDelivery) return;
+    setIsSubmittingDelivery(true);
 
-    const returnDetailsObj = hasDeliveryReturn
-      ? {
-          hasReturn: true,
-          type: deliveryReturnType,
-          returnedKg: deliveryReturnSummary.totalReturnedKg,
-          returnedAmount: deliveryReturnSummary.totalReturnedAmount,
-          returnNote: `${deliveryReturnReason}${deliveryReturnNote ? ` - ${deliveryReturnNote}` : ""}`,
-          returnedAt: new Date().toISOString(),
-          returnedItems: deliveryReturnSummary.returnedItems,
-        }
-      : undefined;
+    try {
+      const returnDetailsObj = hasDeliveryReturn
+        ? {
+            hasReturn: true,
+            type: deliveryReturnType,
+            returnedKg: deliveryReturnSummary.totalReturnedKg,
+            returnedAmount: deliveryReturnSummary.totalReturnedAmount,
+            returnNote: `${deliveryReturnReason}${deliveryReturnNote ? ` - ${deliveryReturnNote}` : ""}`,
+            returnedAt: new Date().toISOString(),
+            returnedItems: deliveryReturnSummary.returnedItems,
+          }
+        : undefined;
 
-    confirmDelivery(deliveryModalOrder.id, {
-      paymentMethod: deliveryPaymentMethod,
-      receivedByName: receivedByName || deliveryModalOrder.customerName,
-      deliveredBasketsLeft: deliveredBaskets,
-      emptyBasketsCollected: returnedBaskets,
-      invoicePhoto: deliveryInvoicePhoto,
-      customerSignature: hasSignature ? "signature-captured" : undefined,
-      returnDetails: returnDetailsObj,
-    });
+      confirmDelivery(deliveryModalOrder.id, {
+        paymentMethod: deliveryPaymentMethod,
+        receivedByName: receivedByName || deliveryModalOrder.customerName,
+        deliveredBasketsLeft: deliveredBaskets,
+        emptyBasketsCollected: returnedBaskets,
+        invoicePhoto: deliveryInvoicePhoto,
+        customerSignature: hasSignature ? "signature-captured" : undefined,
+        returnDetails: returnDetailsObj,
+      });
 
-    // Recalculate remaining stops
-    const remaining = pendingOrders.filter((o) => o.id !== deliveryModalOrder.id);
-    if (remaining.length === 0 && activeRoute) {
-      updateRouteStatus(activeRoute.id, "completed");
-      showToast(`🏁 ¡Ruta completada! Todas las ${routeOrders.length} entregas fueron realizadas.`, "success");
-    } else {
-      const nextTarget = remaining[0];
-      showToast(
-        `📍 Parada completada. Recorrido actualizado hacia: ${nextTarget ? nextTarget.customerName : "Fin de ruta"}`,
-        "success"
-      );
+      // Recalculate remaining stops
+      const remaining = pendingOrders.filter((o) => o.id !== deliveryModalOrder.id);
+      if (remaining.length === 0 && activeRoute) {
+        updateRouteStatus(activeRoute.id, "completed");
+        showToast(`🏁 ¡Ruta completada! Todas las ${routeOrders.length} entregas fueron realizadas.`, "success");
+      } else {
+        const nextTarget = remaining[0];
+        showToast(
+          `📍 Parada completada. Recorrido actualizado hacia: ${nextTarget ? nextTarget.customerName : "Fin de ruta"}`,
+          "success"
+        );
+      }
+
+      setDeliveryModalOrder(null);
+    } finally {
+      setIsSubmittingDelivery(false);
     }
-
-    setDeliveryModalOrder(null);
   };
 
   const handleReportIncident = (e: React.FormEvent) => {
@@ -353,24 +366,29 @@ export default function OperacionPage() {
 
   const handleSaveExpense = (e: React.FormEvent) => {
     e.preventDefault();
-    if (expenseAmount <= 0) return;
+    if (expenseAmount <= 0 || isSubmittingExpense) return;
+    setIsSubmittingExpense(true);
 
-    addDriverExpense({
-      driverId: selectedDriverId,
-      driverName: activeRoute?.driverName || "Carlos Pérez",
-      routeId: activeRoute?.id,
-      routeName: activeRoute?.name,
-      category: expenseCategory,
-      amount: expenseAmount,
-      description: expenseDesc || "Gasto de operación en ruta",
-      receiptPhoto: expenseReceiptPhoto,
-    });
+    try {
+      addDriverExpense({
+        driverId: selectedDriverId,
+        driverName: activeRoute?.driverName || "Carlos Pérez",
+        routeId: activeRoute?.id,
+        routeName: activeRoute?.name,
+        category: expenseCategory,
+        amount: expenseAmount,
+        description: expenseDesc || "Gasto de operación en ruta",
+        receiptPhoto: expenseReceiptPhoto,
+      });
 
-    setExpenseModalOpen(false);
-    setExpenseReceiptPhoto("");
-    setExpenseAmount(50000);
-    setExpenseDesc("");
-    showToast(`📸 Gasto de ruta de ${priceService.formatCurrency(expenseAmount)} registrado con éxito`, "success");
+      setExpenseModalOpen(false);
+      setExpenseReceiptPhoto("");
+      setExpenseAmount(50000);
+      setExpenseDesc("");
+      showToast(`📸 Gasto de ruta de ${priceService.formatCurrency(expenseAmount)} registrado con éxito`, "success");
+    } finally {
+      setIsSubmittingExpense(false);
+    }
   };
 
   // Signature canvas handlers
@@ -462,6 +480,15 @@ export default function OperacionPage() {
                       ? "PANTALLA DE OPERADOR DE PLANTA"
                       : "PANTALLA DE DOMICILIARIO / CONDUCTOR"}
                   </span>
+                  {isOnline ? (
+                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      <Wifi className="w-2.5 h-2.5" /> En línea
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 animate-pulse">
+                      <WifiOff className="w-2.5 h-2.5" /> Sin conexión
+                    </span>
+                  )}
                 </div>
                 <h1 className="text-sm sm:text-base font-bold text-slate-100 leading-tight mt-0.5">
                   {currentUser?.role === "operador"

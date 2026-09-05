@@ -183,6 +183,11 @@ interface AppContextType {
 
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
+
+  // Estado de Red & Sincronización
+  isOnline: boolean;
+  isSyncing: boolean;
+  forceSync: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -209,6 +214,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false);
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   const lastServerTimestamp = useRef<number>(0);
   const broadcastChannel = useRef<BroadcastChannel | null>(null);
@@ -322,6 +329,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     lastServerTimestamp.current = data.lastUpdated || Date.now();
+  };
+
+  const forceSync = async () => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) return;
+    try {
+      setIsSyncing(true);
+      const res = await fetch(`/api/sync?since=${lastServerTimestamp.current}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.hasChanged) {
+          applyRemoteState(data);
+        }
+      }
+    } catch {
+      // Red no disponible temporalmente
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Initialize data and connect BroadcastChannel & Polling
@@ -456,28 +481,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    fetch("/api/sync")
-      .then((r) => r.json())
-      .then((res) => {
-        if (res && res.orders) {
-          applyRemoteState(res);
-        }
-      })
-      .catch(() => {});
+    // Sincronización inicial
+    forceSync();
 
+    // Control de eventos de red y visibilidad de pestaña
+    const handleOnline = () => {
+      setIsOnline(true);
+      forceSync();
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        forceSync();
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      setIsOnline(navigator.onLine);
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+    }
+
+    // Polling inteligente: se suspende si la pestaña está en segundo plano o no hay red
     const pollInterval = setInterval(() => {
-      fetch(`/api/sync?since=${lastServerTimestamp.current}`)
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.hasChanged) {
-            applyRemoteState(res);
-          }
-        })
-        .catch(() => {});
+      if (typeof document !== "undefined" && document.hidden) return;
+      if (typeof navigator !== "undefined" && !navigator.onLine) return;
+      forceSync();
     }, 2500);
 
     return () => {
       clearInterval(pollInterval);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      }
       if (broadcastChannel.current) {
         broadcastChannel.current.close();
       }
@@ -1871,6 +1914,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         extendLicenseDays,
         isCartOpen,
         setIsCartOpen,
+        isOnline,
+        isSyncing,
+        forceSync,
       }}
     >
       {children}
