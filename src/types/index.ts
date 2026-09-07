@@ -104,6 +104,10 @@ export interface Order {
   realTotal?: number; // Total final con peso de báscula
   deliveryDate: string;
   deliveryAddress: string;
+  deliveryTimeWindow?: string; // ej. "07:30 AM - 09:00 AM"
+  deliverySlotId?: string; // ej. "slot-0730-0900"
+  urgency?: "normal" | "urgente"; // Nivel de urgencia del cliente
+  promisedDeliveryHour?: string; // ej. "08:00 AM"
   zone?: string; // Zona para despacho logístico
   lat?: number;
   lng?: number;
@@ -219,6 +223,24 @@ export interface DeliverySlot {
   status: "available" | "limited" | "unavailable";
   statusText: string;
   note: string;
+}
+
+export interface DeliveryHourSlot {
+  id: string; // ej. "slot-0600-0730"
+  label: string; // "06:00 AM - 07:30 AM"
+  shortLabel: string; // "06:00 AM"
+  startHour: number; // 6.0
+  endHour: number; // 7.5
+  description: string; // "Apertura Temprana y Desposte Madrugador"
+  isUrgentSlot?: boolean; // Franja de máxima prioridad
+}
+
+export interface SlotAvailabilityResult {
+  slot: DeliveryHourSlot;
+  isAvailable: boolean;
+  occupiedCount: number;
+  maxCapacity: number;
+  nextClosestSlot?: DeliveryHourSlot;
 }
 
 export interface RepeatOrderValidationResult {

@@ -28,6 +28,8 @@ import {
   AlertTriangle,
   PhoneCall,
   Navigation,
+  Clock,
+  Zap,
 } from "lucide-react";
 
 export default function OrderDetailPage() {
@@ -233,6 +235,12 @@ export default function OrderDetailPage() {
                   Báscula Liquidada
                 </span>
               )}
+              {order.urgency === "urgente" && (
+                <span className="bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm animate-pulse">
+                  <Zap className="w-3 h-3 fill-current" />
+                  ENTREGA URGENTE
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               Registrado el{" "}
@@ -289,15 +297,36 @@ export default function OrderDetailPage() {
 
       {/* Delivery & Commercial Details */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Delivery Slot */}
+        {/* Delivery Slot & Urgency */}
         <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wide">
-            <Calendar className="w-4 h-4 text-brand-600" />
-            <span>Fecha de Entrega</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wide">
+              <Calendar className="w-4 h-4 text-brand-600" />
+              <span>Fecha & Horario de Entrega</span>
+            </div>
+            {order.urgency === "urgente" ? (
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
+                <Zap className="w-3 h-3 text-rose-600 fill-current" />
+                Urgente
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Horario Estándar
+              </span>
+            )}
           </div>
           <p className="text-base font-extrabold text-slate-900">{order.deliveryDate}</p>
-          <p className="text-xs text-slate-500">
-            Ruta de frío matutina con furgón refrigerado (0°C a 4°C).
+          <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-brand-600" />
+              <span className="text-xs font-bold text-slate-700">Franja Prometida:</span>
+            </div>
+            <span className="text-xs font-black text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-200/50">
+              {order.deliveryTimeWindow || order.promisedDeliveryHour || "06:00 AM - 08:00 AM"}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-500">
+            Ruta de frío matutina con furgón refrigerado (0°C a 4°C). Monitoreo en tiempo real.
           </p>
         </div>
 

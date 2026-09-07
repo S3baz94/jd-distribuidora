@@ -79,6 +79,10 @@ export const orderService = {
     total: number;
     deliveryDate: string;
     deliveryAddress: string;
+    deliveryTimeWindow?: string;
+    deliverySlotId?: string;
+    urgency?: "normal" | "urgente";
+    promisedDeliveryHour?: string;
     zone?: string;
     notes: string;
   }): Promise<Order> => {
@@ -98,6 +102,10 @@ export const orderService = {
       total: data.total,
       deliveryDate: data.deliveryDate,
       deliveryAddress: data.deliveryAddress,
+      deliveryTimeWindow: data.deliveryTimeWindow,
+      deliverySlotId: data.deliverySlotId,
+      urgency: data.urgency || "normal",
+      promisedDeliveryHour: data.promisedDeliveryHour,
       zone: data.zone,
       notes: data.notes,
       status: "pending",

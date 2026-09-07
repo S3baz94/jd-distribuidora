@@ -28,15 +28,30 @@ export const routeService = {
     }
   },
 
-  assignOrderToRoute: (orderId: string, routeId: string, stopOrder?: number): DeliveryRoute[] => {
+  assignOrderToRoute: (
+    orderId: string,
+    routeId: string,
+    stopOrder?: number,
+    insertAsNext?: boolean
+  ): DeliveryRoute[] => {
     const routes = routeService.getRoutes();
     const updated = routes.map((r) => {
       // Remove from other routes if previously assigned
       const filteredOrderIds = r.orderIds.filter((id) => id !== orderId);
       if (r.id === routeId) {
+        const newOrderIds = [...filteredOrderIds];
+        if (insertAsNext) {
+          // Insert at the beginning of the route order sequence
+          newOrderIds.unshift(orderId);
+        } else if (typeof stopOrder === "number" && stopOrder > 0) {
+          newOrderIds.splice(stopOrder - 1, 0, orderId);
+        } else {
+          newOrderIds.push(orderId);
+        }
+
         return {
           ...r,
-          orderIds: [...filteredOrderIds, orderId],
+          orderIds: newOrderIds,
         };
       }
       return {

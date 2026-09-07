@@ -72,9 +72,18 @@ interface AppContextType {
   placeOrder: (data: {
     deliveryDate: string;
     deliveryAddress: string;
+    deliveryTimeWindow?: string;
+    deliverySlotId?: string;
+    urgency?: "normal" | "urgente";
+    promisedDeliveryHour?: string;
     notes: string;
     brand?: BrandType | "mixed";
   }) => Promise<Order>;
+  updateOrderTimeSlot: (
+    orderId: string,
+    timeWindow: string,
+    urgency?: "normal" | "urgente"
+  ) => void;
   repeatOrder: (order: Order) => Promise<RepeatOrderValidationResult>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   confirmDelivery: (
@@ -111,7 +120,12 @@ interface AppContextType {
     orderId: string,
     details: { driverName?: string; driverPhone?: string; sealNumber?: string; internalNotes?: string }
   ) => void;
-  assignOrderToRoute: (orderId: string, routeId: string, stopOrder?: number) => void;
+  assignOrderToRoute: (
+    orderId: string,
+    routeId: string,
+    stopOrder?: number,
+    insertAsNext?: boolean
+  ) => void;
   autoAssignRoutes: () => { totalAssigned: number; routesCount: number };
   reorderRouteOrders: (routeId: string, orderedOrders: Order[]) => void;
   updateRouteStatus: (routeId: string, status: "planned" | "in_transit" | "completed") => void;
@@ -699,6 +713,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const placeOrder = async (data: {
     deliveryDate: string;
     deliveryAddress: string;
+    deliveryTimeWindow?: string;
+    deliverySlotId?: string;
+    urgency?: "normal" | "urgente";
+    promisedDeliveryHour?: string;
     notes: string;
     brand?: BrandType | "mixed";
   }): Promise<Order> => {
@@ -730,6 +748,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       total: subtotal,
       deliveryDate: data.deliveryDate,
       deliveryAddress: data.deliveryAddress,
+      deliveryTimeWindow: data.deliveryTimeWindow,
+      deliverySlotId: data.deliverySlotId,
+      urgency: data.urgency || "normal",
+      promisedDeliveryHour: data.promisedDeliveryHour,
       zone: customer.zone,
       notes: data.notes,
     });
@@ -820,6 +842,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       "success"
     );
     return newOrder;
+  };
+
+  const updateOrderTimeSlot = (
+    orderId: string,
+    timeWindow: string,
+    urgency?: "normal" | "urgente"
+  ) => {
+    const updated = allOrders.map((o) =>
+      o.id === orderId
+        ? {
+            ...o,
+            deliveryTimeWindow: timeWindow,
+            urgency: urgency || o.urgency || "normal",
+            updatedAt: new Date().toISOString(),
+          }
+        : o
+    );
+    setAllOrders(updated);
+    setOrders(updated.filter((o) => o.customerId === customer.id));
+    orderService.saveOrders(updated);
+    sendSyncAction("UPDATE_ORDER_TIME_SLOT", { orderId, timeWindow, urgency });
+    showToast(
+      `✓ Horario actualizado a ${timeWindow}${urgency === "urgente" ? " (🚨 URGENTE)" : ""}`,
+      "success"
+    );
   };
 
   const repeatOrder = async (order: Order): Promise<RepeatOrderValidationResult> => {
@@ -1009,9 +1056,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const assignOrderToRoute = (orderId: string, routeId: string, stopOrder?: number) => {
+  const assignOrderToRoute = (
+    orderId: string,
+    routeId: string,
+    stopOrder?: number,
+    insertAsNext?: boolean
+  ) => {
     const targetRoute = routes.find((r) => r.id === routeId);
     if (!targetRoute) return;
+
+    // Si el pedido no estaba facturado, auto-facturarlo para cumplir la norma fiscal
+    const targetOrder = allOrders.find((o) => o.id === orderId);
+    if (targetOrder && !isOrderInvoiced(targetOrder)) {
+      invoiceOrder(orderId);
+    }
+
+    const calculatedStopOrder = insertAsNext ? 1 : (stopOrder || (targetRoute.orderIds.length + 1));
 
     // Update order with route name and driver
     const updatedOrders = allOrders.map((o) =>
@@ -1022,7 +1082,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             routeName: targetRoute.name,
             driverName: targetRoute.driverName,
             driverPhone: targetRoute.driverPhone,
-            stopOrder: stopOrder || 1,
+            stopOrder: calculatedStopOrder,
+            status: o.status === "pending" ? "confirmed" : o.status,
           }
         : o
     );
@@ -1032,7 +1093,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     orderService.saveOrders(updatedOrders);
 
     // Update route with orderId
-    const updatedRoutes = routeService.assignOrderToRoute(orderId, routeId, stopOrder);
+    const updatedRoutes = routeService.assignOrderToRoute(orderId, routeId, stopOrder, insertAsNext);
     setRoutes(updatedRoutes);
 
     sendSyncAction("ASSIGN_ORDER_TO_ROUTE", {
@@ -1041,10 +1102,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       routeName: targetRoute.name,
       driverName: targetRoute.driverName,
       driverPhone: targetRoute.driverPhone,
-      stopOrder,
+      stopOrder: calculatedStopOrder,
+      insertAsNext,
     });
 
-    showToast(`Pedido asignado a ${targetRoute.name} (${targetRoute.driverName})`, "success");
+    showToast(
+      insertAsNext
+        ? `🚨 Pedido insertado como PRÓXIMA PARADA para ${targetRoute.driverName} (${targetRoute.name})`
+        : `✓ Pedido agregado a la ruta de ${targetRoute.driverName} (${targetRoute.name})`,
+      "success"
+    );
   };
 
   const autoAssignRoutes = () => {
@@ -1869,6 +1936,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         removeFromCart,
         clearCart,
         placeOrder,
+        updateOrderTimeSlot,
         repeatOrder,
         updateOrderStatus,
         confirmDelivery,

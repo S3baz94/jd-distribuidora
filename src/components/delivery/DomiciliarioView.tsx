@@ -29,6 +29,7 @@ import {
   RefreshCw,
   X,
   Send,
+  Zap,
 } from "lucide-react";
 
 export default function DomiciliarioView() {
@@ -71,12 +72,44 @@ export default function DomiciliarioView() {
   const selectedDriverId = "driver-1";
   const activeRoute = routes.find((r) => r.driverId === selectedDriverId) || routes[0];
 
-  // Pedidos asignados a la ruta del conductor
+  // Pedidos asignados a la ruta del conductor ordenados por secuencia de paradas
   const routeOrders = useMemo(() => {
-    return allOrders.filter(
-      (o) => o.routeId === activeRoute?.id || activeRoute?.orderIds.includes(o.id)
+    if (!activeRoute) return [];
+    const orders = allOrders.filter(
+      (o) => o.routeId === activeRoute.id || activeRoute.orderIds.includes(o.id)
     );
+    return orders.sort((a, b) => {
+      const idxA = activeRoute.orderIds.indexOf(a.id);
+      const idxB = activeRoute.orderIds.indexOf(b.id);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return (a.stopOrder || 999) - (b.stopOrder || 999);
+    });
   }, [allOrders, activeRoute]);
+
+  // Detección en vivo de paradas agregadas dinámicamente durante el recorrido
+  const previousOrderCountRef = useRef<number>(routeOrders.length);
+  const [newOrderAlert, setNewOrderAlert] = useState<{
+    count: number;
+    orderNumber: string;
+    customerName: string;
+    address: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (routeOrders.length > previousOrderCountRef.current && previousOrderCountRef.current > 0) {
+      const newlyAdded = routeOrders[0];
+      setNewOrderAlert({
+        count: routeOrders.length - previousOrderCountRef.current,
+        orderNumber: newlyAdded?.orderNumber || "Nuevo Pedido",
+        customerName: newlyAdded?.customerName || "Cliente Asignado",
+        address: newlyAdded?.deliveryAddress || "Dirección en ruta",
+      });
+      showToast("🚨 Despacho agregó una nueva parada cercana a tu recorrido", "warning");
+    }
+    previousOrderCountRef.current = routeOrders.length;
+  }, [routeOrders.length, routeOrders, showToast]);
 
   const completedOrders = useMemo(
     () => routeOrders.filter((o) => o.status === "delivered"),
@@ -416,17 +449,67 @@ export default function DomiciliarioView() {
 
       {/* Contenido Principal */}
       <main className="max-w-md mx-auto px-4 pt-4 space-y-4">
+        {/* Alerta de Nueva Parada Asignada en Cabina */}
+        {newOrderAlert && (
+          <div className="bg-gradient-to-r from-amber-500/20 via-amber-600/15 to-slate-900 border-2 border-amber-500 rounded-2xl p-4 shadow-2xl text-amber-200 animate-in fade-in zoom-in-95 space-y-2.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-md">
+                  <Zap className="w-4 h-4 fill-current" />
+                </div>
+                <div>
+                  <span className="font-black text-[10px] uppercase bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full tracking-wider">
+                    ¡NUEVA PARADA CERCANA ASIGNADA!
+                  </span>
+                  <h3 className="font-black text-white text-sm mt-1">
+                    {newOrderAlert.customerName} ({newOrderAlert.orderNumber})
+                  </h3>
+                  <p className="text-xs text-amber-300 flex items-center gap-1 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    <span>{newOrderAlert.address}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-300 mt-1">
+                    Despacho sumó este cliente a tu recorrido. El GPS y la lista de paradas ya se actualizaron.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setNewOrderAlert(null)}
+                className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shrink-0 active:scale-95 shadow-md"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Banner de Siguiente Entrega */}
         {nextStop ? (
           <div className="bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border-2 border-[#4edea3]/40 rounded-2xl p-4 shadow-2xl relative overflow-hidden">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3">
-              <span className="text-[11px] uppercase tracking-wider font-extrabold text-[#4edea3] flex items-center gap-1.5">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3 flex-wrap gap-1.5">
+              <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#4edea3] animate-ping" />
-                SIGUIENTE ENTREGA EN RUTA
-              </span>
-              <span className="text-xs font-mono font-bold text-slate-300 bg-slate-800/80 px-2 py-0.5 rounded-md border border-white/10">
-                Factura #{nextStop.invoiceNumber || nextStop.orderNumber}
-              </span>
+                <span className="text-[11px] uppercase tracking-wider font-extrabold text-[#4edea3]">
+                  SIGUIENTE ENTREGA EN RUTA
+                </span>
+                {nextStop.urgency === "urgente" && (
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/50 animate-pulse">
+                    🚨 URGENTE
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-mono font-bold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded-md border border-cyan-700/50 flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-cyan-400" />
+                  <span>Meta: {nextStop.deliveryTimeWindow || "07:30 AM"}</span>
+                </span>
+                <span className="text-xs font-mono font-bold text-slate-300 bg-slate-800/80 px-2 py-0.5 rounded-md border border-white/10">
+                  Factura #{nextStop.invoiceNumber || nextStop.orderNumber}
+                </span>
+              </div>
             </div>
 
             {/* Datos del Cliente */}
@@ -551,10 +634,18 @@ export default function DomiciliarioView() {
                     {idx + 2}
                   </span>
                   <div>
-                    <p className="text-xs font-bold text-white leading-tight">{ord.customerName}</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-xs font-bold text-white leading-tight">{ord.customerName}</p>
+                      {ord.urgency === "urgente" && (
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full bg-red-500/20 text-red-300 border border-red-500/50 animate-pulse">
+                          🚨 URGENTE
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3 text-emerald-400" />
-                      {ord.deliveryAddress}
+                      <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
+                      <span className="truncate max-w-[180px]">{ord.deliveryAddress}</span>
+                      <span className="text-cyan-400 font-bold ml-1 shrink-0">⏰ {ord.deliveryTimeWindow || "07:30 AM"}</span>
                     </p>
                   </div>
                 </div>

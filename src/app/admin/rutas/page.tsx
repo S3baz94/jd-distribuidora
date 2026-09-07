@@ -1,11 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { priceService } from "@/services/priceService";
 import { DeliveryRoute, Order } from "@/types";
 import { RouteMap } from "@/components/admin/RouteMap";
+import {
+  calculateDistanceKm,
+  detectOrderZone,
+  reorderRouteByUrgencyAndTime,
+} from "@/services/routeOptimizer";
+import { deliverySlotService } from "@/services/deliverySlotService";
 import {
   Truck,
   MapPin,
@@ -25,6 +31,8 @@ import {
   AlertTriangle,
   Sparkles,
   Check,
+  Zap,
+  Compass,
 } from "lucide-react";
 
 export default function AdminRutasPage() {
@@ -39,8 +47,21 @@ export default function AdminRutasPage() {
     invoiceAllPendingOrders,
     isOrderInvoiced,
     getOrderInvoice,
+    updateOrderTimeSlot,
     showToast,
   } = useApp();
+
+  const handleReorderSchedule = () => {
+    if (!selectedRoute) return;
+    const currentOrders = getRouteOrders(selectedRoute);
+    if (currentOrders.length <= 1) {
+      showToast("Se necesitan al menos 2 paradas para optimizar la secuencia", "info");
+      return;
+    }
+    const reordered = reorderRouteByUrgencyAndTime(currentOrders);
+    reorderRouteOrders(selectedRoute.id, reordered);
+    showToast("✓ Paradas organizadas respetando pedidos urgentes y horarios prometidos", "success");
+  };
 
   const [selectedRouteId, setSelectedRouteId] = useState<string>(routes[0]?.id || "");
   const [isNewRouteModalOpen, setIsNewRouteModalOpen] = useState(false);
@@ -80,6 +101,56 @@ export default function AdminRutasPage() {
       (o) => o.routeId === route.id || route.orderIds.includes(o.id)
     );
   };
+
+  // Pedidos cercanos al paso de la ruta seleccionada para inserción dinámica
+  const nearbyOrdersForSelectedRoute = useMemo(() => {
+    if (!selectedRoute) return [];
+
+    const defaultLats = [4.6525, 4.7215, 4.675, 4.668, 4.708, 4.693];
+    const defaultLngs = [-74.072, -74.032, -74.138, -74.055, -74.076, -74.051];
+
+    const currentRouteOrders = getRouteOrders(selectedRoute);
+    const refCoords = currentRouteOrders.map((o, idx) => ({
+      lat: o.lat || defaultLats[idx % defaultLats.length],
+      lng: o.lng || defaultLngs[idx % defaultLngs.length],
+    }));
+
+    return unassignedOrders
+      .map((ord, idx) => {
+        const detectedZone = detectOrderZone(ord);
+        const ordLat = ord.lat || defaultLats[(idx + currentRouteOrders.length) % defaultLats.length];
+        const ordLng = ord.lng || defaultLngs[(idx + currentRouteOrders.length) % defaultLngs.length];
+
+        let minDistance = 999;
+        if (refCoords.length > 0) {
+          for (const ref of refCoords) {
+            const d = calculateDistanceKm(ref.lat, ref.lng, ordLat, ordLng);
+            if (d < minDistance) minDistance = d;
+          }
+        } else {
+          minDistance = 2.4;
+        }
+
+        const isSameZone =
+          detectedZone.toLowerCase().trim() === selectedRoute.zone.toLowerCase().trim() ||
+          selectedRoute.name.toLowerCase().includes(detectedZone.toLowerCase().trim()) ||
+          selectedRoute.zone.toLowerCase().includes(detectedZone.toLowerCase().trim());
+
+        return {
+          order: ord,
+          detectedZone,
+          distanceKm: Number(minDistance.toFixed(1)),
+          isSameZone,
+          isInvoiced: isOrderInvoiced(ord),
+        };
+      })
+      .filter((item) => item.isSameZone || item.distanceKm <= 6.0)
+      .sort((a, b) => {
+        if (a.isSameZone && !b.isSameZone) return -1;
+        if (!a.isSameZone && b.isSameZone) return 1;
+        return a.distanceKm - b.distanceKm;
+      });
+  }, [selectedRoute, unassignedOrders, allOrders]);
 
   const executeAutoAssign = () => {
     setIsAutoAssigning(true);
@@ -514,16 +585,140 @@ export default function AdminRutasPage() {
             onReorderFromLocation={(ordered) => reorderRouteOrders(selectedRoute.id, ordered)}
           />
 
+          {/* Sección Dinámica: Pedidos Cercanos al Paso del Furgón */}
+          <div className="bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-900 border-2 border-amber-500/40 rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/20 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-black">
+                  <Zap className="w-5 h-5 text-amber-400 fill-amber-400/20" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-black text-white">
+                      📍 Pedidos Cercanos al Paso de este Domiciliario
+                    </h3>
+                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      {nearbyOrdersForSelectedRoute.length} disponibles
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Si entra un nuevo pedido durante la jornada, agrégaselo en cualquier momento al furgón de <strong>{selectedRoute.driverName}</strong> sin desviar su ruta.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {nearbyOrdersForSelectedRoute.length === 0 ? (
+              <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800 text-center text-xs text-slate-400 space-y-1">
+                <p className="font-bold text-slate-300">No hay pedidos pendientes en la zona de {selectedRoute.zone}.</p>
+                <p className="text-[11px] text-slate-500">Cuando un cliente de este sector haga un pedido nuevo en el portal, aparecerá aquí automáticamente para inserción en 1 clic.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {nearbyOrdersForSelectedRoute.map(({ order: ord, distanceKm, isInvoiced }) => {
+                  const totalKg = ord.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0);
+
+                  return (
+                    <div
+                      key={ord.id}
+                      className="bg-slate-950/80 border border-amber-500/30 hover:border-amber-400/60 rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h4 className="font-black text-white text-sm">
+                                {ord.customerName}
+                              </h4>
+                              {ord.urgency === "urgente" && (
+                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 animate-pulse">
+                                  🚨 URGENTE
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] font-mono text-slate-400 flex items-center gap-1 mt-0.5">
+                              <span>{ord.orderNumber}</span>
+                              <span>•</span>
+                              <strong className="text-amber-300">{totalKg.toFixed(1)} kg</strong>
+                              <span>•</span>
+                              <span className="text-cyan-400 font-bold">⏰ {ord.deliveryTimeWindow || "07:30 AM"}</span>
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-xs font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                              ~{distanceKm} km de ruta
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {priceService.formatCurrency(ord.realTotal || ord.total)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-emerald-400 font-bold flex items-start gap-1 mt-2">
+                          <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <span>{ord.deliveryAddress}</span>
+                        </p>
+
+                        {!isInvoiced && (
+                          <p className="text-[10px] text-amber-300/90 font-bold flex items-center gap-1 mt-1.5 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/20">
+                            <Receipt className="w-3 h-3 text-amber-400 shrink-0" />
+                            <span>Se auto-facturará automáticamente al asignarlo al furgón</span>
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => assignOrderToRoute(ord.id, selectedRoute.id, undefined, true)}
+                          className="flex-1 min-w-[150px] px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-950/40 active:scale-95 transition-all"
+                          title="Lo inserta como próxima parada inmediata en el GPS y cabina del domiciliario"
+                        >
+                          <Zap className="w-3.5 h-3.5 fill-current" />
+                          <span>🚨 Insertar como Próxima Parada</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => assignOrderToRoute(ord.id, selectedRoute.id, undefined, false)}
+                          className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs flex items-center justify-center gap-1 border border-slate-700 active:scale-95 transition-all"
+                          title="Lo suma al final de la secuencia de entregas del furgón"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Al Final</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Sequence of Delivery Stops */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-black text-sm text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-brand-400" />
-                <span>Secuencia de Entregas por Dirección</span>
-              </h3>
-              <span className="text-xs text-slate-400">
-                {getRouteOrders(selectedRoute).length} paradas asignadas
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="font-black text-sm text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-brand-400" />
+                  <span>Secuencia de Entregas por Dirección y Horario</span>
+                </h3>
+                <span className="text-xs text-slate-400">
+                  {getRouteOrders(selectedRoute).length} paradas asignadas
+                </span>
+              </div>
+
+              {getRouteOrders(selectedRoute).length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleReorderSchedule}
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-950/40 active:scale-95 transition-all self-start sm:self-auto border border-amber-400/40"
+                  title="Reordena automáticamente las paradas priorizando pedidos urgentes y horas prometidas"
+                >
+                  <Clock className="w-4 h-4 fill-current" />
+                  <span>⚡ Organizar Ruta por Horarios & Urgencia</span>
+                </button>
+              )}
             </div>
 
             {getRouteOrders(selectedRoute).length === 0 ? (
@@ -554,12 +749,28 @@ export default function AdminRutasPage() {
                             #{idx + 1}
                           </div>
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <h4 className="font-black text-white text-base">
                                 {order.customerName}
                               </h4>
                               <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300">
                                 {order.orderNumber}
+                              </span>
+
+                              {/* Badges de Urgencia y Horario Prometido */}
+                              {order.urgency === "urgente" ? (
+                                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 flex items-center gap-1 animate-pulse">
+                                  <span>🚨 URGENTE</span>
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+                                  🟢 Estándar
+                                </span>
+                              )}
+
+                              <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-cyan-950/70 text-cyan-300 border border-cyan-600/40 flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-cyan-400" />
+                                <span>{order.deliveryTimeWindow || "07:30 AM - 09:00 AM"}</span>
                               </span>
                             </div>
 
@@ -606,10 +817,44 @@ export default function AdminRutasPage() {
 
                       {/* Driver Actions & Quick Links */}
                       <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800 text-xs">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-3">
                           <span className="text-slate-400">
                             Notas: <em>{order.notes || "Ninguna"}</em>
                           </span>
+
+                          <div className="flex items-center gap-1.5 bg-slate-900/90 px-2 py-1 rounded-xl border border-slate-750">
+                            <span className="text-slate-400 text-[10px] uppercase font-bold">Horario:</span>
+                            <select
+                              value={order.deliveryTimeWindow || "07:30 AM - 09:00 AM"}
+                              onChange={(e) => updateOrderTimeSlot(order.id, e.target.value, order.urgency)}
+                              className="bg-slate-800 text-slate-200 border border-slate-700 text-[11px] font-bold rounded-lg px-2 py-0.5 focus:outline-none focus:border-amber-500"
+                            >
+                              {deliverySlotService.getStandardSlots().map((s) => (
+                                <option key={s.id} value={s.label}>
+                                  {s.label}
+                                </option>
+                              ))}
+                            </select>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateOrderTimeSlot(
+                                  order.id,
+                                  order.deliveryTimeWindow || "07:30 AM - 09:00 AM",
+                                  order.urgency === "urgente" ? "normal" : "urgente"
+                                )
+                              }
+                              className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-all border ${
+                                order.urgency === "urgente"
+                                  ? "bg-red-500/20 text-red-300 border-red-500/40"
+                                  : "bg-slate-800 text-slate-400 border-slate-700 hover:text-white"
+                              }`}
+                              title="Alternar prioridad de urgencia"
+                            >
+                              {order.urgency === "urgente" ? "🚨 Prioritario" : "+ Urgente"}
+                            </button>
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -758,6 +1003,17 @@ export default function AdminRutasPage() {
                           ({totalKg.toFixed(1)} kg)
                         </span>
 
+                        {/* Urgencia y Horario */}
+                        {ord.urgency === "urgente" && (
+                          <span className="bg-red-500/20 text-red-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-red-500/40 flex items-center gap-1 animate-pulse">
+                            <span>🚨 URGENTE</span>
+                          </span>
+                        )}
+                        <span className="bg-cyan-950/60 text-cyan-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-700/40 flex items-center gap-1 font-mono">
+                          <Clock className="w-3 h-3 text-cyan-400" />
+                          <span>{ord.deliveryTimeWindow || "07:30 AM - 09:00 AM"}</span>
+                        </span>
+
                         {/* Invoice Status Pill */}
                         {invoiced ? (
                           <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
@@ -806,22 +1062,31 @@ export default function AdminRutasPage() {
                         </button>
                       )}
 
+                      {/* Botón Rápido de Inserción Prioritaria si hay ruta seleccionada */}
+                      {selectedRoute && (
+                        <button
+                          type="button"
+                          onClick={() => assignOrderToRoute(ord.id, selectedRoute.id, undefined, true)}
+                          className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-black text-xs border border-amber-500/40 flex items-center gap-1.5 active:scale-95 transition-all"
+                          title={`Insertar de inmediato como próxima parada prioritaria para ${selectedRoute.driverName} (${selectedRoute.name})`}
+                        >
+                          <Zap className="w-3.5 h-3.5 fill-current text-amber-400" />
+                          <span>Próxima en {selectedRoute.driverName.split(" ")[0]}</span>
+                        </button>
+                      )}
+
                       {/* Route Assign Selector */}
                       <select
                         defaultValue=""
                         onChange={(e) => {
                           if (e.target.value) {
-                            if (!invoiced) {
-                              // Facturar automáticamente al asignar a ruta
-                              invoiceOrder(ord.id);
-                            }
-                            assignOrderToRoute(ord.id, e.target.value);
+                            assignOrderToRoute(ord.id, e.target.value, undefined, false);
                           }
                         }}
                         className="px-3 py-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold focus:outline-none focus:border-brand-500"
                       >
                         <option value="" disabled>
-                          ➕ Asignar a Furgón / Ruta...
+                          ➕ Sumar al Final de Ruta...
                         </option>
                         {routes.map((r) => (
                           <option key={r.id} value={r.id}>

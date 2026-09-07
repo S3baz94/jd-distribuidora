@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { priceService } from "@/services/priceService";
 import { QuantityStepper } from "../common/QuantityStepper";
 import { INITIAL_DELIVERY_SLOTS } from "@/services/mockData";
+import { deliverySlotService } from "@/services/deliverySlotService";
+import { DeliveryHourSlot } from "@/types";
 import {
   X,
   ShoppingBag,
@@ -16,6 +18,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   Scale,
+  Clock,
+  Zap,
+  Sparkles,
 } from "lucide-react";
 
 export const CartDrawer: React.FC = () => {
@@ -28,6 +33,7 @@ export const CartDrawer: React.FC = () => {
     cartKg,
     cartItemsCount,
     customer,
+    allOrders,
     removeFromCart,
     updateCartQuantity,
     clearCart,
@@ -41,6 +47,12 @@ export const CartDrawer: React.FC = () => {
     deliverySlots.find((s) => s.status === "available")?.dateFormatted || "Jueves 27 de agosto"
   );
   const [selectedAddress, setSelectedAddress] = useState<string>(customer.address);
+  const [urgency, setUrgency] = useState<"normal" | "urgente">("normal");
+  const [selectedTimeSlotId, setSelectedTimeSlotId] = useState<string>("slot-0730-0900");
+  const [collisionAlert, setCollisionAlert] = useState<{
+    occupiedSlotLabel: string;
+    suggestedSlot: DeliveryHourSlot;
+  } | null>(null);
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -59,6 +71,10 @@ export const CartDrawer: React.FC = () => {
 
   const isMinimumMet = cartTotal >= customer.minOrderAmount;
 
+  const timeSlotAvailabilities = useMemo(() => {
+    return deliverySlotService.getSlotAvailability(selectedDate, customer.zone, allOrders);
+  }, [selectedDate, customer.zone, allOrders]);
+
   const handleClose = () => {
     setIsCartOpen(false);
   };
@@ -67,10 +83,18 @@ export const CartDrawer: React.FC = () => {
     if (!isMinimumMet || cart.length === 0) return;
     setIsSubmitting(true);
     try {
+      const chosenSlot =
+        deliverySlotService.getStandardSlots().find((s) => s.id === selectedTimeSlotId) ||
+        deliverySlotService.getStandardSlots()[1];
+
       const order = await placeOrder({
         deliveryDate: selectedDate,
         deliveryAddress: selectedAddress || customer.address,
-        notes: notes.trim() || "Despachar en furgón refrigerado JD",
+        deliveryTimeWindow: chosenSlot.label,
+        deliverySlotId: chosenSlot.id,
+        urgency,
+        promisedDeliveryHour: chosenSlot.shortLabel,
+        notes: `${urgency === "urgente" ? "🚨 PEDIDO PRIORITARIO / URGENTE. " : ""}Horario preferido: ${chosenSlot.label}. ${notes.trim() || "Despachar en furgón refrigerado JD"}`,
       });
       setIsCartOpen(false);
       router.push(`/confirmacion?orderId=${order.id}`);
@@ -329,6 +353,168 @@ export const CartDrawer: React.FC = () => {
                         </button>
                       );
                     })}
+                  </div>
+
+                  {/* Selector de Nivel de Urgencia */}
+                  <div className="space-y-2 pt-2">
+                    <label className="text-xs font-black text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
+                      <Zap className="w-3.5 h-3.5 text-amber-600 fill-current" />
+                      <span>¿Qué tan urgente es tu pedido?</span>
+                    </label>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setUrgency("normal")}
+                        className={`p-3 rounded-2xl border-2 text-left transition-all flex items-center gap-2.5 active:scale-98 ${
+                          urgency === "normal"
+                            ? "bg-emerald-50 border-emerald-600 text-emerald-950 ring-2 ring-emerald-600/20 shadow-sm"
+                            : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
+                        }`}
+                      >
+                        <span className="text-lg">🟢</span>
+                        <div>
+                          <p className="font-black text-xs">Jornada Estándar</p>
+                          <p className="text-[10px] text-slate-500 font-medium">Entrega en turno regular</p>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setUrgency("urgente")}
+                        className={`p-3 rounded-2xl border-2 text-left transition-all flex items-center gap-2.5 active:scale-98 ${
+                          urgency === "urgente"
+                            ? "bg-amber-50 border-amber-600 text-amber-950 ring-2 ring-amber-600/30 shadow-sm"
+                            : "bg-white border-slate-200 hover:border-amber-300 text-slate-700"
+                        }`}
+                      >
+                        <span className="text-lg">🚨</span>
+                        <div>
+                          <p className="font-black text-xs text-amber-800">Urgente / Prioritario</p>
+                          <p className="text-[10px] text-amber-700 font-medium">Recepción para apertura</p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Selector de Franja Horaria de Entrega */}
+                  <div className="space-y-2.5 pt-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
+                        <Clock className="w-3.5 h-3.5 text-brand-600" />
+                        <span>Franja Horaria de Entrega Deseada</span>
+                      </label>
+                      <span className="text-[10px] text-slate-500 font-bold">
+                        Cupos en {customer.zone?.split("(")[0]?.trim() || "tu zona"}
+                      </span>
+                    </div>
+
+                    {/* Alerta de Colisión: Si seleccionó o intentó una hora ocupada */}
+                    {collisionAlert && (
+                      <div className="p-3.5 bg-gradient-to-r from-amber-50 via-amber-100 to-amber-50 border-2 border-amber-400 rounded-2xl space-y-2 text-xs animate-in zoom-in-95">
+                        <div className="flex items-start gap-2 text-amber-900">
+                          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-black">
+                              ⚠️ La franja de {collisionAlert.occupiedSlotLabel} ya está completa en tu zona.
+                            </p>
+                            <p className="text-[11px] text-amber-800 mt-0.5">
+                              Para garantizar tu despacho a tiempo, te ofrecemos la siguiente hora más cercana con cupo disponible:
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between bg-white/95 p-2.5 rounded-xl border border-amber-300">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">⚡</span>
+                            <div>
+                              <p className="font-black text-slate-900 text-xs">
+                                {collisionAlert.suggestedSlot.label}
+                              </p>
+                              <p className="text-[10px] text-slate-500">
+                                {collisionAlert.suggestedSlot.description}
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedTimeSlotId(collisionAlert.suggestedSlot.id);
+                              setCollisionAlert(null);
+                            }}
+                            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs rounded-lg active:scale-95 transition-all shadow-sm flex items-center gap-1 shrink-0"
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Tomar esta hora</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cuadrícula de Franjas Horarias */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {timeSlotAvailabilities.map(({ slot, isAvailable, occupiedCount, maxCapacity, nextClosestSlot }) => {
+                        const isSelected = selectedTimeSlotId === slot.id;
+
+                        return (
+                          <button
+                            key={slot.id}
+                            type="button"
+                            onClick={() => {
+                              if (isAvailable) {
+                                setSelectedTimeSlotId(slot.id);
+                                setCollisionAlert(null);
+                              } else if (nextClosestSlot) {
+                                setCollisionAlert({
+                                  occupiedSlotLabel: slot.label,
+                                  suggestedSlot: nextClosestSlot,
+                                });
+                              }
+                            }}
+                            className={`p-3 rounded-2xl border-2 text-left transition-all relative overflow-hidden active:scale-98 ${
+                              isSelected
+                                ? "bg-brand-50 border-brand-600 text-slate-950 shadow-md ring-2 ring-brand-600/30"
+                                : !isAvailable
+                                ? "bg-slate-100/80 border-slate-200 text-slate-400 opacity-75 hover:border-amber-300"
+                                : "bg-white border-slate-200 hover:border-slate-300 text-slate-800"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="font-black text-xs sm:text-sm">
+                                {slot.label}
+                              </span>
+                              {isSelected && (
+                                <span className="w-2 h-2 rounded-full bg-brand-600 shrink-0" />
+                              )}
+                            </div>
+
+                            <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                              {slot.description}
+                            </p>
+
+                            <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                              {isAvailable ? (
+                                <span className="text-emerald-700 font-bold flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                  <span>{maxCapacity - occupiedCount} cupo(s) libre(s)</span>
+                                </span>
+                              ) : (
+                                <span className="text-amber-700 font-extrabold flex items-center gap-1">
+                                  <span>⚠️ Ocupado (Ver cercana)</span>
+                                </span>
+                              )}
+
+                              {slot.isUrgentSlot && (
+                                <span className="bg-amber-500/10 text-amber-700 px-1.5 py-0.2 rounded font-black text-[9px] uppercase border border-amber-500/20">
+                                  Temprano
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Delivery Address Reminder with Direct Edit Option */}

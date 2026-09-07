@@ -1,4 +1,5 @@
 import { DeliveryRoute, Order, Customer } from "@/types";
+import { deliverySlotService } from "./deliverySlotService";
 
 export const MAX_STOPS_PER_ROUTE = 5;
 
@@ -269,3 +270,81 @@ export function reorderRouteByLocation(
 
   return ordered;
 }
+
+/**
+ * Reordena las paradas de una ruta considerando:
+ * 1. Urgencia del cliente (pedidos urgentes se atienden con máxima prioridad).
+ * 2. Franja horaria de entrega prometida (orden cronológico según startHour).
+ * 3. Proximidad geográfica (heurística de vecino más cercano dentro de cada bloque horario/urgencia).
+ */
+export function reorderRouteByUrgencyAndTime(
+  orders: Order[],
+  origin: { lat: number; lng: number } = { lat: 4.6097, lng: -74.135 } // Frigorífico Central Guadalupe JD
+): Order[] {
+  if (orders.length <= 1) return orders;
+
+  const defaultLats = [4.6525, 4.7215, 4.675, 4.668, 4.708, 4.693];
+  const defaultLngs = [-74.072, -74.032, -74.138, -74.055, -74.076, -74.051];
+
+  interface EnrichedOrder {
+    order: Order;
+    startHour: number;
+    isUrgent: boolean;
+    tier: number;
+  }
+
+  const enriched: EnrichedOrder[] = orders.map((o) => {
+    const startHour = deliverySlotService.parseSlotStartHour(o.deliveryTimeWindow || o.notes);
+    const isUrgent = o.urgency === "urgente" || (o.notes && o.notes.toLowerCase().includes("urgente"));
+    // Bloques cada 1.5 horas: 6.0, 7.5, 9.0, 10.5, 12.0, 14.0
+    const hourBucket = Math.floor(startHour / 1.5) * 1.5;
+    // Dentro de cada bloque, pedidos urgentes van primero (menor tier)
+    const tier = hourBucket * 10 - (isUrgent ? 5 : 0);
+
+    return {
+      order: o,
+      startHour,
+      isUrgent: Boolean(isUrgent),
+      tier,
+    };
+  });
+
+  const tiers = Array.from(new Set(enriched.map((e) => e.tier))).sort((a, b) => a - b);
+  const finalOrdered: Order[] = [];
+  let currentPos = { lat: origin.lat, lng: origin.lng };
+
+  for (const tier of tiers) {
+    const tierOrders = enriched.filter((e) => e.tier === tier).map((e) => e.order);
+    const remainingInTier = [...tierOrders];
+
+    while (remainingInTier.length > 0) {
+      let closestIdx = 0;
+      let minDistance = Infinity;
+
+      for (let i = 0; i < remainingInTier.length; i++) {
+        const ord = remainingInTier[i];
+        const ordLat = ord.lat || defaultLats[i % defaultLats.length];
+        const ordLng = ord.lng || defaultLngs[i % defaultLngs.length];
+        const dist = calculateDistanceKm(currentPos.lat, currentPos.lng, ordLat, ordLng);
+
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestIdx = i;
+        }
+      }
+
+      const [nextOrder] = remainingInTier.splice(closestIdx, 1);
+      const nextLat = nextOrder.lat || defaultLats[finalOrdered.length % defaultLats.length];
+      const nextLng = nextOrder.lng || defaultLngs[finalOrdered.length % defaultLngs.length];
+      currentPos = { lat: nextLat, lng: nextLng };
+
+      finalOrdered.push({
+        ...nextOrder,
+        stopOrder: finalOrdered.length + 1,
+      });
+    }
+  }
+
+  return finalOrdered;
+}
+
