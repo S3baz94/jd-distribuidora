@@ -234,13 +234,13 @@ export default function OrderDetailPage() {
               </h1>
               {order.brand === "gourmet_ahumados" ? (
                 <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-950 px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-amber-300 shadow-sm">
-                  <img src="/images/branding/logo-ahumados-gourmet.jpg" alt="Ahumados Gourmet" className="w-4 h-4 rounded-full object-cover" />
+                  <img src="/images/branding/logo-ahumados-gourmet-oficial.png" alt="Ahumados Gourmet" className="w-4 h-4 rounded-full object-contain" />
                   Ahumados Gourmet
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-950 px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-red-300 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-red-600"></span>
-                  JD Distribuidora
+                <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-950 px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-blue-300 shadow-sm">
+                  <img src="/images/branding/logo-jd-comercializadora.png" alt="JD Comercializadora" className="w-4 h-4 rounded-full object-contain" />
+                  JD Comercializadora
                 </span>
               )}
               <StatusBadge status={order.status} size="md" />

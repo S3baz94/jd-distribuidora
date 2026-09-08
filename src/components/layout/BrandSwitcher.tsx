@@ -31,8 +31,12 @@ export const BrandSwitcher: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between">
-            <div className="w-6 h-6 rounded-lg bg-gold-500 text-jdblue-950 font-black text-[11px] flex items-center justify-center shadow-sm">
-              JD
+            <div className="w-8 h-8 rounded-xl bg-slate-900 border border-gold-500/80 p-0.5 shadow-sm overflow-hidden flex items-center justify-center">
+              <img
+                src="/images/branding/logo-jd-comercializadora.png"
+                alt="Logo JD Comercializadora"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span
               className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
@@ -65,11 +69,13 @@ export const BrandSwitcher: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between">
-            <img
-              src="/images/branding/logo-ahumados-gourmet.jpg"
-              alt="Logo Ahumados Gourmet"
-              className="w-7 h-7 rounded-full object-cover border border-fire-400/80 shadow-sm"
-            />
+            <div className="w-8 h-8 rounded-xl bg-slate-900 border border-fire-400/80 p-0.5 shadow-sm overflow-hidden flex items-center justify-center">
+              <img
+                src="/images/branding/logo-ahumados-gourmet-oficial.png"
+                alt="Logo Ahumados Gourmet"
+                className="w-full h-full object-contain"
+              />
+            </div>
             <span
               className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                 selectedBrand === "gourmet_ahumados"

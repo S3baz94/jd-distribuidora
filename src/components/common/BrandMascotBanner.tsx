@@ -17,11 +17,13 @@ export const BrandMascotBanner: React.FC = () => {
         <div className="flex items-center gap-3">
           {/* Logo Gourmet Ahumados con Imagen Real */}
           <div className="flex items-center gap-2 bg-fire-900/40 border border-fire-600/50 px-3 py-1.5 rounded-2xl shadow-inner">
-            <img
-              src="/images/branding/logo-ahumados-gourmet.jpg"
-              alt="Logo Oficial Ahumados Gourmet"
-              className="w-7 h-7 rounded-full object-cover border border-gold-400/80 shadow-sm"
-            />
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 p-0.5 border border-gold-400/80 shadow-sm flex items-center justify-center">
+              <img
+                src="/images/branding/logo-ahumados-gourmet-oficial.png"
+                alt="Logo Oficial Ahumados Gourmet"
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-fire-400 block leading-none">
                 Ahumados
@@ -36,15 +38,19 @@ export const BrandMascotBanner: React.FC = () => {
 
           {/* Logo JD Comercializadora */}
           <div className="flex items-center gap-2 bg-jdblue-900/60 border border-jdblue-600/60 px-3 py-1.5 rounded-2xl shadow-inner">
-            <div className="w-6 h-6 rounded-full bg-gold-500 text-jdblue-950 font-black text-xs flex items-center justify-center">
-              JD
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 p-0.5 border border-gold-400/80 shadow-sm flex items-center justify-center">
+              <img
+                src="/images/branding/logo-jd-comercializadora.png"
+                alt="Logo JD Comercializadora de Alimentos"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <span className="text-[9px] font-black uppercase tracking-wider text-gold-400 block leading-none">
-                Comercializadora
+                JD Comercializadora
               </span>
               <span className="text-xs font-black text-white leading-tight">
-                De Carnes
+                De Alimentos
               </span>
             </div>
           </div>

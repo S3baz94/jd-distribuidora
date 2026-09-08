@@ -44,8 +44,21 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             )}
 
             <Link href="/admin" className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center font-black text-slate-950 text-base tracking-tight shadow-md shadow-emerald-950/40">
-                JD
+              <div className="flex items-center -space-x-2">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 p-0.5 border-2 border-gold-500/80 shadow-md flex items-center justify-center overflow-hidden z-10">
+                  <img
+                    src="/images/branding/logo-jd-comercializadora.png"
+                    alt="Logo JD Comercializadora"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-slate-900 p-0.5 border-2 border-fire-500/80 shadow-md flex items-center justify-center overflow-hidden">
+                  <img
+                    src="/images/branding/logo-ahumados-gourmet-oficial.png"
+                    alt="Logo Ahumados Gourmet"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
               </div>
               <div>
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-white uppercase block">
