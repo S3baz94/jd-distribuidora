@@ -208,7 +208,7 @@ export default function HomePage() {
       {isNewCustomer && (
         <div className="bg-gradient-to-br from-emerald-950/70 via-slate-900 to-slate-900 border-2 border-emerald-500/40 rounded-3xl p-4 sm:p-5 shadow-xl text-white space-y-2 glow-emerald-card animate-in fade-in">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-14 sm:w-14 sm:h-16 flex-shrink-0 relative">
+            <div className="w-14 sm:w-16 h-18 sm:h-22 flex-shrink-0 relative">
               <img
                 src="/images/branding/cerdito-cliente-ropa.png"
                 alt="Bienvenido a tu primer pedido"
@@ -461,7 +461,7 @@ export default function HomePage() {
         <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 p-3 sm:p-4 rounded-3xl border border-slate-800 relative overflow-hidden">
           <div className="flex items-center gap-3">
             {/* Cerdito con bandeja (JD) o Cerdito Gourmet con delantal rojo (Gourmet) */}
-            <div className="w-14 sm:w-16 h-14 sm:h-16 flex-shrink-0 relative">
+            <div className="w-12 sm:w-14 h-16 sm:h-20 flex-shrink-0 relative">
               <img
                 src={
                   selectedBrand === "gourmet_ahumados"
@@ -483,7 +483,7 @@ export default function HomePage() {
                 </span>
               </div>
               <p className="font-caveat text-xs sm:text-base text-gold-400 font-bold leading-none mt-0.5">
-                {selectedBrand === "gourmet_ahumados" ? "Ahumado artesanal con madera de guayabo" : "Cortes frescos sin merma de canal"}
+                {selectedBrand === "gourmet_ahumados" ? "Ahumado artesanal con madera de guayabo" : "Cortes frescos seleccionados de cerdo"}
               </p>
             </div>
           </div>

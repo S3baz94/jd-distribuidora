@@ -76,7 +76,7 @@ function ConfirmationContent() {
         {/* Mascota Celebrando el Pedido */}
         <div className="mx-auto flex items-center justify-center relative">
           {isAllGourmet ? (
-            <div className="w-28 h-28 sm:w-32 sm:h-32">
+            <div className="w-28 sm:w-36 h-36 sm:h-44 flex items-center justify-center">
               <img
                 src="/images/branding/cerdito-gourmet-ahumados.png"
                 alt="Pedido Gourmet Confirmado con Éxito"
@@ -85,7 +85,7 @@ function ConfirmationContent() {
             </div>
           ) : isGourmetOrder ? (
             /* Pedido Mixto: Cerdito Cliente con Ropa celebrando sus compras */
-            <div className="w-28 h-28 sm:w-32 sm:h-32">
+            <div className="w-28 sm:w-36 h-36 sm:h-44 flex items-center justify-center">
               <img
                 src="/images/branding/cerdito-cliente-ropa.png"
                 alt="Pedido Mixto Confirmado con Éxito"
@@ -94,7 +94,7 @@ function ConfirmationContent() {
             </div>
           ) : (
             /* Pedido JD Exclusivo: Cerdito JD con Delantal Azul */
-            <div className="w-28 h-28 sm:w-32 sm:h-32">
+            <div className="w-28 sm:w-36 h-36 sm:h-44 flex items-center justify-center">
               <img
                 src="/images/branding/cerdito-pulgar-exito.png"
                 alt="Pedido JD Confirmado con Éxito"

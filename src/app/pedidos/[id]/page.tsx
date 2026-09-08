@@ -198,7 +198,7 @@ export default function OrderDetailPage() {
       {(order.status === "ready" || order.status === "dispatched") && (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-200">
           <div className="flex items-center gap-3">
-            <div className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-amber-400/60 shadow-md flex-shrink-0 bg-slate-800">
+            <div className="relative w-12 sm:w-14 h-12 sm:h-14 rounded-xl overflow-hidden border-2 border-amber-400/60 shadow-md flex-shrink-0 bg-slate-800 flex items-center justify-center p-0.5">
               <img
                 src="/images/branding/cerdito-furgon-despacho.png"
                 alt="Furgón Refrigerado JD"
@@ -299,7 +299,7 @@ export default function OrderDetailPage() {
               )}
             </div>
             <div className="flex items-center gap-3 bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/80">
-              <div className="w-11 h-11 rounded-lg overflow-hidden border border-emerald-500/50 flex-shrink-0 bg-slate-900 shadow-sm">
+              <div className="w-11 sm:w-12 h-11 sm:h-12 rounded-lg overflow-hidden border border-emerald-500/50 flex-shrink-0 bg-slate-900 shadow-sm flex items-center justify-center p-0.5">
                 <img
                   src="/images/branding/cerdito-moto-domiciliario.png"
                   alt="Domiciliario Asignado"

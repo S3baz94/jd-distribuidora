@@ -118,7 +118,7 @@ export default function CatalogPage() {
           : "bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-amber-200/80"
       }`}>
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 relative">
+          <div className="w-12 sm:w-14 h-16 sm:h-20 flex-shrink-0 relative">
             <img
               src={
                 selectedBrand === "gourmet_ahumados"

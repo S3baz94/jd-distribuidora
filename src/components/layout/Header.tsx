@@ -54,31 +54,31 @@ export const Header: React.FC = () => {
       {/* Main navigation header */}
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Brand / Logo Oficial */}
-        <Link href="/" className="flex items-center gap-3.5 group">
-          <div className="flex items-center gap-2 sm:gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5 sm:gap-3.5 group min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
             <img
               src="/images/branding/logo-jd-comercializadora.png"
               alt="Logo JD Comercializadora de Alimentos"
-              className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-transform"
+              className="h-8 sm:h-12 w-auto object-contain drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-transform"
             />
-            <div className="h-7 w-[1px] bg-slate-700/80 hidden sm:block" />
+            <div className="h-6 sm:h-7 w-[1px] bg-slate-700/80 hidden sm:block" />
             <img
               src="/images/branding/logo-ahumados-gourmet-oficial.png"
               alt="Logo Ahumados Gourmet Oficial"
-              className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_2px_10px_rgba(220,38,38,0.3)] group-hover:scale-105 transition-transform"
+              className="h-8 sm:h-12 w-auto object-contain drop-shadow-[0_2px_10px_rgba(220,38,38,0.3)] group-hover:scale-105 transition-transform"
             />
           </div>
-          <div>
-            <div className="font-bebas text-lg sm:text-2xl tracking-wider text-white flex items-center gap-2 leading-none">
-              <span>JD COMERCIALIZADORA</span>
-              <span className="text-[10px] font-black bg-fire-600/30 text-fire-300 px-2 py-0.5 rounded-full border border-fire-500/40 uppercase tracking-widest">
+          <div className="min-w-0">
+            <div className="font-bebas text-base sm:text-2xl tracking-wider text-white flex items-center gap-1.5 sm:gap-2 leading-none">
+              <span className="truncate">JD COMERCIALIZADORA</span>
+              <span className="text-[9px] sm:text-[10px] font-black bg-fire-600/30 text-fire-300 px-1.5 sm:px-2 py-0.5 rounded-full border border-fire-500/40 uppercase tracking-widest flex-shrink-0">
                 OFICIAL
               </span>
             </div>
-            <p className="font-caveat text-sm sm:text-base text-gold-400 font-bold leading-none mt-1 flex items-center gap-1.5">
+            <p className="font-caveat text-xs sm:text-base text-gold-400 font-bold leading-none mt-1 flex items-center gap-1.5 truncate">
               <span>Cortes de Cerdo 100% Despostados</span>
-              <span className="text-slate-500">•</span>
-              <span className="text-fire-400">Ahumados Gourmet</span>
+              <span className="text-slate-500 hidden sm:inline">•</span>
+              <span className="text-fire-400 hidden sm:inline">Ahumados Gourmet</span>
             </p>
           </div>
         </Link>

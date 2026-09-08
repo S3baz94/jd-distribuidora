@@ -148,11 +148,11 @@ export const BrandMascotBanner: React.FC = () => {
             
             {/* Personaje de Compras B2B */}
             <div className="relative flex flex-col items-center justify-center group cursor-pointer py-1">
-              <div className="w-28 sm:w-36 md:w-40 h-auto flex-shrink-0 relative">
+              <div className="w-24 sm:w-32 md:w-36 max-h-52 sm:max-h-64 flex-shrink-0 relative flex items-center justify-center">
                 <img
                   src="/images/branding/cerdito-cliente-ropa.png"
                   alt="Cerdito Cliente de Ventas"
-                  className="w-full h-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)] animate-float-slow group-hover:scale-105 transition-transform duration-300"
+                  className="max-h-48 sm:max-h-60 md:max-h-64 w-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)] animate-float-slow group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <span className="text-xs font-bold text-amber-300 bg-amber-500/10 px-3 py-0.5 rounded-full border border-amber-500/30 mt-1 font-caveat text-sm">
