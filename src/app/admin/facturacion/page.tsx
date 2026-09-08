@@ -576,11 +576,11 @@ export default function FacturacionPage() {
               : "text-slate-400 hover:text-rose-300"
           }`}
         >
-          <div className="w-6 h-7 relative flex-shrink-0">
+          <div className="h-7 w-auto relative flex-shrink-0">
             <img
-              src="/images/branding/cerdito-saludo-bienvenida.png"
-              alt="Cerdito JD"
-              className="w-full h-full object-contain drop-shadow"
+              src="/images/branding/logo-jd-comercializadora.png"
+              alt="Logo JD Comercializadora"
+              className="h-7 w-auto object-contain drop-shadow"
             />
           </div>
           <div className="text-left">
@@ -597,11 +597,11 @@ export default function FacturacionPage() {
               : "text-slate-400 hover:text-amber-300"
           }`}
         >
-          <div className="w-6 h-7 relative flex-shrink-0">
+          <div className="h-7 w-auto relative flex-shrink-0">
             <img
-              src="/images/branding/cerdito-gourmet-ahumados.png"
-              alt="Cerdito Gourmet"
-              className="w-full h-full object-contain drop-shadow"
+              src="/images/branding/logo-ahumados-gourmet-oficial.png"
+              alt="Logo Ahumados Gourmet"
+              className="h-7 w-auto object-contain drop-shadow"
             />
           </div>
           <div className="text-left">
@@ -1289,11 +1289,11 @@ export default function FacturacionPage() {
                         : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
                     }`}
                   >
-                    <div className="w-8 h-9 relative flex-shrink-0">
+                    <div className="h-8 w-auto relative flex-shrink-0">
                       <img
-                        src="/images/branding/cerdito-saludo-bienvenida.png"
-                        alt="Cerdito JD"
-                        className="w-full h-full object-contain drop-shadow"
+                        src="/images/branding/logo-jd-comercializadora.png"
+                        alt="Logo JD Comercializadora"
+                        className="h-8 w-auto object-contain drop-shadow"
                       />
                     </div>
                     <div>
@@ -1317,11 +1317,11 @@ export default function FacturacionPage() {
                         : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
                     }`}
                   >
-                    <div className="w-8 h-9 relative flex-shrink-0">
+                    <div className="h-8 w-auto relative flex-shrink-0">
                       <img
-                        src="/images/branding/cerdito-gourmet-ahumados.png"
-                        alt="Cerdito Gourmet"
-                        className="w-full h-full object-contain drop-shadow"
+                        src="/images/branding/logo-ahumados-gourmet-oficial.png"
+                        alt="Logo Ahumados Gourmet"
+                        className="h-8 w-auto object-contain drop-shadow"
                       />
                     </div>
                     <div>

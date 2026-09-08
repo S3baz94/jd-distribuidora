@@ -32,18 +32,11 @@ export const BrandSwitcher: React.FC = () => {
         >
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
-              <div className="h-12 flex items-center p-1 bg-black/40 rounded-xl border border-white/5">
+              <div className="h-12 flex items-center p-1.5 bg-black/40 rounded-xl border border-white/5">
                 <img
                   src="/images/branding/logo-jd-comercializadora.png"
                   alt="Logo JD Comercializadora"
                   className="h-10 sm:h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(245,158,11,0.35)] group-hover:scale-105 transition-transform"
-                />
-              </div>
-              <div className="w-8 h-10 relative hidden sm:block">
-                <img
-                  src="/images/branding/cerdito-saludo-bienvenida.png"
-                  alt="Cerdito JD"
-                  className="w-full h-full object-contain"
                 />
               </div>
             </div>
@@ -79,18 +72,11 @@ export const BrandSwitcher: React.FC = () => {
         >
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
-              <div className="h-12 flex items-center p-1 bg-black/40 rounded-xl border border-white/5">
+              <div className="h-12 flex items-center p-1.5 bg-black/40 rounded-xl border border-white/5">
                 <img
                   src="/images/branding/logo-ahumados-gourmet-oficial.png"
                   alt="Logo Ahumados Gourmet"
                   className="h-10 sm:h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(220,38,38,0.35)] group-hover:scale-105 transition-transform"
-                />
-              </div>
-              <div className="w-8 h-10 relative hidden sm:block">
-                <img
-                  src="/images/branding/cerdito-gourmet-ahumados.png"
-                  alt="Cerdito Gourmet con Delantal Rojo"
-                  className="w-full h-full object-contain"
                 />
               </div>
             </div>

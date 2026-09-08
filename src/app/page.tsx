@@ -367,19 +367,11 @@ export default function HomePage() {
 
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="h-14 sm:h-16 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5 shadow-md">
+                <div className="h-14 sm:h-16 flex items-center p-2 bg-black/40 rounded-2xl border border-white/5 shadow-md">
                   <img
                     src="/images/branding/logo-jd-comercializadora.png"
                     alt="Logo Oficial JD Comercializadora"
                     className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(245,158,11,0.35)] group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                {/* Mascota Cerdito JD */}
-                <div className="w-10 h-12 relative hidden sm:block">
-                  <img
-                    src="/images/branding/cerdito-saludo-bienvenida.png"
-                    alt="Mascota Cerdito JD"
-                    className="w-full h-full object-contain drop-shadow animate-float-slow"
                   />
                 </div>
               </div>
@@ -431,20 +423,11 @@ export default function HomePage() {
 
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="h-14 sm:h-16 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5 shadow-md">
+                <div className="h-14 sm:h-16 flex items-center p-2 bg-black/40 rounded-2xl border border-white/5 shadow-md">
                   <img
                     src="/images/branding/logo-ahumados-gourmet-oficial.png"
                     alt="Logo Oficial Ahumados Gourmet"
                     className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(220,38,38,0.35)] group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                {/* Mascota Cerdito Gourmet con Delantal Rojo */}
-                <div className="w-10 h-12 relative hidden sm:block">
-                  <img
-                    src="/images/branding/cerdito-gourmet-ahumados.png"
-                    alt="Mascota Cerdito Gourmet"
-                    className="w-full h-full object-contain drop-shadow animate-float-slow"
-                    style={{ animationDelay: "1s" }}
                   />
                 </div>
               </div>
