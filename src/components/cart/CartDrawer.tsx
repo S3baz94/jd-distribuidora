@@ -61,6 +61,10 @@ export const CartDrawer: React.FC = () => {
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const timeSlotAvailabilities = useMemo(() => {
+    return deliverySlotService.getSlotAvailability(selectedDate, customer?.zone || "Bogotá D.C.", allOrders);
+  }, [selectedDate, customer?.zone, allOrders]);
+
   useEffect(() => {
     if (isCartOpen) {
       document.body.style.overflow = "hidden";
@@ -73,10 +77,6 @@ export const CartDrawer: React.FC = () => {
   }, [isCartOpen]);
 
   if (!isCartOpen) return null;
-
-  const timeSlotAvailabilities = useMemo(() => {
-    return deliverySlotService.getSlotAvailability(selectedDate, customer?.zone || "Bogotá D.C.", allOrders);
-  }, [selectedDate, customer?.zone, allOrders]);
 
   const handleClose = () => {
     setIsCartOpen(false);
