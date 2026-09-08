@@ -349,10 +349,10 @@ export default function HomePage() {
           <button
             type="button"
             onClick={() => setSelectedBrand("jd_distribuidora")}
-            className={`relative p-3.5 sm:p-4 rounded-3xl text-left transition-all duration-300 border-2 overflow-hidden group active:scale-[0.98] ${
+            className={`relative p-3.5 sm:p-4 rounded-3xl text-left transition-all duration-300 border-2 overflow-hidden group active:scale-[0.98] cartoon-card ${
               selectedBrand === "jd_distribuidora"
-                ? "bg-gradient-to-br from-jdblue-950 via-slate-900 to-slate-950 border-gold-500 ring-4 ring-gold-500/30 shadow-2xl shadow-jdblue-950/80"
-                : "bg-slate-950/80 border-slate-800 hover:border-slate-700 opacity-75 hover:opacity-100"
+                ? "cartoon-card-jd border-gold-500 ring-4 ring-gold-500/30 shadow-2xl shadow-jdblue-950/80"
+                : "bg-slate-950/80 border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100"
             }`}
           >
             {selectedBrand === "jd_distribuidora" && (
@@ -361,7 +361,7 @@ export default function HomePage() {
 
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5">
+                <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5 shadow-md">
                   <img
                     src="/images/branding/logo-jd-comercializadora.png"
                     alt="Logo Oficial JD Comercializadora"
@@ -373,7 +373,7 @@ export default function HomePage() {
                   <img
                     src="/images/branding/cerdito-saludo-bienvenida.png"
                     alt="Mascota Cerdito JD"
-                    className="w-full h-full object-contain drop-shadow"
+                    className="w-full h-full object-contain drop-shadow animate-float-slow"
                   />
                 </div>
               </div>
@@ -413,10 +413,10 @@ export default function HomePage() {
           <button
             type="button"
             onClick={() => setSelectedBrand("gourmet_ahumados")}
-            className={`relative p-3.5 sm:p-4 rounded-3xl text-left transition-all duration-300 border-2 overflow-hidden group active:scale-[0.98] ${
+            className={`relative p-3.5 sm:p-4 rounded-3xl text-left transition-all duration-300 border-2 overflow-hidden group active:scale-[0.98] cartoon-card ${
               selectedBrand === "gourmet_ahumados"
-                ? "bg-gradient-to-br from-fire-950 via-slate-900 to-slate-950 border-fire-500 ring-4 ring-fire-500/30 shadow-2xl shadow-fire-950/80"
-                : "bg-slate-950/80 border-slate-800 hover:border-slate-700 opacity-75 hover:opacity-100"
+                ? "cartoon-card-gourmet border-fire-500 ring-4 ring-fire-500/30 shadow-2xl shadow-fire-950/80"
+                : "bg-slate-950/80 border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100"
             }`}
           >
             {selectedBrand === "gourmet_ahumados" && (
@@ -425,7 +425,7 @@ export default function HomePage() {
 
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5">
+                <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5 shadow-md">
                   <img
                     src="/images/branding/logo-ahumados-gourmet-oficial.png"
                     alt="Logo Oficial Ahumados Gourmet"
@@ -437,7 +437,8 @@ export default function HomePage() {
                   <img
                     src="/images/branding/cerdito-gourmet-ahumados.png"
                     alt="Mascota Cerdito Gourmet"
-                    className="w-full h-full object-contain drop-shadow"
+                    className="w-full h-full object-contain drop-shadow animate-float-slow"
+                    style={{ animationDelay: "1s" }}
                   />
                 </div>
               </div>
@@ -541,9 +542,9 @@ export default function HomePage() {
             return (
               <div
                 key={product.id}
-                className={`p-4 rounded-3xl bg-slate-950/90 border transition-all ${
+                className={`p-4 rounded-3xl bg-slate-950/90 border-2 transition-all cartoon-card ${
                   itemInCart
-                    ? "border-gold-500 ring-2 ring-gold-500/40 gold-glow-card"
+                    ? "border-gold-500 ring-2 ring-gold-500/40 gold-glow-card scale-[1.01]"
                     : isOutOfStock
                     ? "border-white/5 opacity-60 bg-slate-950"
                     : "border-slate-800/90 hover:border-slate-700"

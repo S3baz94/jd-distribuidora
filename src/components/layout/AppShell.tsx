@@ -10,6 +10,8 @@ import { ToastContainer } from "@/components/common/ToastContainer";
 import { LicenseLockScreen } from "@/components/common/LicenseLockScreen";
 import { PWAInstaller } from "@/components/common/PWAInstaller";
 
+import { EcosystemSwitcherBar } from "@/components/layout/EcosystemSwitcherBar";
+
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
@@ -24,6 +26,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         <PWAInstaller />
         <LicenseLockScreen />
         <ToastContainer />
+        <EcosystemSwitcherBar />
         <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-brand-500 selection:text-white">
           {children}
         </div>
@@ -35,6 +38,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     <>
       <LicenseLockScreen />
       <ToastContainer />
+      <EcosystemSwitcherBar />
       <Header />
       <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-4 pb-28 md:pb-12">
         {children}

@@ -56,12 +56,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
     <>
       <div
-        className={`bg-white rounded-3xl border-2 transition-all flex flex-col justify-between overflow-hidden shadow-md ${
+        className={`bg-white rounded-3xl border-2 transition-all flex flex-col justify-between overflow-hidden shadow-md cartoon-card ${
           cartItem
-            ? "border-brand-500 ring-2 ring-brand-500/20"
+            ? "border-emerald-500 ring-4 ring-emerald-500/20 shadow-emerald-950/10"
             : isOutOfStock
             ? "border-slate-200 bg-slate-50 opacity-70"
-            : "border-slate-200 hover:border-slate-300"
+            : "border-slate-200 hover:border-slate-400"
         }`}
       >
         {/* Big Product Image */}

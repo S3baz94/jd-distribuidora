@@ -115,9 +115,9 @@ export const BrandMascotBanner: React.FC = () => {
         </div>
 
         {/* Columna Derecha: Tarjeta de Mascota & Calendario Oficial */}
-        <div className="lg:col-span-5 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="lg:col-span-5 flex flex-col sm:flex-row items-center justify-center gap-4 mt-2 lg:mt-0">
           {/* Calendario de Despacho Idéntico al Post */}
-          <div className="w-40 bg-white text-slate-900 rounded-3xl shadow-2xl p-4 border-t-8 border-fire-600 text-center flex flex-col items-center flex-shrink-0 relative overflow-hidden">
+          <div className="w-full sm:w-40 bg-white text-slate-900 rounded-3xl shadow-2xl p-4 border-t-8 border-fire-600 text-center flex flex-col items-center flex-shrink-0 relative overflow-hidden cartoon-card">
             <div className="flex items-center gap-1 text-[10px] font-black uppercase text-fire-700 tracking-wider">
               <Calendar className="w-3.5 h-3.5" />
               <span>Despacho</span>
@@ -146,13 +146,13 @@ export const BrandMascotBanner: React.FC = () => {
             {/* Resplandor sutil de fondo */}
             <div className="absolute inset-0 bg-gold-500/10 rounded-full blur-2xl pointer-events-none" />
             
-            <div className="relative flex items-end justify-center -space-x-4 sm:-space-x-6 group cursor-pointer">
+            <div className="relative flex items-end justify-center -space-x-3 sm:-space-x-5 group cursor-pointer">
               {/* Cerdito JD: Señalando Ofertas */}
               <div className="relative z-10 text-center">
                 <img
                   src="/images/branding/cerdito-senala-ofertas.png"
                   alt="El Cerdito JD con Delantal Azul"
-                  className="w-28 sm:w-36 lg:w-40 h-auto object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-300"
+                  className="w-24 sm:w-32 lg:w-36 h-auto object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.6)] animate-float-slow group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
 
@@ -161,7 +161,8 @@ export const BrandMascotBanner: React.FC = () => {
                 <img
                   src="/images/branding/cerdito-gourmet-ahumados.png"
                   alt="El Cerdito Gourmet con Delantal Rojo"
-                  className="w-32 sm:w-40 lg:w-44 h-auto object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300"
+                  className="w-28 sm:w-36 lg:w-40 h-auto object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.65)] animate-float-slow group-hover:scale-105 transition-transform duration-300"
+                  style={{ animationDelay: "1.5s" }}
                 />
               </div>
             </div>

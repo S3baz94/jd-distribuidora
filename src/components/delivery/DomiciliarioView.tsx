@@ -504,7 +504,7 @@ export default function DomiciliarioView() {
 
         {/* Banner de Siguiente Entrega */}
         {nextStop ? (
-          <div className="bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border-2 border-[#4edea3]/40 rounded-2xl p-4 shadow-2xl relative overflow-hidden">
+          <div className="bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border-2 border-[#4edea3]/40 rounded-3xl p-4 sm:p-5 shadow-2xl relative overflow-hidden cartoon-card">
             <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3 flex-wrap gap-1.5">
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#4edea3] animate-ping" />
@@ -541,7 +541,7 @@ export default function DomiciliarioView() {
             </div>
 
             {/* Resumen de Carga y Cobro */}
-            <div className="grid grid-cols-2 gap-2 my-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center">
+            <div className="grid grid-cols-2 gap-2 my-3 p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-center">
               <div>
                 <p className="font-bebas text-xs text-slate-400 uppercase tracking-wider">KILOS A ENTREGAR</p>
                 <p className="font-bebas text-2xl font-bold text-white">
@@ -582,7 +582,7 @@ export default function DomiciliarioView() {
             <div className="space-y-2">
               <button
                 onClick={() => handleOpenDelivery(nextStop)}
-                className="w-full min-h-[50px] py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-sm tracking-wide flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/60 transition-all active:scale-95"
+                className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-sm tracking-wide flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/60 transition-all active:scale-95 cartoon-btn"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 <span>CONFIRMAR ENTREGA Y COBRO</span>

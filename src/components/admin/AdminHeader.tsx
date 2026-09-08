@@ -57,6 +57,26 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                   className="h-9 sm:h-10 w-auto object-contain drop-shadow-[0_2px_8px_rgba(220,38,38,0.25)]"
                 />
               </div>
+
+              {/* Dúo de Cerditos Animados en Administración */}
+              <div className="flex items-end -space-x-2 hidden md:flex">
+                <div className="w-8 h-9 relative">
+                  <img
+                    src="/images/branding/cerdito-bascula-pesaje.png"
+                    alt="Cerdito Báscula & POS"
+                    className="w-full h-full object-contain animate-float-slow"
+                  />
+                </div>
+                <div className="w-8 h-9 relative">
+                  <img
+                    src="/images/branding/cerdito-gourmet-ahumados.png"
+                    alt="Cerdito Gourmet"
+                    className="w-full h-full object-contain animate-float-slow"
+                    style={{ animationDelay: "1s" }}
+                  />
+                </div>
+              </div>
+
               <div>
                 <span className="font-bebas text-lg sm:text-xl tracking-wider text-white uppercase block leading-none">
                   JD COMERCIALIZADORA & GOURMET AHUMADOS
