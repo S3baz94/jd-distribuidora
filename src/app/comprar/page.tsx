@@ -140,14 +140,14 @@ export default function CatalogPage() {
               }`}>
                 {selectedBrand === "gourmet_ahumados"
                   ? "Garantía Gourmet Ahumados: Sabor Artesanal al Leño"
-                  : "Garantía JD: Todo se Entrega 100% Despostado & Limpio"}
+                  : "Garantía JD: Cortes Frescos Seleccionados"}
               </h3>
               <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
                 selectedBrand === "gourmet_ahumados"
                   ? "bg-fire-600/30 text-fire-400 border-fire-500/40"
                   : "bg-emerald-100 text-emerald-800 border border-emerald-300"
               }`}>
-                {selectedBrand === "gourmet_ahumados" ? "🪵 Leño de Roble" : "Sin Mermas de Canal"}
+                {selectedBrand === "gourmet_ahumados" ? "🪵 Leño de Roble" : "🥩 Calidad Seleccionada"}
               </span>
             </div>
             <p className={`text-xs mt-0.5 ${
@@ -155,7 +155,7 @@ export default function CatalogPage() {
             }`}>
               {selectedBrand === "gourmet_ahumados"
                 ? "Costillas y chuletas ahumadas artesanalmente al peso exacto en canastilla. Piezas tiernas y jugosas listas para exhibir o servir."
-                : "No vendemos canales enteros. Recibes cortes porcionados y despostados al peso exacto en canastilla, listos para exhibir en carnicería o preparar en restaurante."}
+                : "Recibes cortes frescos porcionados y despostados al peso exacto en canastilla, listos para exhibir en carnicería o preparar en tu negocio."}
             </p>
           </div>
         </div>
