@@ -54,22 +54,19 @@ export const Header: React.FC = () => {
       {/* Main navigation header */}
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Brand / Logo Oficial */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="flex items-center -space-x-2">
-            <div className="w-11 h-11 rounded-2xl bg-white/10 p-0.5 border-2 border-gold-500/80 shadow-lg group-hover:scale-105 transition-transform z-10 flex items-center justify-center overflow-hidden bg-slate-900">
-              <img
-                src="/images/branding/logo-jd-comercializadora.png"
-                alt="Logo JD Comercializadora de Alimentos"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="w-11 h-11 rounded-2xl p-0.5 border-2 border-fire-500/80 shadow-lg group-hover:scale-105 transition-transform overflow-hidden bg-slate-900 flex items-center justify-center">
-              <img
-                src="/images/branding/logo-ahumados-gourmet-oficial.png"
-                alt="Logo Ahumados Gourmet Oficial"
-                className="w-full h-full object-contain"
-              />
-            </div>
+        <Link href="/" className="flex items-center gap-3.5 group">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <img
+              src="/images/branding/logo-jd-comercializadora.png"
+              alt="Logo JD Comercializadora de Alimentos"
+              className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-transform"
+            />
+            <div className="h-7 w-[1px] bg-slate-700/80 hidden sm:block" />
+            <img
+              src="/images/branding/logo-ahumados-gourmet-oficial.png"
+              alt="Logo Ahumados Gourmet Oficial"
+              className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_2px_10px_rgba(220,38,38,0.3)] group-hover:scale-105 transition-transform"
+            />
           </div>
           <div>
             <div className="font-black text-sm sm:text-base leading-tight tracking-tight text-white flex items-center gap-2">

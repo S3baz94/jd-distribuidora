@@ -16,14 +16,12 @@ export const BrandMascotBanner: React.FC = () => {
         {/* Co-Branding Oficial */}
         <div className="flex items-center gap-3">
           {/* Logo Gourmet Ahumados con Imagen Real */}
-          <div className="flex items-center gap-2 bg-fire-900/40 border border-fire-600/50 px-3 py-1.5 rounded-2xl shadow-inner">
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 p-0.5 border border-gold-400/80 shadow-sm flex items-center justify-center">
-              <img
-                src="/images/branding/logo-ahumados-gourmet-oficial.png"
-                alt="Logo Oficial Ahumados Gourmet"
-                className="w-full h-full object-contain"
-              />
-            </div>
+          <div className="flex items-center gap-2.5 bg-fire-950/70 border border-fire-500/40 px-3 py-1.5 rounded-2xl shadow-md">
+            <img
+              src="/images/branding/logo-ahumados-gourmet-oficial.png"
+              alt="Logo Oficial Ahumados Gourmet"
+              className="h-8 sm:h-9 w-auto object-contain drop-shadow"
+            />
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-fire-400 block leading-none">
                 Ahumados
@@ -37,14 +35,12 @@ export const BrandMascotBanner: React.FC = () => {
           <span className="text-slate-600 font-black text-sm">&</span>
 
           {/* Logo JD Comercializadora */}
-          <div className="flex items-center gap-2 bg-jdblue-900/60 border border-jdblue-600/60 px-3 py-1.5 rounded-2xl shadow-inner">
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 p-0.5 border border-gold-400/80 shadow-sm flex items-center justify-center">
-              <img
-                src="/images/branding/logo-jd-comercializadora.png"
-                alt="Logo JD Comercializadora de Alimentos"
-                className="w-full h-full object-contain"
-              />
-            </div>
+          <div className="flex items-center gap-2.5 bg-jdblue-950/80 border border-jdblue-500/40 px-3 py-1.5 rounded-2xl shadow-md">
+            <img
+              src="/images/branding/logo-jd-comercializadora.png"
+              alt="Logo JD Comercializadora de Alimentos"
+              className="h-8 sm:h-9 w-auto object-contain drop-shadow"
+            />
             <div>
               <span className="text-[9px] font-black uppercase tracking-wider text-gold-400 block leading-none">
                 JD Comercializadora

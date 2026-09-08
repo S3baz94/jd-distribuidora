@@ -234,12 +234,12 @@ export default function OrderDetailPage() {
               </h1>
               {order.brand === "gourmet_ahumados" ? (
                 <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-950 px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-amber-300 shadow-sm">
-                  <img src="/images/branding/logo-ahumados-gourmet-oficial.png" alt="Ahumados Gourmet" className="w-4 h-4 rounded-full object-contain" />
+                  <img src="/images/branding/logo-ahumados-gourmet-oficial.png" alt="Ahumados Gourmet" className="h-5 w-auto object-contain" />
                   Ahumados Gourmet
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-950 px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-blue-300 shadow-sm">
-                  <img src="/images/branding/logo-jd-comercializadora.png" alt="JD Comercializadora" className="w-4 h-4 rounded-full object-contain" />
+                  <img src="/images/branding/logo-jd-comercializadora.png" alt="JD Comercializadora" className="h-5 w-auto object-contain" />
                   JD Comercializadora
                 </span>
               )}

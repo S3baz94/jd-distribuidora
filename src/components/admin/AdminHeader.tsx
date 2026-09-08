@@ -43,22 +43,19 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
               </button>
             )}
 
-            <Link href="/admin" className="flex items-center gap-3">
-              <div className="flex items-center -space-x-2">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 p-0.5 border-2 border-gold-500/80 shadow-md flex items-center justify-center overflow-hidden z-10">
-                  <img
-                    src="/images/branding/logo-jd-comercializadora.png"
-                    alt="Logo JD Comercializadora"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-slate-900 p-0.5 border-2 border-fire-500/80 shadow-md flex items-center justify-center overflow-hidden">
-                  <img
-                    src="/images/branding/logo-ahumados-gourmet-oficial.png"
-                    alt="Logo Ahumados Gourmet"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
+            <Link href="/admin" className="flex items-center gap-3.5">
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <img
+                  src="/images/branding/logo-jd-comercializadora.png"
+                  alt="Logo JD Comercializadora"
+                  className="h-9 sm:h-10 w-auto object-contain drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]"
+                />
+                <div className="h-6 w-[1px] bg-white/20 hidden sm:block" />
+                <img
+                  src="/images/branding/logo-ahumados-gourmet-oficial.png"
+                  alt="Logo Ahumados Gourmet"
+                  className="h-9 sm:h-10 w-auto object-contain drop-shadow-[0_2px_8px_rgba(220,38,38,0.25)]"
+                />
               </div>
               <div>
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-white uppercase block">

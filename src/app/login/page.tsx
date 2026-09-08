@@ -85,21 +85,18 @@ export default function LoginPage() {
       <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xl space-y-6">
         {/* Logo and Brand */}
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-center -space-x-3 mb-1">
-            <div className="w-16 h-16 rounded-2xl bg-slate-900 p-1 border-2 border-gold-500/80 shadow-lg z-10 flex items-center justify-center overflow-hidden">
-              <img
-                src="/images/branding/logo-jd-comercializadora.png"
-                alt="Logo JD Comercializadora"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="w-16 h-16 rounded-2xl bg-slate-900 p-1 border-2 border-fire-500/80 shadow-lg flex items-center justify-center overflow-hidden">
-              <img
-                src="/images/branding/logo-ahumados-gourmet-oficial.png"
-                alt="Logo Ahumados Gourmet"
-                className="w-full h-full object-contain"
-              />
-            </div>
+          <div className="flex items-center justify-center gap-4 py-2 mb-1">
+            <img
+              src="/images/branding/logo-jd-comercializadora.png"
+              alt="Logo JD Comercializadora"
+              className="h-14 sm:h-16 w-auto object-contain drop-shadow-md hover:scale-105 transition-transform"
+            />
+            <div className="h-10 w-[1.5px] bg-slate-200" />
+            <img
+              src="/images/branding/logo-ahumados-gourmet-oficial.png"
+              alt="Logo Ahumados Gourmet"
+              className="h-14 sm:h-16 w-auto object-contain drop-shadow-md hover:scale-105 transition-transform"
+            />
           </div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-black border border-emerald-200">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />

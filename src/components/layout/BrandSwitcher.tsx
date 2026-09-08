@@ -31,11 +31,11 @@ export const BrandSwitcher: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-xl bg-slate-900 border border-gold-500/80 p-0.5 shadow-sm overflow-hidden flex items-center justify-center">
+            <div className="h-10 flex items-center">
               <img
                 src="/images/branding/logo-jd-comercializadora.png"
                 alt="Logo JD Comercializadora"
-                className="w-full h-full object-contain"
+                className="h-8 sm:h-9 w-auto object-contain drop-shadow-[0_2px_6px_rgba(245,158,11,0.3)]"
               />
             </div>
             <span
@@ -69,11 +69,11 @@ export const BrandSwitcher: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-xl bg-slate-900 border border-fire-400/80 p-0.5 shadow-sm overflow-hidden flex items-center justify-center">
+            <div className="h-10 flex items-center">
               <img
                 src="/images/branding/logo-ahumados-gourmet-oficial.png"
                 alt="Logo Ahumados Gourmet"
-                className="w-full h-full object-contain"
+                className="h-9 sm:h-10 w-auto object-contain drop-shadow-[0_2px_6px_rgba(220,38,38,0.3)]"
               />
             </div>
             <span
