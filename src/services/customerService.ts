@@ -11,8 +11,16 @@ export const customerService = {
       const stored = localStorage.getItem(CURRENT_CUSTOMER_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === "object" && parsed.id && parsed.contactName) {
-          return parsed;
+        if (parsed && typeof parsed === "object" && parsed.id) {
+          const baseCustomer = INITIAL_CUSTOMERS.find((c) => c.id === parsed.id) || INITIAL_CUSTOMERS[0];
+          return {
+            ...baseCustomer,
+            ...parsed,
+            minOrderAmount: parsed.minOrderAmount || baseCustomer.minOrderAmount || 300000,
+            zone: parsed.zone || baseCustomer.zone || "Zona Norte (Cedritos - Usaquén - Suba)",
+            address: parsed.address || baseCustomer.address || "Central de Carnes, Bodega Frigorífica JD",
+            businessName: parsed.businessName || baseCustomer.businessName || "Cliente Mayorista",
+          };
         }
       }
     } catch {
@@ -39,13 +47,24 @@ export const customerService = {
     try {
       const stored = localStorage.getItem(ALL_CUSTOMERS_KEY);
       if (stored) {
-        const parsed: Customer[] = JSON.parse(stored);
-        if (!parsed.some((c) => (c.phone || "").replace(/\D/g, "") === "3233218831")) {
-          const merged = [INITIAL_CUSTOMERS[0], ...parsed];
-          localStorage.setItem(ALL_CUSTOMERS_KEY, JSON.stringify(merged));
-          return merged;
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const sanitized = parsed.map((c) => {
+            const base = INITIAL_CUSTOMERS.find((init) => init.id === c?.id) || INITIAL_CUSTOMERS[0];
+            return {
+              ...base,
+              ...c,
+              minOrderAmount: c?.minOrderAmount || base.minOrderAmount || 300000,
+            };
+          });
+
+          if (!sanitized.some((c) => (c?.phone || "").replace(/\D/g, "") === "3233218831")) {
+            const merged = [INITIAL_CUSTOMERS[0], ...sanitized];
+            localStorage.setItem(ALL_CUSTOMERS_KEY, JSON.stringify(merged));
+            return merged;
+          }
+          return sanitized;
         }
-        return parsed;
       }
     } catch {
       // Fallback

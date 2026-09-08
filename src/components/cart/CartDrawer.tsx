@@ -260,7 +260,7 @@ export const CartDrawer: React.FC = () => {
                         <span>Progreso Pedido Mayorista:</span>
                       </span>
                       <strong className={isMinimumMet ? "text-emerald-700 font-black" : "text-amber-700 font-black"}>
-                        {Math.min(100, Math.round((cartTotal / customer.minOrderAmount) * 100))}%
+                        {Math.min(100, Math.round((cartTotal / (minOrder || 1)) * 100))}%
                       </strong>
                     </div>
 
@@ -272,13 +272,13 @@ export const CartDrawer: React.FC = () => {
                             ? "bg-emerald-500 shadow-[0_0_10px_#10b981]"
                             : "bg-amber-500"
                         }`}
-                        style={{ width: `${Math.min(100, (cartTotal / customer.minOrderAmount) * 100)}%` }}
+                        style={{ width: `${Math.min(100, Math.max(0, (cartTotal / (minOrder || 1)) * 100))}%` }}
                       />
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] pt-0.5">
                       <span className="text-slate-500">
-                        Mínimo: <strong>{priceService.formatCurrency(customer.minOrderAmount)}</strong>
+                        Mínimo: <strong>{priceService.formatCurrency(minOrder)}</strong>
                       </span>
                       {isMinimumMet ? (
                         <span className="text-emerald-700 font-black flex items-center gap-1">
@@ -287,7 +287,7 @@ export const CartDrawer: React.FC = () => {
                         </span>
                       ) : (
                         <span className="text-amber-700 font-black">
-                          Faltan {priceService.formatCurrency(customer.minOrderAmount - cartTotal)}
+                          Faltan {priceService.formatCurrency(Math.max(0, minOrder - cartTotal))}
                         </span>
                       )}
                     </div>
@@ -417,7 +417,7 @@ export const CartDrawer: React.FC = () => {
                         <span>Franja Horaria de Entrega Deseada</span>
                       </label>
                       <span className="text-[10px] text-slate-500 font-bold">
-                        Cupos en {customer.zone?.split("(")[0]?.trim() || "tu zona"}
+                        Cupos en {customer?.zone ? customer.zone.split("(")[0]?.trim() : "tu zona"}
                       </span>
                     </div>
 
@@ -534,9 +534,9 @@ export const CartDrawer: React.FC = () => {
                     <div className="flex items-start gap-2 min-w-0">
                       <MapPin className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
                       <div className="min-w-0">
-                        <p className="font-black text-slate-900 truncate">{customer.businessName}</p>
-                        <p className="text-slate-600 truncate">{selectedAddress || customer.address}</p>
-                        <p className="text-emerald-700 font-bold text-[11px]">{customer.zone}</p>
+                        <p className="font-black text-slate-900 truncate">{customer?.businessName || "Cliente Mayorista"}</p>
+                        <p className="text-slate-600 truncate">{selectedAddress || customer?.address || "Bogotá D.C."}</p>
+                        <p className="text-emerald-700 font-bold text-[11px]">{customer?.zone || "Bogotá D.C."}</p>
                       </div>
                     </div>
                     <button

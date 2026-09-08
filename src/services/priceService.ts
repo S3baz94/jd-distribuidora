@@ -60,15 +60,21 @@ export const priceService = {
     return defaultPrices[productId] || 20000;
   },
 
-  formatCurrency: (amount: number): string => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      maximumFractionDigits: 0,
-    }).format(amount);
+  formatCurrency: (amount?: number | null): string => {
+    const validAmount = typeof amount === "number" && !isNaN(amount) ? amount : 0;
+    try {
+      return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        maximumFractionDigits: 0,
+      }).format(validAmount);
+    } catch {
+      return `$ ${Math.round(validAmount).toLocaleString("es-CO")}`;
+    }
   },
 
-  formatKg: (kg: number): string => {
-    return `${kg.toLocaleString("es-CO")} kg`;
+  formatKg: (kg?: number | null): string => {
+    const validKg = typeof kg === "number" && !isNaN(kg) ? kg : 0;
+    return `${validKg.toLocaleString("es-CO")} kg`;
   },
 };

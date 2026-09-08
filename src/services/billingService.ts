@@ -413,19 +413,21 @@ export class BillingService {
   }
 
   static getNextInvoiceNumber(brand: BrandType = "jd_distribuidora"): { number: string; nextSeq: number } {
-    const settings = this.getCompanySettings(brand);
-    const invoices = this.getInvoices().filter(
-      (i) => i.brand === brand || (!i.brand && brand === "jd_distribuidora")
+    const settings = this.getCompanySettings(brand) || (brand === "gourmet_ahumados" ? COMPANY_GOURMET_SETTINGS : COMPANY_JD_SETTINGS);
+    const invoices = (this.getInvoices() || []).filter(
+      (i) => i && (i.brand === brand || (!i.brand && brand === "jd_distribuidora"))
     );
 
     const maxNumber = invoices.reduce((max, inv) => {
-      const parts = inv.number.split("-");
+      const numStr = String(inv?.number || "");
+      const parts = numStr.split("-");
       const num = parseInt(parts[parts.length - 1], 10);
       return !isNaN(num) && num > max ? num : max;
-    }, settings.currentNumber);
+    }, settings?.currentNumber || 1000);
 
     const nextSeq = maxNumber + 1;
-    const formatted = `${settings.prefix}-2026-${String(nextSeq).padStart(4, "0")}`;
+    const prefix = settings?.prefix || (brand === "gourmet_ahumados" ? "FAC-GA" : "FAC-JD");
+    const formatted = `${prefix}-2026-${String(nextSeq).padStart(4, "0")}`;
     return { number: formatted, nextSeq };
   }
 
