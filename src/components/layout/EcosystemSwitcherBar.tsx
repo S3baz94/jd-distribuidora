@@ -63,41 +63,22 @@ export const EcosystemSwitcherBar: React.FC = () => {
   return (
     <div className="w-full bg-slate-950/95 border-b-2 border-slate-800/90 backdrop-blur-md sticky top-0 z-50 shadow-xl select-none">
       <div className="max-w-7xl mx-auto px-2.5 sm:px-4 py-2 flex flex-col md:flex-row items-center justify-between gap-2">
-        {/* Cabecera Co-Branding Articulada con Ambas Mascotas */}
+        {/* Cabecera Co-Branding Articulada con Logos Representativos */}
         <div className="flex items-center justify-between w-full md:w-auto gap-3">
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2.5 group">
             {/* Logos Corporativos en Dúo */}
-            <div className="flex items-center gap-1.5 p-1 bg-black/50 rounded-2xl border border-slate-700/60 shadow-inner">
+            <div className="flex items-center gap-2 p-1.5 bg-black/45 rounded-2xl border border-slate-700/60 shadow-inner">
               <img
                 src="/images/branding/logo-jd-comercializadora.png"
                 alt="Logo JD Comercializadora"
-                className="h-7 sm:h-8 w-auto object-contain drop-shadow group-hover:scale-105 transition-transform"
+                className="h-8 sm:h-9 w-auto object-contain drop-shadow group-hover:scale-105 transition-transform"
               />
               <span className="text-slate-600 font-black text-xs">&</span>
               <img
                 src="/images/branding/logo-ahumados-gourmet-oficial.png"
                 alt="Logo Ahumados Gourmet"
-                className="h-7 sm:h-8 w-auto object-contain drop-shadow group-hover:scale-105 transition-transform"
+                className="h-8 sm:h-9 w-auto object-contain drop-shadow group-hover:scale-105 transition-transform"
               />
-            </div>
-
-            {/* Dúo de Cerditos Animados */}
-            <div className="flex items-end -space-x-2 hidden sm:flex">
-              <div className="w-8 h-9 relative">
-                <img
-                  src="/images/branding/cerdito-saludo-bienvenida.png"
-                  alt="Cerdito JD"
-                  className="w-full h-full object-contain animate-float-slow"
-                />
-              </div>
-              <div className="w-8 h-9 relative">
-                <img
-                  src="/images/branding/cerdito-gourmet-ahumados.png"
-                  alt="Cerdito Gourmet"
-                  className="w-full h-full object-contain animate-float-slow"
-                  style={{ animationDelay: "1s" }}
-                />
-              </div>
             </div>
 
             <div>
@@ -120,6 +101,7 @@ export const EcosystemSwitcherBar: React.FC = () => {
         {/* Barra Articulada de Herramientas (Scroll Horizontal en Móviles) */}
         <nav className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0 justify-start md:justify-end">
           {tools.map((tool) => {
+            const Icon = tool.icon;
             return (
               <Link
                 key={tool.id}
@@ -131,13 +113,13 @@ export const EcosystemSwitcherBar: React.FC = () => {
                 }`}
                 title={`Cambiar a herramienta de ${tool.name}`}
               >
-                {/* Miniatura de la Mascota Especializada */}
-                <div className="w-5 h-6 relative flex-shrink-0">
-                  <img
-                    src={tool.mascot}
-                    alt={tool.name}
-                    className="w-full h-full object-contain drop-shadow"
-                  />
+                {/* Icono de la Herramienta */}
+                <div
+                  className={`p-1.5 rounded-xl flex items-center justify-center ${
+                    tool.isActive ? "bg-white/20 text-white" : "bg-slate-800/80 text-slate-400"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
                 </div>
 
                 <div className="text-left">
