@@ -505,8 +505,8 @@ export default function DomiciliarioView() {
         {/* Banner de Siguiente Entrega */}
         {nextStop ? (
           <div className="bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border-2 border-[#4edea3]/40 rounded-3xl p-4 sm:p-5 shadow-2xl relative overflow-hidden cartoon-card">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3 flex-wrap gap-1.5">
-              <div className="flex items-center gap-1.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-white/10 mb-3 gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="w-2 h-2 rounded-full bg-[#4edea3] animate-ping" />
                 <span className="text-[11px] uppercase tracking-wider font-extrabold text-[#4edea3]">
                   SIGUIENTE ENTREGA EN RUTA
@@ -518,7 +518,7 @@ export default function DomiciliarioView() {
                 )}
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[11px] font-mono font-bold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded-md border border-cyan-700/50 flex items-center gap-1">
                   <Clock className="w-3 h-3 text-cyan-400" />
                   <span>Meta: {nextStop.deliveryTimeWindow || "07:30 AM"}</span>
@@ -786,7 +786,7 @@ export default function DomiciliarioView() {
                 <label className="block text-slate-300 font-bold mb-1 text-[11px]">
                   Método de Recaudo:
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => setDeliveryPaymentMethod("efectivo")}

@@ -694,10 +694,10 @@ export default function FacturacionPage() {
 
         {/* Filter Pills */}
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+          <div className="flex items-center overflow-x-auto no-scrollbar max-w-full bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs gap-1">
             <button
               onClick={() => setStatusFilter("all")}
-              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+              className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                 statusFilter === "all" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
@@ -705,7 +705,7 @@ export default function FacturacionPage() {
             </button>
             <button
               onClick={() => setStatusFilter("pagada")}
-              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+              className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                 statusFilter === "pagada"
                   ? "bg-emerald-950/60 text-emerald-400 border border-emerald-800/60"
                   : "text-slate-400 hover:text-white"
@@ -715,7 +715,7 @@ export default function FacturacionPage() {
             </button>
             <button
               onClick={() => setStatusFilter("pendiente")}
-              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+              className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                 statusFilter === "pendiente"
                   ? "bg-amber-950/60 text-amber-400 border border-amber-800/60"
                   : "text-slate-400 hover:text-white"
@@ -725,7 +725,7 @@ export default function FacturacionPage() {
             </button>
             <button
               onClick={() => setStatusFilter("devolucion")}
-              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+              className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                 statusFilter === "devolucion"
                   ? "bg-indigo-950/60 text-indigo-400 border border-indigo-800/60"
                   : "text-slate-400 hover:text-white"
@@ -735,7 +735,7 @@ export default function FacturacionPage() {
             </button>
             <button
               onClick={() => setStatusFilter("anulada")}
-              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+              className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                 statusFilter === "anulada"
                   ? "bg-rose-950/60 text-rose-400 border border-rose-800/60"
                   : "text-slate-400 hover:text-white"

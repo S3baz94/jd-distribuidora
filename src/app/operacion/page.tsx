@@ -475,10 +475,10 @@ export default function OperacionPage() {
                   className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform"
                 />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <span
-                    className={`font-bebas text-sm sm:text-base uppercase px-2.5 py-0.5 rounded border tracking-wider ${
+                    className={`font-bebas text-xs sm:text-sm md:text-base uppercase px-2 sm:px-2.5 py-0.5 rounded border tracking-wider truncate ${
                       currentUser?.role === "operador"
                         ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
                         : "text-amber-400 bg-amber-500/10 border-amber-500/20"
@@ -489,16 +489,16 @@ export default function OperacionPage() {
                       : "PANTALLA DE DOMICILIARIO / CONDUCTOR"}
                   </span>
                   {isOnline ? (
-                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 flex-shrink-0">
                       <Wifi className="w-2.5 h-2.5" /> En línea
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 animate-pulse">
+                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 animate-pulse flex-shrink-0">
                       <WifiOff className="w-2.5 h-2.5" /> Sin conexión
                     </span>
                   )}
                 </div>
-                <h1 className="text-sm sm:text-base font-bold text-slate-100 leading-tight mt-0.5">
+                <h1 className="text-xs sm:text-base font-bold text-slate-100 leading-tight mt-1 break-words">
                   {currentUser?.role === "operador"
                     ? operationsMode === "planta"
                       ? "Alistamiento, Báscula Digital & Precintos INVIMA"
@@ -864,7 +864,7 @@ export default function OperacionPage() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-2 pt-2 text-xs border-t border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-xs border-t border-slate-800">
             <div className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800">
               <span className="text-slate-400 block text-[10px] uppercase font-bold">Carga Total:</span>
               <strong className="text-white text-xs sm:text-sm font-black">{totalKg} kg</strong>

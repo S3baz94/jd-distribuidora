@@ -132,10 +132,10 @@ export default function HomePage() {
         </div>
 
         <div>
-          <h1 className="font-bebas text-3xl sm:text-4xl text-white tracking-wider leading-none">
-            HOLA, {customer.contactName.split(" ")[0].toUpperCase()} 👋 <span className="text-gold-400 text-2xl sm:text-3xl">({customer.businessName})</span>
+          <h1 className="font-bebas text-2xl sm:text-4xl text-white tracking-wider leading-tight break-words">
+            HOLA, {customer.contactName.split(" ")[0].toUpperCase()} 👋 <span className="text-gold-400 text-xl sm:text-3xl block sm:inline mt-1 sm:mt-0">({customer.businessName})</span>
           </h1>
-          <p className="font-caveat text-base sm:text-lg text-slate-300 font-bold mt-1">
+          <p className="font-caveat text-sm sm:text-base md:text-lg text-slate-300 font-bold mt-1">
             Cortes de cerdo 100% despostados y costillas ahumadas con entrega directa en furgón refrigerado.
           </p>
         </div>
@@ -361,7 +361,7 @@ export default function HomePage() {
 
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5 shadow-md">
+                <div className="h-14 sm:h-16 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5 shadow-md">
                   <img
                     src="/images/branding/logo-jd-comercializadora.png"
                     alt="Logo Oficial JD Comercializadora"
@@ -425,7 +425,7 @@ export default function HomePage() {
 
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5 shadow-md">
+                <div className="h-14 sm:h-16 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5 shadow-md">
                   <img
                     src="/images/branding/logo-ahumados-gourmet-oficial.png"
                     alt="Logo Oficial Ahumados Gourmet"
@@ -508,13 +508,13 @@ export default function HomePage() {
                 className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-bebas text-2xl sm:text-3xl text-white tracking-wider uppercase">
+                <span className="font-bebas text-xl sm:text-2xl md:text-3xl text-white tracking-wider uppercase break-words">
                   {selectedBrand === "gourmet_ahumados" ? "🪵 LÍNEA AHUMADOS AL LEÑO" : "🥩 CORTES 100% DESPOSTADOS"}
                 </span>
               </div>
-              <p className="font-caveat text-sm sm:text-base text-gold-400 font-bold leading-none mt-0.5">
+              <p className="font-caveat text-xs sm:text-base text-gold-400 font-bold leading-none mt-0.5">
                 {selectedBrand === "gourmet_ahumados" ? "Ahumado artesanal con madera de guayabo" : "Cortes frescos sin merma de canal"}
               </p>
             </div>

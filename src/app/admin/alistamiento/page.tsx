@@ -85,7 +85,7 @@ export default function AdminPickingPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden border-2 border-amber-400/60 flex-shrink-0 bg-slate-900 shadow-md">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden border-2 border-amber-400/60 flex-shrink-0 bg-slate-900 shadow-md">
             <img
               src="/images/branding/cerdito-bandeja-carnes.png"
               alt="Cerdito Maestro de Desposte"
@@ -93,7 +93,7 @@ export default function AdminPickingPage() {
             />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white flex items-center gap-2.5 break-words">
               <span>Planilla de Desposte & Canastillas</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
@@ -154,10 +154,10 @@ export default function AdminPickingPage() {
       </div>
 
       {/* Dual Tab Switcher: By Cut vs By Customer / Canastilla */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab("cuts")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap flex-shrink-0 ${
             activeTab === "cuts"
               ? "bg-brand-600 text-white shadow-md"
               : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
@@ -172,7 +172,7 @@ export default function AdminPickingPage() {
 
         <button
           onClick={() => setActiveTab("customers")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap flex-shrink-0 ${
             activeTab === "customers"
               ? "bg-brand-600 text-white shadow-md"
               : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"

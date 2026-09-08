@@ -60,15 +60,15 @@ export default function CatalogPage() {
       {/* Top Banner / Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-slate-200 pb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-950 tracking-tight break-words">
               {selectedBrand === "jd_distribuidora"
                 ? "Cortes de Cerdo 100% Despostados"
                 : selectedBrand === "gourmet_ahumados"
                 ? "Costillas & Chuletas Gourmet Ahumadas"
                 : "Catálogo 100% Despostados & Ahumados JD"}
             </h1>
-            <span className="text-xs font-black text-brand-700 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200">
+            <span className="text-xs font-black text-brand-700 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200 flex-shrink-0">
               {filteredProducts.length} productos
             </span>
           </div>

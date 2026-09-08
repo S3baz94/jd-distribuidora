@@ -72,15 +72,15 @@ function ConfirmationContent() {
               />
             </div>
           ) : isGourmetOrder ? (
-            <div className="flex items-end justify-center -space-x-4">
-              <div className="w-24 h-24 sm:w-28 sm:h-28">
+            <div className="flex items-end justify-center gap-3 sm:gap-4">
+              <div className="w-20 h-20 sm:w-24 sm:h-24">
                 <img
                   src="/images/branding/cerdito-pulgar-exito.png"
                   alt="Pedido JD Confirmado"
                   className="w-full h-full object-contain drop-shadow"
                 />
               </div>
-              <div className="w-24 h-24 sm:w-28 sm:h-28">
+              <div className="w-20 h-20 sm:w-24 sm:h-24">
                 <img
                   src="/images/branding/cerdito-gourmet-ahumados.png"
                   alt="Pedido Gourmet Confirmado"
@@ -89,7 +89,7 @@ function ConfirmationContent() {
               </div>
             </div>
           ) : (
-            <div className="w-28 h-28 sm:w-32 sm:h-32">
+            <div className="w-24 h-24 sm:w-28 sm:h-28">
               <img
                 src="/images/branding/cerdito-pulgar-exito.png"
                 alt="Pedido Confirmado con Éxito"
@@ -138,12 +138,12 @@ function ConfirmationContent() {
             <span className="font-extrabold text-slate-900">{order.deliveryDate}</span>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-slate-500 font-medium flex items-center gap-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-slate-500 font-medium flex items-center gap-1.5 flex-shrink-0">
               <MapPin className="w-4 h-4 text-slate-400" />
               Dirección:
             </span>
-            <span className="font-semibold text-slate-900 truncate max-w-[200px]">
+            <span className="font-semibold text-slate-900 truncate max-w-[180px] sm:max-w-xs text-right">
               {order.deliveryAddress}
             </span>
           </div>
