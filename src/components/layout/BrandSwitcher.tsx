@@ -49,11 +49,11 @@ export const BrandSwitcher: React.FC = () => {
             </span>
           </div>
           <div className="mt-2.5">
-            <h3 className="font-black text-xs sm:text-sm text-white">
-              JD Comercializadora
+            <h3 className="font-bebas text-lg sm:text-xl text-white tracking-wider">
+              JD COMERCIALIZADORA
             </h3>
-            <p className="text-[11px] text-slate-300 mt-0.5 font-medium">
-              Cortes de Cerdo Crudo
+            <p className="font-caveat text-sm sm:text-base text-gold-400 font-bold leading-none mt-0.5">
+              Cortes de Cerdo 100% Despostados
             </p>
           </div>
         </button>
@@ -87,11 +87,11 @@ export const BrandSwitcher: React.FC = () => {
             </span>
           </div>
           <div className="mt-2.5">
-            <h3 className="font-black text-xs sm:text-sm text-white">
-              Ahumados Gourmet
+            <h3 className="font-bebas text-lg sm:text-xl text-white tracking-wider">
+              AHUMADOS GOURMET
             </h3>
-            <p className="text-[11px] text-slate-300 mt-0.5 font-medium">
-              Costillas & Ahumados al Leño
+            <p className="font-caveat text-sm sm:text-base text-fire-400 font-bold leading-none mt-0.5">
+              Costillas & Asados al Leño
             </p>
           </div>
         </button>

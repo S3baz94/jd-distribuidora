@@ -69,16 +69,16 @@ export const Header: React.FC = () => {
             />
           </div>
           <div>
-            <div className="font-black text-sm sm:text-base leading-tight tracking-tight text-white flex items-center gap-2">
+            <div className="font-bebas text-lg sm:text-2xl tracking-wider text-white flex items-center gap-2 leading-none">
               <span>JD COMERCIALIZADORA</span>
-              <span className="text-[9px] bg-fire-600/30 text-fire-300 font-black px-2 py-0.5 rounded-full border border-fire-500/40 uppercase tracking-widest">
+              <span className="text-[10px] font-black bg-fire-600/30 text-fire-300 px-2 py-0.5 rounded-full border border-fire-500/40 uppercase tracking-widest">
                 OFICIAL
               </span>
             </div>
-            <p className="text-[11px] text-slate-300 font-medium leading-none mt-1 flex items-center gap-1.5">
-              <span className="text-gold-400 font-bold">Cortes de Cerdo</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-fire-400 font-bold">Ahumados Gourmet</span>
+            <p className="font-caveat text-sm sm:text-base text-gold-400 font-bold leading-none mt-1 flex items-center gap-1.5">
+              <span>Cortes de Cerdo 100% Despostados</span>
+              <span className="text-slate-500">•</span>
+              <span className="text-fire-400">Ahumados Gourmet</span>
             </p>
           </div>
         </Link>

@@ -132,11 +132,11 @@ export default function HomePage() {
         </div>
 
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white leading-tight">
-            Hola, {customer.contactName.split(" ")[0]} 👋 <span className="text-slate-300 font-bold">({customer.businessName})</span>
+          <h1 className="font-bebas text-3xl sm:text-4xl text-white tracking-wider leading-none">
+            HOLA, {customer.contactName.split(" ")[0].toUpperCase()} 👋 <span className="text-gold-400 text-2xl sm:text-3xl">({customer.businessName})</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            Cortes de cerdo 100% despostados, piezas limpias al corte exacto y costillas ahumadas con entrega directa en tu local.
+          <p className="font-caveat text-base sm:text-lg text-slate-300 font-bold mt-1">
+            Cortes de cerdo 100% despostados y costillas ahumadas con entrega directa en furgón refrigerado.
           </p>
         </div>
 
@@ -333,33 +333,33 @@ export default function HomePage() {
         </span>
       </div>
 
-      {/* 4. Selector de Marca & Buscador matching Stitch */}
+      {/* 4. Selector de Marca & Buscador */}
       <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2.5">
           <button
             type="button"
             onClick={() => setSelectedBrand("jd_distribuidora")}
-            className={`p-3.5 rounded-2xl text-center font-black text-xs sm:text-sm transition-all border flex items-center justify-center gap-2 shadow-lg ${
+            className={`p-3 rounded-2xl text-center font-bebas text-lg sm:text-xl tracking-wider transition-all border flex items-center justify-center gap-2 shadow-lg ${
               selectedBrand === "jd_distribuidora"
-                ? "bg-rose-950/80 border-rose-500 text-rose-300 ring-2 ring-rose-500/40 shadow-rose-950/40"
-                : "glass-panel text-slate-400 border-white/10 hover:text-white"
+                ? "bg-jdblue-900 border-gold-500 text-gold-300 ring-2 ring-gold-500/50 shadow-jdblue-950/60"
+                : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
             }`}
           >
-            <Layers className="w-4 h-4 text-rose-400" />
-            <span>🥩 JD Cortes Crudos</span>
+            <Layers className="w-5 h-5 text-gold-400" />
+            <span>🥩 JD CORTES CRUDOS</span>
           </button>
 
           <button
             type="button"
             onClick={() => setSelectedBrand("gourmet_ahumados")}
-            className={`p-3.5 rounded-2xl text-center font-black text-xs sm:text-sm transition-all border flex items-center justify-center gap-2 shadow-lg ${
+            className={`p-3 rounded-2xl text-center font-bebas text-lg sm:text-xl tracking-wider transition-all border flex items-center justify-center gap-2 shadow-lg ${
               selectedBrand === "gourmet_ahumados"
-                ? "bg-amber-950/80 border-amber-500 text-amber-300 ring-2 ring-amber-500/40 shadow-amber-950/40"
-                : "glass-panel text-slate-400 border-white/10 hover:text-white"
+                ? "bg-fire-800 border-fire-400 text-white ring-2 ring-fire-500/50 shadow-fire-950/60"
+                : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
             }`}
           >
-            <Flame className="w-4 h-4 text-amber-400" />
-            <span>🪵 Gourmet Ahumados</span>
+            <Flame className="w-5 h-5 text-gold-300" />
+            <span>🪵 GOURMET AHUMADOS</span>
           </button>
         </div>
 
@@ -368,74 +368,74 @@ export default function HomePage() {
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Buscar por corte (Bondiola, Costilla, Panceta, Pierna, Chuleta)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 text-xs sm:text-sm rounded-2xl border border-white/10 focus:outline-none focus:border-[#4edea3] font-medium bg-[#0d1c2d]/90 text-white placeholder-slate-500 shadow-md transition-colors"
+            placeholder={`Buscar en catálogo oficial de ${selectedBrand === "gourmet_ahumados" ? "Ahumados Gourmet" : "JD Comercializadora"}...`}
+            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-gold-500 transition-colors shadow-inner"
           />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white font-bold"
-            >
-              ✕
-            </button>
-          )}
         </div>
       </div>
 
-      {/* 5. Catálogo Práctico con Tarjetas Glassmorphism Oscuras matching Stitch */}
+      {/* 5. Catálogo de Cortes por Kilos */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-200">
-            {selectedBrand === "jd_distribuidora" ? "🥩 Cortes Crudos en Cava" : "🪵 Ahumados al Leño"} ({filteredProducts.length})
-          </h3>
-          <span className="text-xs font-mono font-bold text-[#4edea3]">Precios por kilo en COP</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-bebas text-2xl sm:text-3xl text-white tracking-wider uppercase">
+              {selectedBrand === "gourmet_ahumados" ? "🪵 LÍNEA AHUMADOS AL LEÑO" : "🥩 CORTES 100% DESPOSTADOS"}
+            </span>
+            <span className="font-mono text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full border border-slate-700">
+              {filteredProducts.length} productos
+            </span>
+          </div>
+
+          <span className="font-caveat text-sm sm:text-base text-gold-400 font-bold hidden sm:inline">
+            ¡Precios por kilo exacto!
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Lista Vertical de Productos */}
+        <div className="space-y-3">
           {filteredProducts.map((product) => {
-            const stock = getProductStock(product.id);
-            const availKg = stock ? stock.availableQuantity : 0;
-            const isOutOfStock = availKg <= 0;
             const unitPrice = getProductPrice(product.id);
-            const currentQty = quickQtys[product.id] || product.minimumQuantity;
-            const inCart = cart.find((i) => i.product.id === product.id);
+            const availKg = getProductStock(product.id)?.availableQuantity || 0;
+            const isOutOfStock = availKg <= 0;
+            const currentQty = quickQtys[product.id] || product.minimumQuantity || 10;
+            const itemInCart = cart.find((i) => i.product.id === product.id);
 
             return (
               <div
                 key={product.id}
-                className={`glass-panel rounded-3xl border p-4 shadow-xl flex flex-col justify-between space-y-3 transition-all ${
-                  inCart
-                    ? "border-[#4edea3] ring-2 ring-[#4edea3]/40 glow-emerald-card"
+                className={`p-4 rounded-3xl bg-slate-950/90 border transition-all ${
+                  itemInCart
+                    ? "border-gold-500 ring-2 ring-gold-500/40 gold-glow-card"
                     : isOutOfStock
                     ? "border-white/5 opacity-60 bg-slate-950"
-                    : "border-white/10 hover:border-white/20"
+                    : "border-slate-800/90 hover:border-slate-700"
                 }`}
               >
                 <div className="flex gap-3.5">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-20 h-20 rounded-2xl object-cover border border-white/10 flex-shrink-0 shadow-md"
+                    className="w-20 h-20 rounded-2xl object-cover border border-slate-800 flex-shrink-0 shadow-md"
                   />
 
                   <div className="flex-1 min-w-0">
                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider font-mono ${
                       product.brand === "gourmet_ahumados"
                         ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                        : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                        : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
                     }`}>
                       {product.brand === "gourmet_ahumados" ? "🪵 Gourmet Ahumados" : "🥩 Cerdo Crudo JD"}
                     </span>
 
-                    <h4 className="font-black text-white text-base leading-snug mt-1 truncate">
+                    <h4 className="font-bebas text-xl sm:text-2xl text-white tracking-wide mt-1 truncate">
                       {product.name}
                     </h4>
 
-                    <p className="text-lg font-black text-[#4edea3] font-mono mt-0.5">
+                    <p className="font-bebas text-2xl sm:text-3xl text-gold-400 mt-0.5 tracking-wider">
                       {priceService.formatCurrency(unitPrice)}{" "}
-                      <span className="text-xs font-normal text-slate-400">/ kilo</span>
+                      <span className="font-sans text-xs font-normal text-slate-400">/ kilo</span>
                     </p>
 
                     <p className="text-xs text-slate-400 mt-0.5 font-mono">
@@ -491,21 +491,21 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => handleAdd(product)}
-                        className={`px-4 py-2.5 rounded-2xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 flex-shrink-0 ${
-                          inCart
-                            ? "bg-emerald-600 text-white border border-emerald-400"
-                            : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black"
+                        className={`px-4 py-2.5 rounded-2xl font-bebas text-base tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 flex-shrink-0 ${
+                          itemInCart
+                            ? "bg-gold-500 text-slate-950 border border-gold-300 shadow-md"
+                            : "bg-gradient-to-r from-fire-600 via-fire-500 to-amber-600 hover:from-fire-500 hover:to-amber-500 text-white shadow-fire-950/60"
                         }`}
                       >
-                        {inCart ? (
+                        {itemInCart ? (
                           <>
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
-                            <span>Agregado</span>
+                            <Check className="w-4 h-4 stroke-[3]" />
+                            <span>AGREGADO</span>
                           </>
                         ) : (
                           <>
-                            <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                            <span>+ Agregar</span>
+                            <Plus className="w-4 h-4 stroke-[3]" />
+                            <span>+ AGREGAR</span>
                           </>
                         )}
                       </button>

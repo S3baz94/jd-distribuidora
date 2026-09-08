@@ -29,7 +29,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#051424]/90 backdrop-blur-2xl text-white border-b border-white/10 shadow-2xl">
+    <header className="sticky top-0 z-50 bg-[#0b0f17]/95 backdrop-blur-2xl text-white border-b border-slate-800 shadow-2xl">
       <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Brand & Navigation Links */}
@@ -50,7 +50,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                   alt="Logo JD Comercializadora"
                   className="h-9 sm:h-10 w-auto object-contain drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]"
                 />
-                <div className="h-6 w-[1px] bg-white/20 hidden sm:block" />
+                <div className="h-6 w-[1px] bg-slate-700 hidden sm:block" />
                 <img
                   src="/images/branding/logo-ahumados-gourmet-oficial.png"
                   alt="Logo Ahumados Gourmet"
@@ -58,11 +58,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                 />
               </div>
               <div>
-                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white uppercase block">
-                  JD DISTRIBUIDORA & GOURMET AHUMADOS
+                <span className="font-bebas text-lg sm:text-xl tracking-wider text-white uppercase block leading-none">
+                  JD COMERCIALIZADORA & GOURMET AHUMADOS
                 </span>
-                <span className="text-[10px] text-emerald-400 font-mono font-bold block">
-                  PANEL DE DIRECCIÓN EJECUTIVA
+                <span className="font-caveat text-sm text-gold-400 font-bold block mt-0.5">
+                  Panel de Dirección Ejecutiva & Despacho
                 </span>
               </div>
             </Link>

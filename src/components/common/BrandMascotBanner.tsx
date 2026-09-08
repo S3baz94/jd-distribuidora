@@ -53,77 +53,101 @@ export const BrandMascotBanner: React.FC = () => {
         </div>
 
         {/* Lema manuscrito */}
-        <div className="flex items-center gap-1.5 text-gold-400 font-brush-accent italic text-xs sm:text-sm">
-          <Sparkles className="w-4 h-4 text-gold-400 animate-spin" />
-          <span>¡Se viene algo especial en cada entrega!</span>
+        <div className="flex items-center gap-2 text-white">
+          <Sparkles className="w-5 h-5 text-gold-400 animate-spin" />
+          <span className="font-caveat text-xl sm:text-2xl font-bold tracking-wide text-white drop-shadow">
+            ¡Se viene algo especial!
+          </span>
         </div>
       </div>
 
       {/* Contenido Central: Título Display + Mascota Chef + Calendario */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center pt-5 relative z-10">
-        {/* Columna Izquierda: Mensajes Promocionales */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="space-y-1">
-            <span className="brush-badge-red-sm inline-block px-3 py-1 text-white font-black text-xs uppercase tracking-widest shadow-md">
-              LOS DÍAS DE PEDIDO
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight uppercase leading-none drop-shadow-md">
-              FRESCO AL CORTE <br />
-              <span className="text-gold-400">Y AL LEÑO AHUMADO</span>
+        {/* Columna Izquierda: Mensajes Promocionales Fieles al Post */}
+        <div className="lg:col-span-7 space-y-3">
+          <div>
+            <div className="inline-block">
+              <span className="brush-badge-red px-3.5 py-0.5 text-white font-bebas text-lg sm:text-xl tracking-widest shadow-md">
+                LOS
+              </span>
+            </div>
+            <h2 className="font-bebas text-4xl sm:text-6xl text-white tracking-wide uppercase leading-none drop-shadow-xl mt-1">
+              MIÉRCOLES <br />
+              <span className="text-fire-500 chalk-text-red">DE SEPTIEMBRE</span>
             </h2>
           </div>
 
-          {/* Pincelada Roja de Promoción */}
-          <div className="brush-badge-red px-4 py-2.5 rounded-lg inline-block transform -rotate-1 shadow-xl">
-            <p className="text-white font-black text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
-              <Flame className="w-4 h-4 text-gold-300 fill-current" />
-              <span>PRECIOS MAYORISTAS EN JD Y GOURMET</span>
+          <p className="font-bebas text-xs sm:text-sm text-slate-300 tracking-widest">
+            TENDREMOS UNA
+          </p>
+
+          {/* Pincelada Roja de Promoción Oficial */}
+          <div className="brush-badge-red px-5 py-2 rounded-lg inline-block transform -rotate-1 shadow-2xl">
+            <p className="font-bebas text-lg sm:text-2xl text-white tracking-widest flex items-center gap-2">
+              <Flame className="w-5 h-5 text-gold-300 fill-current animate-pulse" />
+              <span>PROMOCIÓN ESPECIAL</span>
             </p>
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-lg">
-            Cortes 100% despostados con peso exacto en báscula, sin mermas ni sorpresas. Programa hoy tu entrega y recibe en furgón refrigerado con temperatura certificada.
+          <div className="flex items-center gap-2 text-white font-bebas text-base sm:text-lg tracking-widest">
+            <span className="text-fire-500">❖</span>
+            <span>EN JD Y GOURMET</span>
+            <span className="text-fire-500">❖</span>
+          </div>
+
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-lg font-medium">
+            Cortes 100% despostados con peso exacto en báscula y costillas ahumadas al leño. Programa tu entrega con furgón refrigerado INVIMA.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <Link
               href="/comprar"
-              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-fire-600 to-fire-700 hover:from-fire-500 hover:to-fire-600 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-fire-950/60 active:scale-95 transition-all"
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-fire-600 via-fire-500 to-amber-600 hover:from-fire-500 hover:to-amber-500 text-white font-bebas text-lg tracking-wider flex items-center gap-2 shadow-xl shadow-fire-950/60 active:scale-95 transition-all"
             >
               <span>Ver Catálogo & Precios</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
-            <span className="text-xs text-gold-400 font-brush-accent italic">
+            <span className="font-caveat text-2xl sm:text-3xl text-gold-400 font-bold tracking-wide drop-shadow-sm">
               ¡Grandes ofertas te esperan!
             </span>
           </div>
         </div>
 
-        {/* Columna Derecha: Tarjeta de Mascota & Calendario */}
+        {/* Columna Derecha: Tarjeta de Mascota & Calendario Oficial */}
         <div className="lg:col-span-5 flex flex-col sm:flex-row items-center justify-center gap-4">
-          {/* Calendario de Despacho */}
-          <div className="w-36 bg-white text-slate-900 rounded-2xl shadow-2xl p-3 border-t-4 border-fire-600 text-center flex flex-col items-center flex-shrink-0">
+          {/* Calendario de Despacho Idéntico al Post */}
+          <div className="w-40 bg-white text-slate-900 rounded-3xl shadow-2xl p-4 border-t-8 border-fire-600 text-center flex flex-col items-center flex-shrink-0 relative overflow-hidden">
             <div className="flex items-center gap-1 text-[10px] font-black uppercase text-fire-700 tracking-wider">
               <Calendar className="w-3.5 h-3.5" />
               <span>Despacho</span>
             </div>
-            <p className="text-2xl font-black text-slate-900 mt-1">LUN - SÁB</p>
-            <span className="text-[10px] bg-fire-100 text-fire-800 font-bold px-2 py-0.5 rounded-full mt-1">
-              Rutas 06:00 AM
+            
+            <p className="font-caveat text-xl text-slate-900 font-bold leading-tight mt-1">
+              ¡Marca tus miércoles!
+            </p>
+
+            {/* Icono Calendario Rojo del Post */}
+            <div className="w-16 h-16 my-1 border-2 border-fire-600 rounded-2xl flex flex-col items-center justify-center bg-fire-50 shadow-inner">
+              <span className="text-[10px] font-black uppercase text-fire-700 leading-none">MIÉRCOLES</span>
+              <span className="text-2xl text-fire-600">★</span>
+            </div>
+
+            <span className="font-bebas text-base bg-fire-600 text-white font-bold px-3 py-0.5 rounded-full mt-1 tracking-wider">
+              RUTAS 06:00 AM
             </span>
-            <p className="text-[9px] text-slate-500 italic mt-1.5 font-brush-accent">
-              ¡Marca tu día!
+            <p className="font-caveat text-base text-slate-600 font-bold mt-1">
+              Todo el mes de septiembre
             </p>
           </div>
 
           {/* Tarjeta de Mascota Oficial Cerdito Chef JD */}
-          <div className="bg-gradient-to-b from-slateblack-900 to-slate-950 border-2 border-gold-500/50 rounded-3xl p-4 text-center flex flex-col items-center relative shadow-2xl overflow-hidden group">
+          <div className="bg-gradient-to-b from-slateblack-900 via-slate-900 to-slateblack-950 border-2 border-gold-500/60 rounded-3xl p-4 text-center flex flex-col items-center relative shadow-2xl overflow-hidden group">
             {/* Resplandor dorado de fondo */}
-            <div className="absolute inset-0 bg-gradient-to-t from-gold-500/10 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-gold-500/15 via-transparent to-transparent pointer-events-none" />
 
-            {/* Imagen Real de la Mascota Oficial */}
-            <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center">
+            {/* Imagen de la Mascota Oficial Cerdito Chef Anuncio */}
+            <div className="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center">
               <img
                 src="/images/branding/cerdito-chef-anuncio.jpg"
                 alt="Mascota Oficial Cerdito Chef JD & Gourmet"
@@ -132,16 +156,16 @@ export const BrandMascotBanner: React.FC = () => {
             </div>
 
             {/* Distintivo Oficial */}
-            <div className="mt-2.5 bg-fire-600 border border-fire-400 px-3 py-0.5 rounded-full shadow-md">
-              <span className="text-[10px] font-black uppercase tracking-wider text-white">
-                Mascota Oficial
+            <div className="mt-2.5 bg-fire-600 border border-fire-400 px-3.5 py-0.5 rounded-full shadow-md">
+              <span className="font-bebas text-xs uppercase tracking-widest text-white">
+                MASCOTA OFICIAL
               </span>
             </div>
 
-            <p className="font-black text-white text-xs mt-1.5">
-              El Cerdito Gourmet
+            <p className="font-bebas text-lg text-white mt-1 tracking-wide">
+              EL CERDITO GOURMET
             </p>
-            <p className="text-[10px] text-gold-400 font-medium">
+            <p className="font-caveat text-base text-gold-400 font-bold leading-none">
               Sabor & Calidad JD
             </p>
           </div>

@@ -530,8 +530,8 @@ export default function DomiciliarioView() {
             </div>
 
             {/* Datos del Cliente */}
-            <div className="space-y-2">
-              <h2 className="text-lg font-black text-white leading-tight">
+            <div className="space-y-1.5">
+              <h2 className="font-bebas text-2xl sm:text-3xl text-white tracking-wider leading-none">
                 {nextStop.customerName}
               </h2>
               <p className="text-xs text-slate-300 flex items-start gap-1.5">
@@ -541,16 +541,16 @@ export default function DomiciliarioView() {
             </div>
 
             {/* Resumen de Carga y Cobro */}
-            <div className="grid grid-cols-2 gap-2 my-3 p-2.5 rounded-xl bg-slate-950/60 border border-white/10 text-center">
+            <div className="grid grid-cols-2 gap-2 my-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-center">
               <div>
-                <p className="text-[10px] text-slate-400 uppercase font-bold">Kilos a Entregar</p>
-                <p className="text-base font-black text-white font-mono">
-                  {nextStop.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0).toFixed(1)} kg
+                <p className="font-bebas text-xs text-slate-400 uppercase tracking-wider">KILOS A ENTREGAR</p>
+                <p className="font-bebas text-2xl font-bold text-white">
+                  {nextStop.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0).toFixed(1)} <span className="font-sans text-xs">kg</span>
                 </p>
               </div>
-              <div>
-                <p className="text-[10px] text-slate-400 uppercase font-bold">Valor a Cobrar</p>
-                <p className="text-base font-black text-[#4edea3] font-mono">
+              <div className="border-l border-slate-800 pl-2">
+                <p className="font-bebas text-xs text-slate-400 uppercase tracking-wider">VALOR A COBRAR</p>
+                <p className="font-bebas text-2xl text-gold-400 tracking-wider">
                   {priceService.formatCurrency(nextStop.realTotal || nextStop.total)}
                 </p>
               </div>

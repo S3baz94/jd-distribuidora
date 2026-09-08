@@ -458,13 +458,13 @@ export default function OperacionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#051424] text-white pb-24 font-sans selection:bg-[#4edea3] selection:text-[#051424]">
+    <div className="min-h-screen bg-[#0b0f17] text-white pb-24 font-sans selection:bg-fire-600 selection:text-white">
       {/* Top Operations Header matching Stitch */}
-      <div className="bg-[#051424]/90 backdrop-blur-xl border-b border-white/10 sticky top-0 z-30 px-4 py-3 shadow-2xl">
+      <div className="bg-[#0b0f17]/90 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-30 px-4 py-3 shadow-2xl">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center justify-between sm:justify-start gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-emerald-400/60 shadow-lg shadow-emerald-950/40 flex-shrink-0">
+              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-amber-400/60 shadow-lg shadow-amber-950/40 flex-shrink-0">
                 <img
                   src={
                     currentUser?.role === "operador"
@@ -478,7 +478,7 @@ export default function OperacionPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border tracking-wide ${
+                    className={`font-bebas text-sm sm:text-base uppercase px-2.5 py-0.5 rounded border tracking-wider ${
                       currentUser?.role === "operador"
                         ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
                         : "text-amber-400 bg-amber-500/10 border-amber-500/20"

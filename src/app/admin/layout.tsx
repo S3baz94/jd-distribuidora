@@ -10,7 +10,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <AdminAuthGuard>
-      <div className="min-h-screen bg-[#051424] text-slate-100 flex flex-col font-sans selection:bg-[#4edea3] selection:text-[#051424]">
+      <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans selection:bg-fire-600 selection:text-white">
         <AdminHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
         <div className="flex-1 flex max-w-[1700px] w-full mx-auto">
           <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />

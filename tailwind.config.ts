@@ -68,13 +68,16 @@ const config: Config = {
         },
       },
       fontFamily: {
+        bebas: ["'Bebas Neue'", "Impact", "sans-serif"],
+        caveat: ["'Caveat'", "cursive"],
+        montserrat: ["'Montserrat'", "sans-serif"],
         sans: [
+          "'Montserrat'",
           "Inter",
           "-apple-system",
           "BlinkMacSystemFont",
           "Segoe UI",
           "Roboto",
-          "Helvetica Neue",
           "sans-serif",
         ],
       },
