@@ -395,11 +395,11 @@ export default function DomiciliarioView() {
       <header className="sticky top-0 z-40 bg-[#051424]/95 backdrop-blur-md border-b border-white/10 px-4 py-3 shadow-xl">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-emerald-400/60 shadow-lg shadow-emerald-950/50 flex-shrink-0">
+            <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center flex-shrink-0 group">
               <img
-                src="/images/branding/cerdito-moto-domiciliario.jpg"
+                src="/images/branding/cerdito-moto-domiciliario.png"
                 alt="Cerdito Domiciliario Oficial"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform"
               />
             </div>
             <div>
@@ -556,13 +556,13 @@ export default function DomiciliarioView() {
               </div>
             </div>
 
-            {/* Botones de Navegación y Contacto */}
-            <div className="grid grid-cols-2 gap-2 mb-3">
+            {/* Botones de Navegación y Contacto Táctiles */}
+            <div className="grid grid-cols-2 gap-2.5 mb-3">
               <a
                 href={getGoogleMapsUrl(nextStop.deliveryAddress)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-blue-600/30 hover:bg-blue-600/40 text-blue-300 border border-blue-500/40 text-xs font-extrabold transition-all active:scale-95"
+                className="min-h-[46px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-blue-600/30 hover:bg-blue-600/40 text-blue-300 border border-blue-500/40 text-xs font-extrabold transition-all active:scale-95 shadow-md"
               >
                 <Navigation className="w-4 h-4" />
                 <span>Google Maps</span>
@@ -571,7 +571,7 @@ export default function DomiciliarioView() {
                 href={getWazeUrl(nextStop.deliveryAddress)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-xs font-extrabold transition-all active:scale-95"
+                className="min-h-[46px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-cyan-600/30 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-xs font-extrabold transition-all active:scale-95 shadow-md"
               >
                 <Navigation className="w-4 h-4" />
                 <span>Waze</span>
@@ -582,7 +582,7 @@ export default function DomiciliarioView() {
             <div className="space-y-2">
               <button
                 onClick={() => handleOpenDelivery(nextStop)}
-                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 transition-all active:scale-95"
+                className="w-full min-h-[50px] py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-sm tracking-wide flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/60 transition-all active:scale-95"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 <span>CONFIRMAR ENTREGA Y COBRO</span>
@@ -594,7 +594,7 @@ export default function DomiciliarioView() {
                   setIncidentReason("Local cerrado / No abren");
                   setIncidentNote("");
                 }}
-                className="w-full py-2 px-3 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-amber-400 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
+                className="w-full min-h-[44px] py-2 px-3 rounded-2xl bg-slate-900/70 hover:bg-slate-800 text-amber-400 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
               >
                 <AlertTriangle className="w-4 h-4" />
                 <span>Reportar Novedad o Incidente</span>
@@ -602,17 +602,28 @@ export default function DomiciliarioView() {
             </div>
           </div>
         ) : (
-          <div className="bg-slate-900/80 border border-emerald-500/40 rounded-2xl p-6 text-center shadow-xl space-y-3">
-            <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-[#4edea3]">
-              <CheckCircle2 className="w-8 h-8" />
+          <div className="bg-slate-900/80 border border-emerald-500/40 rounded-3xl p-6 text-center shadow-xl space-y-4 relative overflow-hidden">
+            <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
+              <img
+                src="/images/branding/cerdito-moto-domiciliario.png"
+                alt="Cerdito Domiciliario Misión Cumplida"
+                className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] animate-bounce"
+              />
             </div>
-            <h2 className="text-xl font-black text-white">¡Ruta Completada!</h2>
+            <div>
+              <span className="font-caveat text-xl text-emerald-400 font-bold block">
+                ¡Misión cumplida en ruta!
+              </span>
+              <h2 className="text-2xl font-black text-white font-bebas tracking-wide mt-0.5">
+                ¡TODAS LAS ENTREGAS COMPLETADAS!
+              </h2>
+            </div>
             <p className="text-xs text-slate-300 max-w-xs mx-auto">
-              Todas las entregas programadas en este furgón han sido finalizadas con éxito. Procede con el arqueo de cabina y entrega del sobre.
+              Todas las paradas programadas en este furgón han sido finalizadas con éxito. Procede con el arqueo de cabina y entrega del sobre con efectivo.
             </p>
             <button
               onClick={() => setShowArqueoModal(true)}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-950/60"
+              className="w-full min-h-[48px] py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-950/60 active:scale-95 transition-all"
             >
               VER RESUMEN DE ARQUEO EN SOBRE
             </button>

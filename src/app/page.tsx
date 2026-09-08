@@ -333,37 +333,128 @@ export default function HomePage() {
         </span>
       </div>
 
-      {/* 4. Selector de Marca & Buscador */}
+      {/* 4. Selector Oficial por Logotipos: Toca el Logo para Elegir Marca */}
       <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-black uppercase text-gold-400 tracking-wider">
+            Elige la Marca tocando su Logotipo:
+          </span>
+          <span className="text-[11px] font-medium text-slate-400">
+            Catálogo al instante
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* LOGO BOTÓN 1: JD Comercializadora */}
           <button
             type="button"
             onClick={() => setSelectedBrand("jd_distribuidora")}
-            className={`p-3 rounded-2xl text-center font-bebas text-lg sm:text-xl tracking-wider transition-all border flex items-center justify-center gap-2 shadow-lg ${
+            className={`relative p-3.5 sm:p-4 rounded-3xl text-left transition-all duration-300 border-2 overflow-hidden group active:scale-[0.98] ${
               selectedBrand === "jd_distribuidora"
-                ? "bg-jdblue-900 border-gold-500 text-gold-300 ring-2 ring-gold-500/50 shadow-jdblue-950/60"
-                : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
+                ? "bg-gradient-to-br from-jdblue-950 via-slate-900 to-slate-950 border-gold-500 ring-4 ring-gold-500/30 shadow-2xl shadow-jdblue-950/80"
+                : "bg-slate-950/80 border-slate-800 hover:border-slate-700 opacity-75 hover:opacity-100"
             }`}
           >
-            <Layers className="w-5 h-5 text-gold-400" />
-            <span>🥩 JD CORTES CRUDOS</span>
+            {selectedBrand === "jd_distribuidora" && (
+              <div className="absolute -top-8 -right-8 w-32 h-32 bg-gold-500/15 rounded-full blur-2xl pointer-events-none" />
+            )}
+
+            <div className="flex items-center justify-between gap-2">
+              <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5">
+                <img
+                  src="/images/branding/logo-jd-comercializadora.png"
+                  alt="Logo Oficial JD Comercializadora"
+                  className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(245,158,11,0.35)] group-hover:scale-105 transition-transform"
+                />
+              </div>
+
+              <div className="text-right">
+                <span
+                  className={`text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 ${
+                    selectedBrand === "jd_distribuidora"
+                      ? "bg-gold-500 text-slate-950 font-extrabold shadow-md shadow-gold-500/30"
+                      : "bg-slate-900 text-slate-500 border border-slate-800"
+                  }`}
+                >
+                  {selectedBrand === "jd_distribuidora" ? "✓ Catálogo Activo" : "Tocar para Ver"}
+                </span>
+                <p className="text-[11px] font-mono text-slate-400 mt-1">
+                  {products.filter((p) => p.brand === "jd_distribuidora").length} cortes de cerdo
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="font-bebas text-lg sm:text-xl text-white tracking-wider leading-none">
+                  JD COMERCIALIZADORA
+                </h3>
+                <p className="font-caveat text-sm sm:text-base text-gold-400 font-bold leading-tight">
+                  Cortes 100% Despostados
+                </p>
+              </div>
+              <span className="text-xs font-bold text-gold-300">
+                🥩 Crudos
+              </span>
+            </div>
           </button>
 
+          {/* LOGO BOTÓN 2: Ahumados Gourmet */}
           <button
             type="button"
             onClick={() => setSelectedBrand("gourmet_ahumados")}
-            className={`p-3 rounded-2xl text-center font-bebas text-lg sm:text-xl tracking-wider transition-all border flex items-center justify-center gap-2 shadow-lg ${
+            className={`relative p-3.5 sm:p-4 rounded-3xl text-left transition-all duration-300 border-2 overflow-hidden group active:scale-[0.98] ${
               selectedBrand === "gourmet_ahumados"
-                ? "bg-fire-800 border-fire-400 text-white ring-2 ring-fire-500/50 shadow-fire-950/60"
-                : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
+                ? "bg-gradient-to-br from-fire-950 via-slate-900 to-slate-950 border-fire-500 ring-4 ring-fire-500/30 shadow-2xl shadow-fire-950/80"
+                : "bg-slate-950/80 border-slate-800 hover:border-slate-700 opacity-75 hover:opacity-100"
             }`}
           >
-            <Flame className="w-5 h-5 text-gold-300" />
-            <span>🪵 GOURMET AHUMADOS</span>
+            {selectedBrand === "gourmet_ahumados" && (
+              <div className="absolute -top-8 -right-8 w-32 h-32 bg-fire-500/15 rounded-full blur-2xl pointer-events-none" />
+            )}
+
+            <div className="flex items-center justify-between gap-2">
+              <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5">
+                <img
+                  src="/images/branding/logo-ahumados-gourmet-oficial.png"
+                  alt="Logo Oficial Ahumados Gourmet"
+                  className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(220,38,38,0.35)] group-hover:scale-105 transition-transform"
+                />
+              </div>
+
+              <div className="text-right">
+                <span
+                  className={`text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 ${
+                    selectedBrand === "gourmet_ahumados"
+                      ? "bg-fire-600 text-white font-extrabold shadow-md shadow-fire-600/30"
+                      : "bg-slate-900 text-slate-500 border border-slate-800"
+                  }`}
+                >
+                  {selectedBrand === "gourmet_ahumados" ? "✓ Catálogo Activo" : "Tocar para Ver"}
+                </span>
+                <p className="text-[11px] font-mono text-slate-400 mt-1">
+                  {products.filter((p) => p.brand === "gourmet_ahumados").length} productos al leño
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="font-bebas text-lg sm:text-xl text-white tracking-wider leading-none">
+                  AHUMADOS GOURMET
+                </h3>
+                <p className="font-caveat text-sm sm:text-base text-fire-400 font-bold leading-tight">
+                  Costillas & Carnes al Leño
+                </p>
+              </div>
+              <span className="text-xs font-bold text-fire-300">
+                🪵 Ahumados
+              </span>
+            </div>
           </button>
         </div>
 
-        {/* Buscador */}
+        {/* Buscador Dinámico */}
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -371,26 +462,43 @@ export default function HomePage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={`Buscar en catálogo oficial de ${selectedBrand === "gourmet_ahumados" ? "Ahumados Gourmet" : "JD Comercializadora"}...`}
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-gold-500 transition-colors shadow-inner"
+            className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-950/90 border border-slate-800 text-white text-xs sm:text-sm placeholder:text-slate-500 focus:outline-none focus:border-gold-500 transition-colors shadow-inner"
           />
         </div>
       </div>
 
-      {/* 5. Catálogo de Cortes por Kilos */}
+      {/* 5. Catálogo de Cortes por Kilos con Cerdito Chef Saludando */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-bebas text-2xl sm:text-3xl text-white tracking-wider uppercase">
-              {selectedBrand === "gourmet_ahumados" ? "🪵 LÍNEA AHUMADOS AL LEÑO" : "🥩 CORTES 100% DESPOSTADOS"}
-            </span>
-            <span className="font-mono text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full border border-slate-700">
-              {filteredProducts.length} productos
-            </span>
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 p-3 sm:p-4 rounded-3xl border border-slate-800 relative overflow-hidden">
+          <div className="flex items-center gap-3">
+            {/* Cerdito con delantal azul saludando (sin fondo blanco) */}
+            <div className="w-14 sm:w-16 h-14 sm:h-16 flex-shrink-0 relative">
+              <img
+                src="/images/branding/cerdito-delantal-azul-bienvenida.png"
+                alt="El Cerdito JD"
+                className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+              />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bebas text-2xl sm:text-3xl text-white tracking-wider uppercase">
+                  {selectedBrand === "gourmet_ahumados" ? "🪵 LÍNEA AHUMADOS AL LEÑO" : "🥩 CORTES 100% DESPOSTADOS"}
+                </span>
+              </div>
+              <p className="font-caveat text-sm sm:text-base text-gold-400 font-bold leading-none mt-0.5">
+                {selectedBrand === "gourmet_ahumados" ? "Ahumado artesanal con madera de guayabo" : "Cortes frescos sin merma de canal"}
+              </p>
+            </div>
           </div>
 
-          <span className="font-caveat text-sm sm:text-base text-gold-400 font-bold hidden sm:inline">
-            ¡Precios por kilo exacto!
-          </span>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <span className="font-mono text-xs bg-slate-900 text-gold-300 font-bold px-3 py-1 rounded-full border border-slate-700">
+              {filteredProducts.length} productos
+            </span>
+            <span className="font-caveat text-sm sm:text-base text-gold-400 font-bold hidden md:inline">
+              ¡Precios por kilo exacto!
+            </span>
+          </div>
         </div>
 
         {/* Lista Vertical de Productos */}

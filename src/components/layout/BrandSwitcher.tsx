@@ -11,41 +11,41 @@ export const BrandSwitcher: React.FC = () => {
   return (
     <div className="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 shadow-sm space-y-2">
       <div className="flex items-center justify-between px-1.5 pt-0.5">
-        <span className="text-[11px] font-semibold uppercase text-slate-400 tracking-wide">
-          Línea de Producto:
+        <span className="text-xs font-bold uppercase text-gold-400 tracking-wider">
+          Seleccionar Línea de Producto:
         </span>
-        <span className="text-[11px] font-medium text-slate-500">
-          Catálogos Independientes
+        <span className="text-[11px] font-medium text-slate-400">
+          Toca un logo para cambiar de catálogo
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5">
-        {/* Brand 1: JD Distribuidora (Cortes Crudos) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {/* Brand 1: JD Comercializadora (Cortes Crudos) */}
         <button
           type="button"
           onClick={() => setSelectedBrand("jd_distribuidora")}
-          className={`p-3.5 rounded-2xl text-left transition-all border ${
+          className={`p-3.5 rounded-2xl text-left transition-all border-2 group active:scale-[0.98] ${
             selectedBrand === "jd_distribuidora"
-              ? "bg-jdblue-950/90 border-jdblue-500 text-white shadow-lg shadow-jdblue-950/50"
-              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+              ? "bg-gradient-to-br from-jdblue-950 via-slate-900 to-slate-950 border-gold-500 text-white ring-2 ring-gold-500/40 shadow-xl shadow-jdblue-950/60"
+              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 opacity-80 hover:opacity-100"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div className="h-10 flex items-center">
+          <div className="flex items-center justify-between gap-2">
+            <div className="h-12 flex items-center p-1 bg-black/40 rounded-xl border border-white/5">
               <img
                 src="/images/branding/logo-jd-comercializadora.png"
                 alt="Logo JD Comercializadora"
-                className="h-8 sm:h-9 w-auto object-contain drop-shadow-[0_2px_6px_rgba(245,158,11,0.3)]"
+                className="h-10 sm:h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(245,158,11,0.35)] group-hover:scale-105 transition-transform"
               />
             </div>
             <span
-              className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+              className={`text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${
                 selectedBrand === "jd_distribuidora"
-                  ? "bg-gold-500/20 text-gold-300 border border-gold-500/40"
-                  : "text-slate-500"
+                  ? "bg-gold-500 text-slate-950 font-black shadow-sm"
+                  : "bg-slate-900 text-slate-500 border border-slate-800"
               }`}
             >
-              {selectedBrand === "jd_distribuidora" ? "Seleccionado" : "Ver"}
+              {selectedBrand === "jd_distribuidora" ? "✓ Activo" : "Seleccionar"}
             </span>
           </div>
           <div className="mt-2.5">
@@ -62,28 +62,28 @@ export const BrandSwitcher: React.FC = () => {
         <button
           type="button"
           onClick={() => setSelectedBrand("gourmet_ahumados")}
-          className={`p-3.5 rounded-2xl text-left transition-all border ${
+          className={`p-3.5 rounded-2xl text-left transition-all border-2 group active:scale-[0.98] ${
             selectedBrand === "gourmet_ahumados"
-              ? "bg-fire-950/90 border-fire-500 text-white shadow-lg shadow-fire-950/50"
-              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+              ? "bg-gradient-to-br from-fire-950 via-slate-900 to-slate-950 border-fire-500 text-white ring-2 ring-fire-500/40 shadow-xl shadow-fire-950/60"
+              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 opacity-80 hover:opacity-100"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div className="h-10 flex items-center">
+          <div className="flex items-center justify-between gap-2">
+            <div className="h-12 flex items-center p-1 bg-black/40 rounded-xl border border-white/5">
               <img
                 src="/images/branding/logo-ahumados-gourmet-oficial.png"
                 alt="Logo Ahumados Gourmet"
-                className="h-9 sm:h-10 w-auto object-contain drop-shadow-[0_2px_6px_rgba(220,38,38,0.3)]"
+                className="h-10 sm:h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(220,38,38,0.35)] group-hover:scale-105 transition-transform"
               />
             </div>
             <span
-              className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+              className={`text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${
                 selectedBrand === "gourmet_ahumados"
-                  ? "bg-fire-500/20 text-fire-300 border border-fire-500/40"
-                  : "text-slate-500"
+                  ? "bg-fire-600 text-white font-black shadow-sm"
+                  : "bg-slate-900 text-slate-500 border border-slate-800"
               }`}
             >
-              {selectedBrand === "gourmet_ahumados" ? "Seleccionado" : "Ver"}
+              {selectedBrand === "gourmet_ahumados" ? "✓ Activo" : "Seleccionar"}
             </span>
           </div>
           <div className="mt-2.5">

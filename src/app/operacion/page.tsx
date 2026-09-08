@@ -463,16 +463,16 @@ export default function OperacionPage() {
       <div className="bg-[#0b0f17]/90 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-30 px-4 py-3 shadow-2xl">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center justify-between sm:justify-start gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-amber-400/60 shadow-lg shadow-amber-950/40 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center flex-shrink-0 group">
                 <img
                   src={
                     currentUser?.role === "operador"
-                      ? "/images/branding/cerdito-furgon-despacho.jpg"
-                      : "/images/branding/cerdito-moto-domiciliario.jpg"
+                      ? "/images/branding/cerdito-furgon-despacho.png"
+                      : "/images/branding/cerdito-moto-domiciliario.png"
                   }
                   alt="Personaje Oficial JD & Gourmet"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform"
                 />
               </div>
               <div>
@@ -776,25 +776,28 @@ export default function OperacionPage() {
             </div>
           </div>
         ) : routeOrders.length > 0 ? (
-          /* Route Completed Celebration Card */
-          <div className="bg-gradient-to-br from-emerald-950 via-slate-900 to-emerald-900/50 border-2 border-emerald-500 rounded-3xl p-5 sm:p-6 space-y-3.5 shadow-2xl glow-emerald-card text-white">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl font-black border border-emerald-500/40">
-                🏁
+          /* Route Completed Celebration Card with Cerdito en Furgón Transparente */
+          <div className="bg-gradient-to-br from-emerald-950 via-slate-900 to-emerald-900/50 border-2 border-emerald-500 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl glow-emerald-card text-white relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 flex items-center justify-center">
+                <img
+                  src="/images/branding/cerdito-furgon-despacho.png"
+                  alt="Cerdito Furgón Meta Cumplida"
+                  className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] animate-pulse"
+                />
               </div>
-              <div>
-                <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+              <div className="flex-1">
+                <span className="text-[10px] font-black uppercase text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-500/30 inline-block">
                   Turno de Entregas Finalizado
                 </span>
-                <h3 className="text-lg sm:text-xl font-black text-white mt-0.5">
-                  ¡Todas las paradas han sido completadas!
+                <h3 className="text-xl sm:text-2xl font-black text-white font-bebas tracking-wide mt-1">
+                  ¡TODAS LAS PARADAS DEL FURGÓN HAN SIDO COMPLETADAS!
                 </h3>
+                <p className="text-xs text-slate-300 mt-1">
+                  Has entregado satisfactoriamente los <strong>{totalKg} kg</strong> de carne en las <strong>{routeOrders.length} paradas</strong> del recorrido.
+                </p>
               </div>
             </div>
-
-            <p className="text-xs text-slate-300">
-              Has entregado satisfactoriamente los <strong>{totalKg} kg</strong> de carne en las <strong>{routeOrders.length} paradas</strong> del recorrido.
-            </p>
 
             <div className="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs">
               <div>
@@ -810,7 +813,7 @@ export default function OperacionPage() {
             <button
               type="button"
               onClick={() => setCashoutModalOpen(true)}
-              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-xl flex items-center justify-center gap-2 active:scale-98 transition-all"
+              className="w-full min-h-[48px] py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-xl flex items-center justify-center gap-2 active:scale-98 transition-all"
             >
               <DollarSign className="w-4 h-4" />
               <span>VER CUADRE DE CAJA FINAL DE PLANTA</span>
