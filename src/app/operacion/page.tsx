@@ -464,8 +464,16 @@ export default function OperacionPage() {
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center justify-between sm:justify-start gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-950 flex items-center justify-center text-xl font-bold flex-shrink-0 shadow-md shadow-emerald-950/40">
-                {currentUser?.role === "operador" ? "👷" : "🚚"}
+              <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-emerald-400/60 shadow-lg shadow-emerald-950/40 flex-shrink-0">
+                <img
+                  src={
+                    currentUser?.role === "operador"
+                      ? "/images/branding/cerdito-furgon-despacho.jpg"
+                      : "/images/branding/cerdito-moto-domiciliario.jpg"
+                  }
+                  alt="Personaje Oficial JD & Gourmet"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <div className="flex items-center gap-2">

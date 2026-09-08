@@ -197,10 +197,16 @@ export default function OrderDetailPage() {
       {/* If Order is in Transit / Preparing notice */}
       {(order.status === "ready" || order.status === "dispatched") && (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-200">
-          <div className="flex items-center gap-2.5">
-            <Truck className="w-5 h-5 text-amber-500 flex-shrink-0" />
+          <div className="flex items-center gap-3">
+            <div className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-amber-400/60 shadow-md flex-shrink-0 bg-slate-800">
+              <img
+                src="/images/branding/cerdito-furgon-despacho.jpg"
+                alt="Furgón Refrigerado JD"
+                className="w-full h-full object-cover"
+              />
+            </div>
             <div>
-              <strong className="text-white">Pedido en alistamiento en frío o en furgón refrigerado.</strong>
+              <strong className="text-white text-sm block">Pedido en alistamiento en frío o en furgón refrigerado.</strong>
               <p className="text-[11px] text-slate-400">
                 Si requieres un cambio urgente, comunícate directamente con la central de despachos.
               </p>
@@ -226,6 +232,17 @@ export default function OrderDetailPage() {
               <h1 className="text-2xl font-extrabold text-slate-900">
                 Pedido {order.orderNumber}
               </h1>
+              {order.brand === "gourmet_ahumados" ? (
+                <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-950 px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-amber-300 shadow-sm">
+                  <img src="/images/branding/logo-ahumados-gourmet.jpg" alt="Ahumados Gourmet" className="w-4 h-4 rounded-full object-cover" />
+                  Ahumados Gourmet
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-950 px-2.5 py-0.5 rounded-full text-xs font-extrabold border border-red-300 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-red-600"></span>
+                  JD Distribuidora
+                </span>
+              )}
               <StatusBadge status={order.status} size="md" />
               <span className="font-mono text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full text-xs font-bold border border-emerald-300">
                 🧾 Factura: {order.invoiceNumber || (order.brand === "gourmet_ahumados" ? `FAC-GA-2026-${order.orderNumber.replace(/[^0-9]/g, "")}` : `FAC-JD-2026-${order.orderNumber.replace(/[^0-9]/g, "")}`)}
@@ -269,7 +286,7 @@ export default function OrderDetailPage() {
 
         {/* Dispatch Info Box if active */}
         {(order.driverName || order.routeName || order.sealNumber) && (
-          <div className="bg-slate-900 text-white rounded-2xl p-4 text-xs space-y-2">
+          <div className="bg-slate-900 text-white rounded-2xl p-4 text-xs space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-xs uppercase tracking-wide">
                 <Truck className="w-4 h-4" />
@@ -281,15 +298,24 @@ export default function OrderDetailPage() {
                 </span>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300">
-              <p>
-                Domiciliario / Chofer: <strong className="text-white">{order.driverName || "Furgón Refrigerado JD"}</strong>
-                {order.driverPhone && <span className="text-emerald-400 font-bold ml-1">({order.driverPhone})</span>}
-              </p>
-              <p className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                Precinto INVIMA: <strong className="text-white font-mono">{order.sealNumber || "PREC-JD-8849"}</strong>
-              </p>
+            <div className="flex items-center gap-3 bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/80">
+              <div className="w-11 h-11 rounded-lg overflow-hidden border border-emerald-500/50 flex-shrink-0 bg-slate-900 shadow-sm">
+                <img
+                  src="/images/branding/cerdito-moto-domiciliario.jpg"
+                  alt="Domiciliario Asignado"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-slate-300 flex-1">
+                <p>
+                  Domiciliario / Chofer: <strong className="text-white">{order.driverName || "Carlos Pérez (Furgón NQR-482)"}</strong>
+                  {order.driverPhone && <span className="text-emerald-400 font-bold ml-1">({order.driverPhone})</span>}
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  Precinto INVIMA: <strong className="text-white font-mono">{order.sealNumber || "PREC-JD-8849"}</strong>
+                </p>
+              </div>
             </div>
           </div>
         )}

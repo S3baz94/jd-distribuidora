@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -15,9 +15,13 @@ export const BrandMascotBanner: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-3 relative z-10 border-b border-slate-800/80 pb-4">
         {/* Co-Branding Oficial */}
         <div className="flex items-center gap-3">
-          {/* Logo Gourmet Ahumados */}
+          {/* Logo Gourmet Ahumados con Imagen Real */}
           <div className="flex items-center gap-2 bg-fire-900/40 border border-fire-600/50 px-3 py-1.5 rounded-2xl shadow-inner">
-            <span className="text-xl">🐷</span>
+            <img
+              src="/images/branding/logo-ahumados-gourmet.jpg"
+              alt="Logo Oficial Ahumados Gourmet"
+              className="w-7 h-7 rounded-full object-cover border border-gold-400/80 shadow-sm"
+            />
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-fire-400 block leading-none">
                 Ahumados
@@ -112,25 +116,31 @@ export const BrandMascotBanner: React.FC = () => {
           </div>
 
           {/* Tarjeta de Mascota Oficial Cerdito Chef JD */}
-          <div className="bg-gradient-to-b from-jdblue-950 to-slateblack-900 border-2 border-gold-500/40 rounded-3xl p-4 text-center flex flex-col items-center relative shadow-xl">
-            {/* Sombrero y Chef Badge */}
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-white to-slate-200 border-2 border-gold-400 flex items-center justify-center shadow-lg relative">
-              <span className="text-4xl">👨‍🍳</span>
-              <span className="absolute -bottom-1 -right-1 text-base">🐷</span>
+          <div className="bg-gradient-to-b from-slateblack-900 to-slate-950 border-2 border-gold-500/50 rounded-3xl p-4 text-center flex flex-col items-center relative shadow-2xl overflow-hidden group">
+            {/* Resplandor dorado de fondo */}
+            <div className="absolute inset-0 bg-gradient-to-t from-gold-500/10 via-transparent to-transparent pointer-events-none" />
+
+            {/* Imagen Real de la Mascota Oficial */}
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center">
+              <img
+                src="/images/branding/cerdito-chef-anuncio.jpg"
+                alt="Mascota Oficial Cerdito Chef JD & Gourmet"
+                className="w-full h-full object-contain rounded-2xl drop-shadow-2xl group-hover:scale-105 transition-transform"
+              />
             </div>
 
-            {/* Delantal Azul JD */}
-            <div className="mt-2 bg-jdblue-900 border border-jdblue-600 px-2.5 py-0.5 rounded-full">
-              <span className="text-[9px] font-black uppercase tracking-wider text-gold-300">
-                Delantal Oficial JD
+            {/* Distintivo Oficial */}
+            <div className="mt-2.5 bg-fire-600 border border-fire-400 px-3 py-0.5 rounded-full shadow-md">
+              <span className="text-[10px] font-black uppercase tracking-wider text-white">
+                Mascota Oficial
               </span>
             </div>
 
-            <p className="font-black text-white text-xs mt-2">
-              Chef Porcicultor
+            <p className="font-black text-white text-xs mt-1.5">
+              El Cerdito Gourmet
             </p>
-            <p className="text-[10px] text-slate-400">
-              Calidad JD Garantizada
+            <p className="text-[10px] text-gold-400 font-medium">
+              Sabor & Calidad JD
             </p>
           </div>
         </div>

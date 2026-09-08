@@ -395,8 +395,12 @@ export default function DomiciliarioView() {
       <header className="sticky top-0 z-40 bg-[#051424]/95 backdrop-blur-md border-b border-white/10 px-4 py-3 shadow-xl">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center font-black text-slate-950 text-base shadow-md shadow-emerald-950/40">
-              <Truck className="w-5 h-5" />
+            <div className="relative w-11 h-11 rounded-2xl overflow-hidden border-2 border-emerald-400/60 shadow-lg shadow-emerald-950/50 flex-shrink-0">
+              <img
+                src="/images/branding/cerdito-moto-domiciliario.jpg"
+                alt="Cerdito Domiciliario Oficial"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <div className="flex items-center gap-1.5">

@@ -55,8 +55,15 @@ export const Header: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Brand / Logo Oficial */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-jdblue-900 to-slateblack-900 border-2 border-gold-500/50 flex items-center justify-center font-black text-gold-400 text-lg tracking-tight shadow-md group-hover:scale-105 transition-transform">
-            JD
+          <div className="flex items-center -space-x-2">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-jdblue-900 to-slateblack-900 border-2 border-gold-500/60 flex items-center justify-center font-black text-gold-400 text-base tracking-tight shadow-md group-hover:scale-105 transition-transform z-10">
+              JD
+            </div>
+            <img
+              src="/images/branding/logo-ahumados-gourmet.jpg"
+              alt="Logo Ahumados Gourmet"
+              className="w-10 h-10 rounded-2xl object-cover border-2 border-fire-500/80 shadow-md group-hover:scale-105 transition-transform"
+            />
           </div>
           <div>
             <div className="font-black text-sm sm:text-base leading-tight tracking-tight text-white flex items-center gap-2">

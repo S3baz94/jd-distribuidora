@@ -245,8 +245,12 @@ export default function AdminRutasPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5 bg-gradient-to-r from-slate-900 via-slate-850 to-slate-950 p-6 rounded-3xl border border-slate-800 shadow-2xl glow-cyan-card">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shadow-inner">
-              <Truck className="w-6 h-6" />
+            <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-cyan-400/60 shadow-lg shadow-cyan-950/60 flex-shrink-0">
+              <img
+                src="/images/branding/cerdito-furgon-despacho.jpg"
+                alt="Furgón Refrigerado Oficial JD"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <span className="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/20 px-2.5 py-0.5 rounded-full border border-cyan-500/30 tracking-wider">

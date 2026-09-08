@@ -65,9 +65,11 @@ export const BrandSwitcher: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between">
-            <div className="w-6 h-6 rounded-lg bg-fire-600 text-white font-black text-[11px] flex items-center justify-center shadow-sm">
-              <Flame className="w-3.5 h-3.5 fill-current" />
-            </div>
+            <img
+              src="/images/branding/logo-ahumados-gourmet.jpg"
+              alt="Logo Ahumados Gourmet"
+              className="w-7 h-7 rounded-full object-cover border border-fire-400/80 shadow-sm"
+            />
             <span
               className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                 selectedBrand === "gourmet_ahumados"

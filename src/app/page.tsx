@@ -238,14 +238,23 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800">
-            <div>
-              <p className="font-black text-white text-base">
-                Pedido {activeOrder.orderNumber}
-              </p>
-              <p className="text-xs text-slate-300 font-medium mt-0.5">
-                Total: <strong className="text-emerald-400 font-black">{priceService.formatCurrency(activeOrder.total)}</strong>
-                {activeOrder.driverName && ` • Chofer: ${activeOrder.driverName}`}
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-emerald-500/50 flex-shrink-0 bg-slate-900 shadow-md">
+                <img
+                  src="/images/branding/cerdito-furgon-despacho.jpg"
+                  alt="Furgón Refrigerado en Ruta"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <p className="font-black text-white text-base">
+                  Pedido {activeOrder.orderNumber}
+                </p>
+                <p className="text-xs text-slate-300 font-medium mt-0.5">
+                  Total: <strong className="text-emerald-400 font-black">{priceService.formatCurrency(activeOrder.total)}</strong>
+                  {activeOrder.driverName && ` • Chofer: ${activeOrder.driverName}`}
+                </p>
+              </div>
             </div>
 
             <Link

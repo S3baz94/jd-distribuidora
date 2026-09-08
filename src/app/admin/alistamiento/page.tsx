@@ -84,14 +84,22 @@ export default function AdminPickingPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
-            <Scale className="w-7 h-7 text-amber-500" />
-            <span>Planilla de Desposte & Empaque en Canastillas</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Consolidado para sala de desposte y desglose por cliente para armado de canastillas en furgón.
-          </p>
+        <div className="flex items-center gap-3.5">
+          <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden border-2 border-amber-400/60 flex-shrink-0 bg-slate-900 shadow-md">
+            <img
+              src="/images/branding/cerdito-chef-bienvenida.jpg"
+              alt="Cerdito Maestro de Desposte"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2.5">
+              <span>Planilla de Desposte & Canastillas</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+              Consolidado para sala de desposte y armado de canastillas en furgón refrigerado.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
