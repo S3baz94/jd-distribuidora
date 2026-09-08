@@ -87,9 +87,9 @@ export default function AdminPickingPage() {
         <div className="flex items-center gap-3.5">
           <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden border-2 border-amber-400/60 flex-shrink-0 bg-slate-900 shadow-md">
             <img
-              src="/images/branding/cerdito-chef-bienvenida.jpg"
+              src="/images/branding/cerdito-bandeja-carnes.png"
               alt="Cerdito Maestro de Desposte"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
           <div>

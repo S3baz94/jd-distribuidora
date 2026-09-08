@@ -200,9 +200,9 @@ export default function OrderDetailPage() {
           <div className="flex items-center gap-3">
             <div className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-amber-400/60 shadow-md flex-shrink-0 bg-slate-800">
               <img
-                src="/images/branding/cerdito-furgon-despacho.jpg"
+                src="/images/branding/cerdito-furgon-despacho.png"
                 alt="Furgón Refrigerado JD"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
             <div>
@@ -301,9 +301,9 @@ export default function OrderDetailPage() {
             <div className="flex items-center gap-3 bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/80">
               <div className="w-11 h-11 rounded-lg overflow-hidden border border-emerald-500/50 flex-shrink-0 bg-slate-900 shadow-sm">
                 <img
-                  src="/images/branding/cerdito-moto-domiciliario.jpg"
+                  src="/images/branding/cerdito-moto-domiciliario.png"
                   alt="Domiciliario Asignado"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-slate-300 flex-1">

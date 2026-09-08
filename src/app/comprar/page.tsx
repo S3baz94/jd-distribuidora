@@ -111,28 +111,60 @@ export default function CatalogPage() {
       {/* Brand Switcher Card */}
       <BrandSwitcher />
 
-      {/* Compromiso de Calidad: 100% Despostado */}
-      <div className="bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-2 border-amber-200/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+      {/* Compromiso de Calidad: Condicional según Marca (JD vs Gourmet) */}
+      <div className={`border-2 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm ${
+        selectedBrand === "gourmet_ahumados"
+          ? "bg-gradient-to-r from-fire-950/20 via-amber-950/15 to-slate-900/30 border-fire-500/40"
+          : "bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-amber-200/80"
+      }`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-900 flex items-center justify-center font-black text-xl flex-shrink-0 border border-amber-300">
-            🔪
+          <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 relative">
+            <img
+              src={
+                selectedBrand === "gourmet_ahumados"
+                  ? "/images/branding/cerdito-gourmet-ahumados.png"
+                  : "/images/branding/cerdito-bandeja-carnes.png"
+              }
+              alt={
+                selectedBrand === "gourmet_ahumados"
+                  ? "Cerdito Gourmet Ahumados Oficial"
+                  : "Cerdito JD con Bandeja de Carnes"
+              }
+              className="w-full h-full object-contain drop-shadow-md"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm sm:text-base font-black text-slate-900">
-                Garantía JD: Todo se Entrega 100% Despostado & Limpio
+              <h3 className={`text-sm sm:text-base font-black ${
+                selectedBrand === "gourmet_ahumados" ? "text-white" : "text-slate-900"
+              }`}>
+                {selectedBrand === "gourmet_ahumados"
+                  ? "Garantía Gourmet Ahumados: Sabor Artesanal al Leño"
+                  : "Garantía JD: Todo se Entrega 100% Despostado & Limpio"}
               </h3>
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                Sin Mermas de Canal
+              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                selectedBrand === "gourmet_ahumados"
+                  ? "bg-fire-600/30 text-fire-400 border-fire-500/40"
+                  : "bg-emerald-100 text-emerald-800 border border-emerald-300"
+              }`}>
+                {selectedBrand === "gourmet_ahumados" ? "🪵 Leño de Roble" : "Sin Mermas de Canal"}
               </span>
             </div>
-            <p className="text-xs text-slate-600 mt-0.5">
-              No vendemos canales enteros. Recibes cortes porcionados y despostados al peso exacto en canastilla, listos para exhibir en carnicería o preparar en restaurante.
+            <p className={`text-xs mt-0.5 ${
+              selectedBrand === "gourmet_ahumados" ? "text-slate-300" : "text-slate-600"
+            }`}>
+              {selectedBrand === "gourmet_ahumados"
+                ? "Costillas y chuletas ahumadas artesanalmente al peso exacto en canastilla. Piezas tiernas y jugosas listas para exhibir o servir."
+                : "No vendemos canales enteros. Recibes cortes porcionados y despostados al peso exacto en canastilla, listos para exhibir en carnicería o preparar en restaurante."}
             </p>
           </div>
         </div>
-        <div className="text-[11px] font-black text-amber-900 bg-white/90 px-3 py-1.5 rounded-xl border border-amber-300 flex items-center gap-1.5 self-end sm:self-auto shadow-sm">
-          <span>⚖️ Kilos Netos Útiles</span>
+        <div className={`text-[11px] font-black px-3 py-1.5 rounded-xl border flex items-center gap-1.5 self-end sm:self-auto shadow-sm ${
+          selectedBrand === "gourmet_ahumados"
+            ? "text-fire-300 bg-fire-950/80 border-fire-500/40"
+            : "text-amber-900 bg-white/90 border-amber-300"
+        }`}>
+          <span>{selectedBrand === "gourmet_ahumados" ? "🔥 Ahumado de Origen" : "⚖️ Kilos Netos Útiles"}</span>
         </div>
       </div>
 

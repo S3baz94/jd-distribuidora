@@ -570,13 +570,19 @@ export default function FacturacionPage() {
 
         <button
           onClick={() => setBrandFilter("jd_distribuidora")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2.5 ${
             brandFilter === "jd_distribuidora"
               ? "bg-rose-700 text-white shadow-lg shadow-rose-950/50 border border-rose-500/50"
               : "text-slate-400 hover:text-rose-300"
           }`}
         >
-          <span className="text-base">🥩</span>
+          <div className="w-6 h-7 relative flex-shrink-0">
+            <img
+              src="/images/branding/cerdito-saludo-bienvenida.png"
+              alt="Cerdito JD"
+              className="w-full h-full object-contain drop-shadow"
+            />
+          </div>
           <div className="text-left">
             <span className="block leading-tight font-extrabold">JD DISTRIBUIDORA S.A.S.</span>
             <span className="text-[10px] opacity-80 font-mono">NIT: 901.684.219-3 • FAC-JD (Crudos)</span>
@@ -585,13 +591,19 @@ export default function FacturacionPage() {
 
         <button
           onClick={() => setBrandFilter("gourmet_ahumados")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2.5 ${
             brandFilter === "gourmet_ahumados"
               ? "bg-amber-600 text-white shadow-lg shadow-amber-950/50 border border-amber-400/50"
               : "text-slate-400 hover:text-amber-300"
           }`}
         >
-          <span className="text-base">🔥</span>
+          <div className="w-6 h-7 relative flex-shrink-0">
+            <img
+              src="/images/branding/cerdito-gourmet-ahumados.png"
+              alt="Cerdito Gourmet"
+              className="w-full h-full object-contain drop-shadow"
+            />
+          </div>
           <div className="text-left">
             <span className="block leading-tight font-extrabold">GOURMET AHUMADOS S.A.S.</span>
             <span className="text-[10px] opacity-80 font-mono">NIT: 901.792.845-1 • FAC-GA (Ahumados)</span>
@@ -1277,7 +1289,13 @@ export default function FacturacionPage() {
                         : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
                     }`}
                   >
-                    <span className="text-xl">🥩</span>
+                    <div className="w-8 h-9 relative flex-shrink-0">
+                      <img
+                        src="/images/branding/cerdito-saludo-bienvenida.png"
+                        alt="Cerdito JD"
+                        className="w-full h-full object-contain drop-shadow"
+                      />
+                    </div>
                     <div>
                       <p className="font-black text-xs text-white">JD DISTRIBUIDORA S.A.S.</p>
                       <p className="text-[10px] text-rose-300 font-mono">NIT: 901.684.219-3 • Cortes Crudos</p>
@@ -1299,7 +1317,13 @@ export default function FacturacionPage() {
                         : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
                     }`}
                   >
-                    <span className="text-xl">🔥</span>
+                    <div className="w-8 h-9 relative flex-shrink-0">
+                      <img
+                        src="/images/branding/cerdito-gourmet-ahumados.png"
+                        alt="Cerdito Gourmet"
+                        className="w-full h-full object-contain drop-shadow"
+                      />
+                    </div>
                     <div>
                       <p className="font-black text-xs text-white">GOURMET AHUMADOS S.A.S.</p>
                       <p className="text-[10px] text-amber-300 font-mono">NIT: 901.792.845-1 • Ahumados</p>

@@ -141,22 +141,35 @@ export const BrandMascotBanner: React.FC = () => {
             </p>
           </div>
 
-          {/* Cerdito Chef con Delantal Azul y Logo JD Flotante (Sin tarjeta rígida ni anuncio) */}
+          {/* Dúo de Mascotas Oficiales: Cerdito JD (Azul) & Cerdito Gourmet (Rojo) */}
           <div className="relative flex flex-col items-center justify-center">
             {/* Resplandor sutil de fondo */}
             <div className="absolute inset-0 bg-gold-500/10 rounded-full blur-2xl pointer-events-none" />
             
-            <div className="relative group cursor-pointer">
-              <img
-                src="/images/branding/cerdito-senala-ofertas.png"
-                alt="El Cerdito JD Señalando Ofertas"
-                className="w-40 sm:w-48 lg:w-52 h-auto object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="text-center mt-1">
-                <span className="font-caveat text-xl sm:text-2xl text-gold-400 font-bold tracking-wide drop-shadow block">
-                  ¡Grandes ofertas te esperan!
-                </span>
+            <div className="relative flex items-end justify-center -space-x-4 sm:-space-x-6 group cursor-pointer">
+              {/* Cerdito JD: Señalando Ofertas */}
+              <div className="relative z-10 text-center">
+                <img
+                  src="/images/branding/cerdito-senala-ofertas.png"
+                  alt="El Cerdito JD con Delantal Azul"
+                  className="w-28 sm:w-36 lg:w-40 h-auto object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-300"
+                />
               </div>
+
+              {/* Cerdito Gourmet: Voceando Promociones al Leño */}
+              <div className="relative z-20 text-center">
+                <img
+                  src="/images/branding/cerdito-gourmet-ahumados.png"
+                  alt="El Cerdito Gourmet con Delantal Rojo"
+                  className="w-32 sm:w-40 lg:w-44 h-auto object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            </div>
+
+            <div className="text-center mt-2 flex items-center justify-center gap-2">
+              <span className="font-caveat text-xl sm:text-2xl text-gold-400 font-bold tracking-wide drop-shadow">
+                ¡JD & Gourmet juntos para ti!
+              </span>
             </div>
           </div>
         </div>

@@ -241,9 +241,9 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-emerald-500/50 flex-shrink-0 bg-slate-900 shadow-md">
                 <img
-                  src="/images/branding/cerdito-furgon-despacho.jpg"
+                  src="/images/branding/cerdito-furgon-despacho.png"
                   alt="Furgón Refrigerado en Ruta"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div>
@@ -360,12 +360,22 @@ export default function HomePage() {
             )}
 
             <div className="flex items-center justify-between gap-2">
-              <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5">
-                <img
-                  src="/images/branding/logo-jd-comercializadora.png"
-                  alt="Logo Oficial JD Comercializadora"
-                  className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(245,158,11,0.35)] group-hover:scale-105 transition-transform"
-                />
+              <div className="flex items-center gap-2">
+                <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5">
+                  <img
+                    src="/images/branding/logo-jd-comercializadora.png"
+                    alt="Logo Oficial JD Comercializadora"
+                    className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(245,158,11,0.35)] group-hover:scale-105 transition-transform"
+                  />
+                </div>
+                {/* Mascota Cerdito JD */}
+                <div className="w-10 h-12 relative hidden sm:block">
+                  <img
+                    src="/images/branding/cerdito-saludo-bienvenida.png"
+                    alt="Mascota Cerdito JD"
+                    className="w-full h-full object-contain drop-shadow"
+                  />
+                </div>
               </div>
 
               <div className="text-right">
@@ -414,12 +424,22 @@ export default function HomePage() {
             )}
 
             <div className="flex items-center justify-between gap-2">
-              <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5">
-                <img
-                  src="/images/branding/logo-ahumados-gourmet-oficial.png"
-                  alt="Logo Oficial Ahumados Gourmet"
-                  className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(220,38,38,0.35)] group-hover:scale-105 transition-transform"
-                />
+              <div className="flex items-center gap-2">
+                <div className="h-13 sm:h-15 flex items-center p-1.5 bg-black/40 rounded-2xl border border-white/5">
+                  <img
+                    src="/images/branding/logo-ahumados-gourmet-oficial.png"
+                    alt="Logo Oficial Ahumados Gourmet"
+                    className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(220,38,38,0.35)] group-hover:scale-105 transition-transform"
+                  />
+                </div>
+                {/* Mascota Cerdito Gourmet con Delantal Rojo */}
+                <div className="w-10 h-12 relative hidden sm:block">
+                  <img
+                    src="/images/branding/cerdito-gourmet-ahumados.png"
+                    alt="Mascota Cerdito Gourmet"
+                    className="w-full h-full object-contain drop-shadow"
+                  />
+                </div>
               </div>
 
               <div className="text-right">
@@ -471,11 +491,19 @@ export default function HomePage() {
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 p-3 sm:p-4 rounded-3xl border border-slate-800 relative overflow-hidden">
           <div className="flex items-center gap-3">
-            {/* Cerdito con bandeja de carnes frescas (sin fondo blanco) */}
+            {/* Cerdito con bandeja (JD) o Cerdito Gourmet con delantal rojo (Gourmet) */}
             <div className="w-14 sm:w-16 h-14 sm:h-16 flex-shrink-0 relative">
               <img
-                src="/images/branding/cerdito-bandeja-carnes.png"
-                alt="El Cerdito JD con Bandeja de Carnes"
+                src={
+                  selectedBrand === "gourmet_ahumados"
+                    ? "/images/branding/cerdito-gourmet-ahumados.png"
+                    : "/images/branding/cerdito-bandeja-carnes.png"
+                }
+                alt={
+                  selectedBrand === "gourmet_ahumados"
+                    ? "El Cerdito Gourmet con Delantal Rojo"
+                    : "El Cerdito JD con Bandeja de Carnes"
+                }
                 className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
               />
             </div>

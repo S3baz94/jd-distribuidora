@@ -22,7 +22,7 @@ import {
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const { orders, customer, getOrderInvoice } = useApp();
+  const { orders, customer, getOrderInvoice, products } = useApp();
 
   const order = orders.find(
     (o) =>
@@ -44,18 +44,59 @@ function ConfirmationContent() {
 
   const totalKg = order.items.reduce((acc, i) => acc + i.quantity, 0);
   const waLink = whatsappService.getClientOrderLink(order);
+  const isGourmetOrder =
+    order.brand === "gourmet_ahumados" ||
+    order.companyId === "gourmet_ahumados" ||
+    order.items.some(
+      (i) => products.find((p) => p.id === i.productId)?.brand === "gourmet_ahumados"
+    );
+  const isAllGourmet =
+    order.brand === "gourmet_ahumados" ||
+    (order.items.length > 0 &&
+      order.items.every(
+        (i) => products.find((p) => p.id === i.productId)?.brand === "gourmet_ahumados"
+      ));
 
   return (
     <div className="max-w-xl mx-auto px-4 py-6 md:py-10 space-y-5">
-      {/* Big Green Success Banner with Cerdito Pulgar Arriba */}
+      {/* Big Success Banner with Cerdito Oficial */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 text-center shadow-lg space-y-4 relative overflow-hidden">
-        {/* Cerdito con Pulgar Arriba Celebrando el Pedido */}
-        <div className="w-28 h-28 sm:w-32 sm:h-32 mx-auto flex items-center justify-center relative">
-          <img
-            src="/images/branding/cerdito-pulgar-exito.png"
-            alt="Pedido Confirmado con Éxito"
-            className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)] animate-bounce"
-          />
+        {/* Mascota Celebrando el Pedido */}
+        <div className="mx-auto flex items-center justify-center relative">
+          {isAllGourmet ? (
+            <div className="w-28 h-28 sm:w-32 sm:h-32">
+              <img
+                src="/images/branding/cerdito-gourmet-ahumados.png"
+                alt="Pedido Gourmet Confirmado con Éxito"
+                className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)] animate-bounce"
+              />
+            </div>
+          ) : isGourmetOrder ? (
+            <div className="flex items-end justify-center -space-x-4">
+              <div className="w-24 h-24 sm:w-28 sm:h-28">
+                <img
+                  src="/images/branding/cerdito-pulgar-exito.png"
+                  alt="Pedido JD Confirmado"
+                  className="w-full h-full object-contain drop-shadow"
+                />
+              </div>
+              <div className="w-24 h-24 sm:w-28 sm:h-28">
+                <img
+                  src="/images/branding/cerdito-gourmet-ahumados.png"
+                  alt="Pedido Gourmet Confirmado"
+                  className="w-full h-full object-contain drop-shadow"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="w-28 h-28 sm:w-32 sm:h-32">
+              <img
+                src="/images/branding/cerdito-pulgar-exito.png"
+                alt="Pedido Confirmado con Éxito"
+                className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)] animate-bounce"
+              />
+            </div>
+          )}
         </div>
 
         <div>

@@ -247,9 +247,9 @@ export default function AdminRutasPage() {
           <div className="flex items-center gap-2.5">
             <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-cyan-400/60 shadow-lg shadow-cyan-950/60 flex-shrink-0">
               <img
-                src="/images/branding/cerdito-furgon-despacho.jpg"
+                src="/images/branding/cerdito-furgon-despacho.png"
                 alt="Furgón Refrigerado Oficial JD"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
             <div>
