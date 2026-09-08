@@ -1,7 +1,7 @@
 import { DeliveryRoute, Order, Customer } from "@/types";
 import { deliverySlotService } from "./deliverySlotService";
 
-export const MAX_STOPS_PER_ROUTE = 5;
+export const MAX_STOPS_PER_ROUTE = 10;
 
 export interface ZoneFleetConfig {
   zone: string;
@@ -346,5 +346,22 @@ export function reorderRouteByUrgencyAndTime(
   }
 
   return finalOrdered;
+}
+
+/**
+ * Determina si un pedido es elegible para asignación urgente de último minuto a un furgón:
+ * 1. El furgón aún NO ha salido de bodega/planta (route.status === "planned").
+ * 2. El cliente tiene necesidad urgente (order.urgency === "urgente").
+ * 3. El cliente está cerca del recorrido (misma zona o distancia <= 6.0 km).
+ */
+export function isLastMinuteUrgentEligible(
+  order: Order,
+  route: DeliveryRoute,
+  distanceKm: number,
+  isSameZone: boolean
+): boolean {
+  if (route.status !== "planned") return false;
+  if (order.urgency !== "urgente") return false;
+  return isSameZone || distanceKm <= 6.0;
 }
 

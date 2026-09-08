@@ -445,21 +445,32 @@ export default function DomiciliarioView() {
             </button>
           </div>
         </div>
+
+        {/* Barra Informativa de Despacho Central */}
+        <div className="max-w-md mx-auto mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-300">
+          <span className="flex items-center gap-1.5 font-bold text-cyan-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span>Ruta Asignada por Central de Despacho</span>
+          </span>
+          <span className="font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
+            {activeRoute?.status === "planned" ? "En Planta (Por salir)" : "En Tránsito"} • {routeOrders.length}/10 paradas
+          </span>
+        </div>
       </header>
 
       {/* Contenido Principal */}
       <main className="max-w-md mx-auto px-4 pt-4 space-y-4">
         {/* Alerta de Nueva Parada Asignada en Cabina */}
         {newOrderAlert && (
-          <div className="bg-gradient-to-r from-amber-500/20 via-amber-600/15 to-slate-900 border-2 border-amber-500 rounded-2xl p-4 shadow-2xl text-amber-200 animate-in fade-in zoom-in-95 space-y-2.5">
+          <div className="bg-gradient-to-r from-red-600/25 via-amber-600/20 to-slate-900 border-2 border-amber-500 rounded-2xl p-4 shadow-2xl text-amber-200 animate-in fade-in zoom-in-95 space-y-2.5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-md">
-                  <Zap className="w-4 h-4 fill-current" />
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-500 to-amber-500 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-md">
+                  <Zap className="w-4 h-4 fill-current text-white" />
                 </div>
                 <div>
-                  <span className="font-black text-[10px] uppercase bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full tracking-wider">
-                    ¡NUEVA PARADA CERCANA ASIGNADA!
+                  <span className="font-black text-[10px] uppercase bg-red-600 text-white px-2 py-0.5 rounded-full tracking-wider">
+                    {activeRoute?.status === "planned" ? "⚡ PEDIDO URGENTE DE ÚLTIMO MINUTO" : "¡NUEVA PARADA CERCANA ASIGNADA!"}
                   </span>
                   <h3 className="font-black text-white text-sm mt-1">
                     {newOrderAlert.customerName} ({newOrderAlert.orderNumber})
@@ -469,7 +480,9 @@ export default function DomiciliarioView() {
                     <span>{newOrderAlert.address}</span>
                   </p>
                   <p className="text-[11px] text-slate-300 mt-1">
-                    Despacho sumó este cliente a tu recorrido. El GPS y la lista de paradas ya se actualizaron.
+                    {activeRoute?.status === "planned"
+                      ? "Despacho sumó este cliente urgente antes de tu salida de bodega. La parada ya está lista en tu GPS."
+                      : "Despacho sumó este cliente a tu recorrido. El GPS y la lista de paradas ya se actualizaron."}
                   </p>
                 </div>
               </div>

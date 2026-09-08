@@ -53,22 +53,22 @@ export const Header: React.FC = () => {
 
       {/* Main navigation header */}
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-        {/* Brand / Logo */}
+        {/* Brand / Logo Oficial */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center font-bold text-amber-500 text-base tracking-tight shadow-sm">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-jdblue-900 to-slateblack-900 border-2 border-gold-500/50 flex items-center justify-center font-black text-gold-400 text-lg tracking-tight shadow-md group-hover:scale-105 transition-transform">
             JD
           </div>
           <div>
-            <div className="font-bold text-base leading-tight tracking-tight text-white flex items-center gap-2">
-              <span>JD DISTRIBUIDORA</span>
-              <span className="text-[10px] bg-slate-800 text-slate-300 font-medium px-2 py-0.5 rounded-md border border-slate-700 uppercase tracking-wide">
-                VENTAS
+            <div className="font-black text-sm sm:text-base leading-tight tracking-tight text-white flex items-center gap-2">
+              <span>JD COMERCIALIZADORA</span>
+              <span className="text-[9px] bg-fire-600/30 text-fire-300 font-black px-2 py-0.5 rounded-full border border-fire-500/40 uppercase tracking-widest">
+                OFICIAL
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-normal leading-none mt-1 flex items-center gap-1.5">
-              <span>Cortes Cárnicos</span>
+            <p className="text-[11px] text-slate-300 font-medium leading-none mt-1 flex items-center gap-1.5">
+              <span className="text-gold-400 font-bold">Cortes de Cerdo</span>
               <span className="text-slate-600">•</span>
-              <span>Gourmet Ahumados</span>
+              <span className="text-fire-400 font-bold">Ahumados Gourmet</span>
             </p>
           </div>
         </Link>

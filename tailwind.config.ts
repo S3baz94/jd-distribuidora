@@ -35,6 +35,37 @@ const config: Config = {
           900: "#0f172a",
           950: "#090d16",
         },
+        fire: {
+          50: "#fef2f2",
+          100: "#fee2e2",
+          500: "#ef4444",
+          600: "#dc2626", // Rojo Brasa Afiche Oficial
+          700: "#b91c1c",
+          800: "#991b1b",
+          900: "#7f1d1d",
+        },
+        gold: {
+          50: "#fffbeb",
+          100: "#fef3c7",
+          400: "#fbbf24",
+          500: "#f59e0b", // Dorado Sellos de Calidad
+          600: "#d97706",
+          700: "#b45309",
+        },
+        jdblue: {
+          50: "#eff6ff",
+          100: "#dbeafe",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a", // Azul Rey JD Comercializadora
+          950: "#172554",
+        },
+        slateblack: {
+          850: "#111827",
+          900: "#0b0f17", // Carbón Pizarra Asador
+          950: "#06090e",
+        },
       },
       fontFamily: {
         sans: [

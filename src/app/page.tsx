@@ -7,6 +7,8 @@ import { priceService } from "@/services/priceService";
 import { QuantityStepper } from "@/components/common/QuantityStepper";
 import { RepeatOrderModal } from "@/components/catalog/RepeatOrderModal";
 import { BrandSwitcher } from "@/components/layout/BrandSwitcher";
+import { BrandMascotBanner } from "@/components/common/BrandMascotBanner";
+import { TrustBadgesBar } from "@/components/common/TrustBadgesBar";
 import { RepeatOrderValidationResult, Product } from "@/types";
 import {
   RotateCcw,
@@ -21,6 +23,7 @@ import {
   Truck,
   ArrowRight,
   Package,
+  Heart,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -194,6 +197,12 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Banner Publicitario Oficial: Pizarra, Mascota Cerdito Chef & Promociones */}
+      <BrandMascotBanner />
+
+      {/* Los 4 Sellos Dorados de Garantía y Calidad */}
+      <TrustBadgesBar />
 
       {/* 2. Onboarding Banner para Cliente Nuevo */}
       {isNewCustomer && (
@@ -525,6 +534,14 @@ export default function HomePage() {
           <MessageCircle className="w-4 h-4 fill-current" />
           <span>ABRIR WHATSAPP DIRECTO</span>
         </a>
+      </div>
+
+      {/* Sello de Agradecimiento Oficial de la Marca */}
+      <div className="text-center py-5 border-t border-slate-800/80">
+        <p className="inline-flex items-center gap-2 text-sm sm:text-base text-gold-400 font-brush-accent italic">
+          <Heart className="w-4 h-4 text-fire-500 fill-fire-500 animate-pulse" />
+          <span>¡Gracias por preferirnos! • JD Comercializadora de Carnes & Ahumados Gourmet</span>
+        </p>
       </div>
 
       {/* 7. Barra Inferior Fija de Pedido / Carrito */}

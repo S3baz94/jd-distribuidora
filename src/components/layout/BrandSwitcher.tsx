@@ -19,23 +19,25 @@ export const BrandSwitcher: React.FC = () => {
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2.5">
         {/* Brand 1: JD Distribuidora (Cortes Crudos) */}
         <button
           type="button"
           onClick={() => setSelectedBrand("jd_distribuidora")}
-          className={`p-3.5 rounded-xl text-left transition-all border ${
+          className={`p-3.5 rounded-2xl text-left transition-all border ${
             selectedBrand === "jd_distribuidora"
-              ? "bg-slate-900 border-slate-700 text-white shadow-sm"
-              : "bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-200 hover:border-slate-800"
+              ? "bg-jdblue-950/90 border-jdblue-500 text-white shadow-lg shadow-jdblue-950/50"
+              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
           }`}
         >
           <div className="flex items-center justify-between">
-            <Layers className="w-4 h-4 text-slate-400" />
+            <div className="w-6 h-6 rounded-lg bg-gold-500 text-jdblue-950 font-black text-[11px] flex items-center justify-center shadow-sm">
+              JD
+            </div>
             <span
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${
+              className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                 selectedBrand === "jd_distribuidora"
-                  ? "bg-slate-800 text-amber-400 border border-slate-700"
+                  ? "bg-gold-500/20 text-gold-300 border border-gold-500/40"
                   : "text-slate-500"
               }`}
             >
@@ -43,10 +45,10 @@ export const BrandSwitcher: React.FC = () => {
             </span>
           </div>
           <div className="mt-2.5">
-            <h3 className="font-semibold text-xs sm:text-sm text-slate-100">
-              JD Distribuidora
+            <h3 className="font-black text-xs sm:text-sm text-white">
+              JD Comercializadora
             </h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-300 mt-0.5 font-medium">
               Cortes de Cerdo Crudo
             </p>
           </div>
@@ -56,18 +58,20 @@ export const BrandSwitcher: React.FC = () => {
         <button
           type="button"
           onClick={() => setSelectedBrand("gourmet_ahumados")}
-          className={`p-3.5 rounded-xl text-left transition-all border ${
+          className={`p-3.5 rounded-2xl text-left transition-all border ${
             selectedBrand === "gourmet_ahumados"
-              ? "bg-slate-900 border-slate-700 text-white shadow-sm"
-              : "bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-200 hover:border-slate-800"
+              ? "bg-fire-950/90 border-fire-500 text-white shadow-lg shadow-fire-950/50"
+              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
           }`}
         >
           <div className="flex items-center justify-between">
-            <Flame className="w-4 h-4 text-slate-400" />
+            <div className="w-6 h-6 rounded-lg bg-fire-600 text-white font-black text-[11px] flex items-center justify-center shadow-sm">
+              <Flame className="w-3.5 h-3.5 fill-current" />
+            </div>
             <span
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${
+              className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                 selectedBrand === "gourmet_ahumados"
-                  ? "bg-slate-800 text-amber-400 border border-slate-700"
+                  ? "bg-fire-500/20 text-fire-300 border border-fire-500/40"
                   : "text-slate-500"
               }`}
             >
@@ -75,10 +79,10 @@ export const BrandSwitcher: React.FC = () => {
             </span>
           </div>
           <div className="mt-2.5">
-            <h3 className="font-semibold text-xs sm:text-sm text-slate-100">
-              Gourmet Ahumados
+            <h3 className="font-black text-xs sm:text-sm text-white">
+              Ahumados Gourmet
             </h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-300 mt-0.5 font-medium">
               Costillas & Ahumados al Leño
             </p>
           </div>

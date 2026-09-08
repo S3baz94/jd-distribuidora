@@ -10,6 +10,8 @@ import {
   calculateDistanceKm,
   detectOrderZone,
   reorderRouteByUrgencyAndTime,
+  isLastMinuteUrgentEligible,
+  MAX_STOPS_PER_ROUTE,
 } from "@/services/routeOptimizer";
 import { deliverySlotService } from "@/services/deliverySlotService";
 import {
@@ -151,6 +153,14 @@ export default function AdminRutasPage() {
         return a.distanceKm - b.distanceKm;
       });
   }, [selectedRoute, unassignedOrders, allOrders]);
+
+  // Pedidos urgentes de último minuto elegibles para asignar antes de que el furgón salga de bodega (status: planned)
+  const lastMinuteUrgentOrders = useMemo(() => {
+    if (!selectedRoute || selectedRoute.status !== "planned") return [];
+    return nearbyOrdersForSelectedRoute.filter((item) =>
+      isLastMinuteUrgentEligible(item.order, selectedRoute, item.distanceKm, item.isSameZone)
+    );
+  }, [selectedRoute, nearbyOrdersForSelectedRoute]);
 
   const executeAutoAssign = () => {
     setIsAutoAssigning(true);
@@ -534,8 +544,8 @@ export default function AdminRutasPage() {
             </span>
           </div>
 
-          {/* Logistics & Cashout Summary Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Logistics & Cashout Summary Bar con Medidor de Capacidad (Máx 10) */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div className="bg-slate-850 p-3.5 rounded-2xl border border-slate-750">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">Kilos Totales en Furgón:</span>
               <strong className="text-base font-black text-white">
@@ -576,6 +586,29 @@ export default function AdminRutasPage() {
                 {getRouteOrders(selectedRoute).length} entregadas
               </strong>
             </div>
+
+            {/* Medidor de Capacidad Estándar: Máximo 10 pedidos */}
+            <div className="bg-slate-850 p-3.5 rounded-2xl border border-slate-750 col-span-2 md:col-span-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Capacidad de Ruta:</span>
+              <div className="flex items-center justify-between gap-1 mt-0.5">
+                <strong className="text-base font-black text-white">
+                  {getRouteOrders(selectedRoute).length} / {MAX_STOPS_PER_ROUTE} paradas
+                </strong>
+                {getRouteOrders(selectedRoute).length > MAX_STOPS_PER_ROUTE ? (
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    Excepción Urgente
+                  </span>
+                ) : getRouteOrders(selectedRoute).length === MAX_STOPS_PER_ROUTE ? (
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Cupo Completo
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    {MAX_STOPS_PER_ROUTE - getRouteOrders(selectedRoute).length} libres
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Interactive Route Map with GPS & Stops */}
@@ -584,6 +617,89 @@ export default function AdminRutasPage() {
             orders={getRouteOrders(selectedRoute)}
             onReorderFromLocation={(ordered) => reorderRouteOrders(selectedRoute.id, ordered)}
           />
+
+          {/* SECCIÓN ESPECIAL: Pedidos Urgentes de Último Minuto (Furgón aún en planta) */}
+          {selectedRoute.status === "planned" && lastMinuteUrgentOrders.length > 0 && (
+            <div className="bg-gradient-to-br from-red-950/60 via-slateblack-900 to-slate-900 border-2 border-fire-600 rounded-3xl p-5 space-y-4 shadow-2xl animate-in fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-fire-600/30 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-fire-600/30 text-fire-400 border border-fire-500/50 flex items-center justify-center font-black animate-pulse">
+                    <Zap className="w-6 h-6 text-fire-400 fill-current" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-black text-white">
+                        🚨 Pedido Urgente de Último Minuto (Furgón aún en planta)
+                      </h3>
+                      <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-fire-600 text-white shadow-md">
+                        ¡Asignar de un momento a otro!
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-300">
+                      El furgón de <strong>{selectedRoute.driverName}</strong> aún no ha partido. Este cliente tiene necesidad urgente y está en el área de paso de la ruta.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {lastMinuteUrgentOrders.map(({ order: ord, distanceKm, isInvoiced }) => {
+                  const totalKg = ord.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0);
+                  const isOverCap = getRouteOrders(selectedRoute).length >= MAX_STOPS_PER_ROUTE;
+
+                  return (
+                    <div
+                      key={ord.id}
+                      className="bg-slate-950/90 border-2 border-fire-500/60 rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-xl"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h4 className="font-black text-white text-base flex items-center gap-1.5">
+                              <span>{ord.customerName}</span>
+                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-fire-600 text-white">
+                                URGENTE
+                              </span>
+                            </h4>
+                            <p className="text-[11px] font-mono text-slate-300 mt-0.5">
+                              {ord.orderNumber} • <strong className="text-gold-400">{totalKg.toFixed(1)} kg</strong> • ⏰ {ord.deliveryTimeWindow || "Inmediato"}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-black text-fire-400 bg-fire-950 px-2 py-0.5 rounded border border-fire-500/40">
+                              ~{distanceKm} km de ruta
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-emerald-400 font-bold flex items-center gap-1 mt-2">
+                          <MapPin className="w-3.5 h-3.5 shrink-0" />
+                          <span>{ord.deliveryAddress}</span>
+                        </p>
+
+                        {isOverCap && (
+                          <p className="text-[10px] text-amber-300 font-bold mt-1.5 bg-amber-950/50 p-1.5 rounded border border-amber-500/30">
+                            ℹ️ La ruta tiene {getRouteOrders(selectedRoute).length} pedidos. Se aplicará excepción por urgencia ({getRouteOrders(selectedRoute).length} + 1).
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => assignOrderToRoute(ord.id, selectedRoute.id, undefined, true)}
+                          className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-fire-600 to-fire-700 hover:from-fire-500 hover:to-fire-600 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-fire-950/80 active:scale-95 transition-all"
+                        >
+                          <Zap className="w-4 h-4 fill-current text-gold-300" />
+                          <span>⚡ Asignar Inmediatamente a Furgón (Urgente de Último Minuto)</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Sección Dinámica: Pedidos Cercanos al Paso del Furgón */}
           <div className="bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-900 border-2 border-amber-500/40 rounded-3xl p-5 space-y-4 shadow-xl">
