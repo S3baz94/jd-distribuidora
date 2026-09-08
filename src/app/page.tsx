@@ -467,15 +467,15 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 5. Catálogo de Cortes por Kilos con Cerdito Chef Saludando */}
+      {/* 5. Catálogo de Cortes por Kilos con Cerdito Chef Presentando Bandeja */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 p-3 sm:p-4 rounded-3xl border border-slate-800 relative overflow-hidden">
           <div className="flex items-center gap-3">
-            {/* Cerdito con delantal azul saludando (sin fondo blanco) */}
+            {/* Cerdito con bandeja de carnes frescas (sin fondo blanco) */}
             <div className="w-14 sm:w-16 h-14 sm:h-16 flex-shrink-0 relative">
               <img
-                src="/images/branding/cerdito-delantal-azul-bienvenida.png"
-                alt="El Cerdito JD"
+                src="/images/branding/cerdito-bandeja-carnes.png"
+                alt="El Cerdito JD con Bandeja de Carnes"
                 className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
               />
             </div>

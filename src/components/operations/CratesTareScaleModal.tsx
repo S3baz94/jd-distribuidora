@@ -316,8 +316,12 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-850 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 flex items-center justify-center font-black text-xl shadow-lg shadow-amber-950/40">
-              <Scale className="w-6 h-6 stroke-[2.5]" />
+            <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0 relative">
+              <img
+                src="/images/branding/cerdito-bascula-pesaje.png"
+                alt="El Cerdito JD en Báscula Digital"
+                className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">

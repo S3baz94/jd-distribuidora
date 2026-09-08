@@ -47,15 +47,21 @@ function ConfirmationContent() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-6 md:py-10 space-y-5">
-      {/* Big Green Success Banner */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 text-center shadow-lg space-y-4">
-        <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner ring-8 ring-emerald-50">
-          <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
+      {/* Big Green Success Banner with Cerdito Pulgar Arriba */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 text-center shadow-lg space-y-4 relative overflow-hidden">
+        {/* Cerdito con Pulgar Arriba Celebrando el Pedido */}
+        <div className="w-28 h-28 sm:w-32 sm:h-32 mx-auto flex items-center justify-center relative">
+          <img
+            src="/images/branding/cerdito-pulgar-exito.png"
+            alt="Pedido Confirmado con Éxito"
+            className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)] animate-bounce"
+          />
         </div>
 
         <div>
-          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 uppercase tracking-wide">
-            ✓ Pedido Registrado en Planta
+          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 uppercase tracking-wide inline-flex items-center gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Pedido Registrado en Planta</span>
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
             ¡Tu pedido {order.orderNumber} fue enviado!

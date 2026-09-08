@@ -148,13 +148,13 @@ export const BrandMascotBanner: React.FC = () => {
             
             <div className="relative group cursor-pointer">
               <img
-                src="/images/branding/cerdito-delantal-azul-anuncio.png"
-                alt="El Cerdito JD"
+                src="/images/branding/cerdito-senala-ofertas.png"
+                alt="El Cerdito JD Señalando Ofertas"
                 className="w-40 sm:w-48 lg:w-52 h-auto object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-300"
               />
               <div className="text-center mt-1">
                 <span className="font-caveat text-xl sm:text-2xl text-gold-400 font-bold tracking-wide drop-shadow block">
-                  ¡Calidad garantizada!
+                  ¡Grandes ofertas te esperan!
                 </span>
               </div>
             </div>
