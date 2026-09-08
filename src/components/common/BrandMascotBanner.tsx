@@ -141,42 +141,28 @@ export const BrandMascotBanner: React.FC = () => {
             </p>
           </div>
 
-          {/* Dúo de Mascotas Oficiales: Cerdito JD (Azul) & Cerdito Gourmet (Rojo) */}
+          {/* Mascota de Ventas: Cerdito con Ropa Casual (Sin Delantal) */}
           <div className="relative flex flex-col items-center justify-center w-full sm:w-auto">
             {/* Resplandor sutil de fondo */}
             <div className="absolute inset-0 bg-gold-500/10 rounded-full blur-2xl pointer-events-none" />
             
-            {/* Contenedor Lado a Lado Sin Solapamiento */}
-            <div className="relative flex items-end justify-center gap-2 sm:gap-3 group cursor-pointer py-1">
-              {/* Cerdito JD: Señalando Ofertas */}
-              <div className="relative text-center flex-shrink-0">
+            {/* Personaje de Compras B2B */}
+            <div className="relative flex flex-col items-center justify-center group cursor-pointer py-1">
+              <div className="w-28 sm:w-36 md:w-40 h-auto flex-shrink-0 relative">
                 <img
-                  src="/images/branding/cerdito-senala-ofertas.png"
-                  alt="El Cerdito JD con Delantal Azul"
-                  className="w-20 sm:w-24 md:w-28 max-w-[120px] h-auto object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.55)] animate-float-slow group-hover:scale-105 transition-transform duration-300"
+                  src="/images/branding/cerdito-cliente-ropa.png"
+                  alt="Cerdito Cliente de Ventas"
+                  className="w-full h-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)] animate-float-slow group-hover:scale-105 transition-transform duration-300"
                 />
-                <span className="text-[10px] font-bold text-cyan-300 block mt-1 font-caveat">
-                  JD Crudos
-                </span>
               </div>
-
-              {/* Cerdito Gourmet: Voceando Promociones al Leño */}
-              <div className="relative text-center flex-shrink-0">
-                <img
-                  src="/images/branding/cerdito-gourmet-ahumados.png"
-                  alt="El Cerdito Gourmet con Delantal Rojo"
-                  className="w-20 sm:w-24 md:w-28 max-w-[120px] h-auto object-contain drop-shadow-[0_12px_22px_rgba(0,0,0,0.6)] animate-float-slow group-hover:scale-105 transition-transform duration-300"
-                  style={{ animationDelay: "1.2s" }}
-                />
-                <span className="text-[10px] font-bold text-fire-400 block mt-1 font-caveat">
-                  Gourmet Ahumados
-                </span>
-              </div>
+              <span className="text-xs font-bold text-amber-300 bg-amber-500/10 px-3 py-0.5 rounded-full border border-amber-500/30 mt-1 font-caveat text-sm">
+                ¡Tu mejor experiencia de compra!
+              </span>
             </div>
 
-            <div className="text-center mt-2">
+            <div className="text-center mt-1">
               <span className="font-caveat text-lg sm:text-xl text-gold-400 font-bold tracking-wide drop-shadow block">
-                ¡JD & Gourmet juntos para ti!
+                ¡Las mejores carnes para tu negocio!
               </span>
             </div>
           </div>

@@ -72,27 +72,20 @@ function ConfirmationContent() {
               />
             </div>
           ) : isGourmetOrder ? (
-            <div className="flex items-end justify-center gap-3 sm:gap-4">
-              <div className="w-20 h-20 sm:w-24 sm:h-24">
-                <img
-                  src="/images/branding/cerdito-pulgar-exito.png"
-                  alt="Pedido JD Confirmado"
-                  className="w-full h-full object-contain drop-shadow"
-                />
-              </div>
-              <div className="w-20 h-20 sm:w-24 sm:h-24">
-                <img
-                  src="/images/branding/cerdito-gourmet-ahumados.png"
-                  alt="Pedido Gourmet Confirmado"
-                  className="w-full h-full object-contain drop-shadow"
-                />
-              </div>
+            /* Pedido Mixto: Cerdito Cliente con Ropa celebrando sus compras */
+            <div className="w-28 h-28 sm:w-32 sm:h-32">
+              <img
+                src="/images/branding/cerdito-cliente-ropa.png"
+                alt="Pedido Mixto Confirmado con Éxito"
+                className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)] animate-bounce"
+              />
             </div>
           ) : (
-            <div className="w-24 h-24 sm:w-28 sm:h-28">
+            /* Pedido JD Exclusivo: Cerdito JD con Delantal Azul */
+            <div className="w-28 h-28 sm:w-32 sm:h-32">
               <img
                 src="/images/branding/cerdito-pulgar-exito.png"
-                alt="Pedido Confirmado con Éxito"
+                alt="Pedido JD Confirmado con Éxito"
                 className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)] animate-bounce"
               />
             </div>

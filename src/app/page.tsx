@@ -207,11 +207,17 @@ export default function HomePage() {
       {/* 2. Onboarding Banner para Cliente Nuevo */}
       {isNewCustomer && (
         <div className="bg-gradient-to-br from-emerald-950/70 via-slate-900 to-slate-900 border-2 border-emerald-500/40 rounded-3xl p-4 sm:p-5 shadow-xl text-white space-y-2 glow-emerald-card animate-in fade-in">
-          <div className="flex items-center gap-2.5">
-            <span className="text-2xl">🎉</span>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-14 sm:w-14 sm:h-16 flex-shrink-0 relative">
+              <img
+                src="/images/branding/cerdito-cliente-ropa.png"
+                alt="Bienvenido a tu primer pedido"
+                className="w-full h-full object-contain drop-shadow"
+              />
+            </div>
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                Primer Pedido
+                Primer Pedido • Cliente B2B
               </span>
               <h2 className="text-base sm:text-lg font-black text-white mt-0.5">
                 ¡Bienvenido a JD Distribuidora & Gourmet Ahumados!
