@@ -11,7 +11,7 @@ export const LicenseLockScreen: React.FC = () => {
   const [pinError, setPinError] = useState(false);
   const [unlockedSuccess, setUnlockedSuccess] = useState(false);
 
-  if (!license.isLocked && license.status !== "suspended") {
+  if (!license?.isLocked && license?.status !== "suspended") {
     return null;
   }
 
@@ -52,7 +52,7 @@ export const LicenseLockScreen: React.FC = () => {
         </h1>
 
         <p className="text-sm text-slate-300 mb-6 leading-relaxed">
-          {license.lockReason ||
+          {license?.lockReason ||
             "El acceso al sistema operativo de administración, planta y furgones se encuentra pausado por estado de cuenta o licenciamiento comercial."}
         </p>
 

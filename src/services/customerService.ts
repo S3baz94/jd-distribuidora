@@ -10,12 +10,17 @@ export const customerService = {
     try {
       const stored = localStorage.getItem(CURRENT_CUSTOMER_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === "object" && parsed.id && parsed.contactName) {
+          return parsed;
+        }
       }
     } catch {
       // Fallback
     }
-    localStorage.setItem(CURRENT_CUSTOMER_KEY, JSON.stringify(INITIAL_CUSTOMERS[0]));
+    try {
+      localStorage.setItem(CURRENT_CUSTOMER_KEY, JSON.stringify(INITIAL_CUSTOMERS[0]));
+    } catch {}
     return INITIAL_CUSTOMERS[0];
   },
 

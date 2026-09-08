@@ -54,7 +54,7 @@ export default function HomePage() {
   const [isRepeating, setIsRepeating] = useState(false);
   const [quickQtys, setQuickQtys] = useState<Record<string, number>>({});
 
-  const isNewCustomer = customer.id === "cust-nuevo";
+  const isNewCustomer = customer?.id === "cust-nuevo";
 
   // Filter products by selected brand and search query
   const filteredProducts = useMemo(() => {
@@ -62,9 +62,9 @@ export default function HomePage() {
       const matchesBrand = p.brand === selectedBrand;
       const matchesSearch =
         searchQuery === "" ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.cutType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase());
+        (p.name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+        (p.cutType?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+        (p.description?.toLowerCase() || "").includes(searchQuery.toLowerCase());
       return matchesBrand && matchesSearch;
     });
   }, [products, selectedBrand, searchQuery]);
@@ -133,7 +133,7 @@ export default function HomePage() {
 
         <div>
           <h1 className="font-bebas text-2xl sm:text-4xl text-white tracking-wider leading-tight break-words">
-            HOLA, {customer.contactName.split(" ")[0].toUpperCase()} 👋 <span className="text-gold-400 text-xl sm:text-3xl block sm:inline mt-1 sm:mt-0">({customer.businessName})</span>
+            HOLA, {(customer?.contactName || "CLIENTE").split(" ")[0].toUpperCase()} 👋 <span className="text-gold-400 text-xl sm:text-3xl block sm:inline mt-1 sm:mt-0">({customer?.businessName || "JD Comercializadora"})</span>
           </h1>
           <p className="font-caveat text-sm sm:text-base md:text-lg text-slate-300 font-bold mt-1">
             Cortes de cerdo 100% despostados y costillas ahumadas con entrega directa en furgón refrigerado.
@@ -149,14 +149,14 @@ export default function HomePage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-bold text-white text-xs sm:text-sm truncate">
-                  {customer.businessName}
+                  {customer?.businessName || "Cliente Mayorista"}
                 </p>
                 <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60">
-                  {customer.assignedPriceListName || "Tarifa Mayorista"}
+                  {customer?.assignedPriceListName || "Tarifa Mayorista"}
                 </span>
               </div>
               <p className="text-[11px] sm:text-xs text-slate-300 font-medium truncate mt-0.5">
-                {customer.address} • <span className="text-slate-400">{customer.zone}</span> • NIT: {customer.nit}
+                {customer?.address || "Bogotá D.C."} • <span className="text-slate-400">{customer?.zone || "Zona Norte"}</span> • NIT: {customer?.nit || "900.000.000-1"}
               </p>
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => {
-                const link = getMagicLinkForCustomer(customer.id);
+                const link = getMagicLinkForCustomer(customer?.id || "cust-carlos");
                 navigator.clipboard.writeText(link);
                 showToast("¡Enlace directo de tu negocio copiado!", "success");
               }}
