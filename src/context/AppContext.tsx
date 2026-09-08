@@ -739,9 +739,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const subtotal = orderItems.reduce((acc, curr) => acc + curr.subtotal, 0);
 
     const newOrder = await orderService.createOrder({
-      companyId: customer.companyId,
-      customerId: customer.id,
-      customerName: customer.businessName,
+      companyId: customer?.companyId || "jd_distribuidora",
+      customerId: customer?.id || "cust-carlos",
+      customerName: customer?.businessName || "Cliente Mayorista",
       brand: inferredBrand,
       items: orderItems,
       subtotal,
@@ -752,7 +752,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deliverySlotId: data.deliverySlotId,
       urgency: data.urgency || "normal",
       promisedDeliveryHour: data.promisedDeliveryHour,
-      zone: customer.zone,
+      zone: customer?.zone || "Zona Norte (Usaquén - Suba - Cedritos)",
       notes: data.notes,
     });
 
@@ -785,12 +785,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       companyName: companySettings.companyName,
       companyNit: companySettings.nit,
       orderId: newOrder.id,
-      customerId: customer.id,
-      customerName: customer.businessName,
-      customerNit: customer.nit || "901.684.219-3",
-      customerPhone: customer.phone,
-      customerAddress: data.deliveryAddress || customer.address,
-      customerZone: customer.zone,
+      customerId: customer?.id || "cust-carlos",
+      customerName: customer?.businessName || "Cliente Mayorista",
+      customerNit: customer?.nit || "901.684.219-3",
+      customerPhone: customer?.phone || "+57 323 321 8831",
+      customerAddress: data.deliveryAddress || customer?.address || "Bogotá D.C.",
+      customerZone: customer?.zone || "Zona Norte (Usaquén - Suba - Cedritos)",
       items: invoiceItems,
       totalKg,
       subtotal,

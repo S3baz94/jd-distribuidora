@@ -679,29 +679,6 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* 7. Barra Inferior Fija de Pedido / Carrito */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-0 inset-x-0 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 p-3 z-40 shadow-2xl">
-          <div className="max-w-xl mx-auto flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <span className="text-[10px] text-slate-400 uppercase font-mono block">Tu Pedido Actual:</span>
-              <p className="font-bold text-sm text-emerald-400 font-mono truncate">
-                {cartKg.toFixed(1)} kg • {priceService.formatCurrency(cartTotal)}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsCartOpen(true)}
-              className="py-3 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-950/40 flex items-center gap-2 active:scale-95 transition-all border border-emerald-400/30"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>CONFIRMAR PEDIDO ➔</span>
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Modal de Advertencia de Repetir Pedido */}
       {validationResult && (
         <RepeatOrderModal

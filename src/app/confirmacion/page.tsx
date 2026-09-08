@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { priceService } from "@/services/priceService";
 import { whatsappService } from "@/services/whatsappService";
+import { orderService } from "@/services/orderService";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import {
   CheckCircle2,
@@ -22,14 +23,24 @@ import {
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const { orders, customer, getOrderInvoice, products } = useApp();
+  const { orders, allOrders, customer, getOrderInvoice, products } = useApp();
 
-  const order = orders.find(
-    (o) =>
-      o.id === orderId ||
-      o.orderNumber === orderId ||
-      o.orderNumber === `#${orderId}`
-  ) || orders[0];
+  const order =
+    orders.find(
+      (o) =>
+        o.id === orderId ||
+        o.orderNumber === orderId ||
+        o.orderNumber === `#${orderId}`
+    ) ||
+    allOrders.find(
+      (o) =>
+        o.id === orderId ||
+        o.orderNumber === orderId ||
+        o.orderNumber === `#${orderId}`
+    ) ||
+    (orderId ? orderService.getOrderById(orderId) : undefined) ||
+    orders[0] ||
+    allOrders[0];
 
   if (!order) {
     return (
@@ -42,18 +53,19 @@ function ConfirmationContent() {
     );
   }
 
-  const totalKg = order.items.reduce((acc, i) => acc + i.quantity, 0);
+  const orderItems = order.items || [];
+  const totalKg = orderItems.reduce((acc, i) => acc + (i.quantity || 0), 0);
   const waLink = whatsappService.getClientOrderLink(order);
   const isGourmetOrder =
     order.brand === "gourmet_ahumados" ||
     order.companyId === "gourmet_ahumados" ||
-    order.items.some(
+    orderItems.some(
       (i) => products.find((p) => p.id === i.productId)?.brand === "gourmet_ahumados"
     );
   const isAllGourmet =
     order.brand === "gourmet_ahumados" ||
-    (order.items.length > 0 &&
-      order.items.every(
+    (orderItems.length > 0 &&
+      orderItems.every(
         (i) => products.find((p) => p.id === i.productId)?.brand === "gourmet_ahumados"
       ));
 

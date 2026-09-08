@@ -21,6 +21,7 @@ import {
   Clock,
   Zap,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 
 export const CartDrawer: React.FC = () => {
@@ -39,14 +40,18 @@ export const CartDrawer: React.FC = () => {
     clearCart,
     getProductStock,
     placeOrder,
+    showToast,
   } = useApp();
 
   const deliverySlots = INITIAL_DELIVERY_SLOTS;
 
+  const minOrder = customer?.minOrderAmount || 100000;
+  const isMinimumMet = cartTotal >= minOrder;
+
   const [selectedDate, setSelectedDate] = useState<string>(
     deliverySlots.find((s) => s.status === "available")?.dateFormatted || "Jueves 27 de agosto"
   );
-  const [selectedAddress, setSelectedAddress] = useState<string>(customer.address);
+  const [selectedAddress, setSelectedAddress] = useState<string>(customer?.address || "Bogotá D.C.");
   const [urgency, setUrgency] = useState<"normal" | "urgente">("normal");
   const [selectedTimeSlotId, setSelectedTimeSlotId] = useState<string>("slot-0730-0900");
   const [collisionAlert, setCollisionAlert] = useState<{
@@ -69,37 +74,44 @@ export const CartDrawer: React.FC = () => {
 
   if (!isCartOpen) return null;
 
-  const isMinimumMet = cartTotal >= customer.minOrderAmount;
-
   const timeSlotAvailabilities = useMemo(() => {
-    return deliverySlotService.getSlotAvailability(selectedDate, customer.zone, allOrders);
-  }, [selectedDate, customer.zone, allOrders]);
+    return deliverySlotService.getSlotAvailability(selectedDate, customer?.zone || "Bogotá D.C.", allOrders);
+  }, [selectedDate, customer?.zone, allOrders]);
 
   const handleClose = () => {
     setIsCartOpen(false);
   };
 
   const handleConfirmOrder = async () => {
-    if (!isMinimumMet || cart.length === 0) return;
+    if (cart.length === 0) {
+      showToast("Tu carrito está vacío. Agrega productos para confirmar.", "warning");
+      return;
+    }
     setIsSubmitting(true);
     try {
       const chosenSlot =
         deliverySlotService.getStandardSlots().find((s) => s.id === selectedTimeSlotId) ||
         deliverySlotService.getStandardSlots()[1];
 
+      const deliveryNotePrefix = !isMinimumMet
+        ? "[PEDIDO PARCIAL / SUJETO A CONSOLIDACIÓN LOGÍSTICA]. "
+        : "";
+
       const order = await placeOrder({
         deliveryDate: selectedDate,
-        deliveryAddress: selectedAddress || customer.address,
+        deliveryAddress: selectedAddress || customer?.address || "Bogotá D.C.",
         deliveryTimeWindow: chosenSlot.label,
         deliverySlotId: chosenSlot.id,
         urgency,
         promisedDeliveryHour: chosenSlot.shortLabel,
-        notes: `${urgency === "urgente" ? "🚨 PEDIDO PRIORITARIO / URGENTE. " : ""}Horario preferido: ${chosenSlot.label}. ${notes.trim() || "Despachar en furgón refrigerado JD"}`,
+        notes: `${deliveryNotePrefix}${urgency === "urgente" ? "🚨 PEDIDO PRIORITARIO / URGENTE. " : ""}Horario preferido: ${chosenSlot.label}. ${notes.trim() || "Despachar en furgón refrigerado JD"}`,
       });
       setIsCartOpen(false);
+      showToast(`¡Pedido ${order.orderNumber} confirmado exitosamente!`, "success");
       router.push(`/confirmacion?orderId=${order.id}`);
     } catch (err) {
       console.error("Error submitting order", err);
+      showToast("Ocurrió un error al procesar el pedido. Por favor intenta de nuevo.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -610,15 +622,18 @@ export const CartDrawer: React.FC = () => {
                 </span>
               </div>
 
-              {/* Minimum Order Warning if not met */}
-              {!isMinimumMet && (
-                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-                  <span>
-                    Te faltan <strong>{priceService.formatCurrency(customer.minOrderAmount - cartTotal)}</strong> para alcanzar el pedido mínimo de {priceService.formatCurrency(customer.minOrderAmount)}.
-                  </span>
+              {/* Minimum Order Notice if not met */}
+              {!isMinimumMet ? (
+                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Pedido menor al mínimo mayorista ({priceService.formatCurrency(minOrder)}):</p>
+                    <p className="text-[11px] text-amber-800">
+                      Puedes confirmar tu pedido ahora. Se despachará sujeto a consolidación de ruta o flete logístico programado.
+                    </p>
+                  </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Zero online payment reminder */}
               <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-[11px] text-emerald-950 font-bold">
@@ -628,18 +643,28 @@ export const CartDrawer: React.FC = () => {
 
               <button
                 type="button"
-                disabled={!isMinimumMet || isSubmitting}
+                disabled={cart.length === 0 || isSubmitting}
                 onClick={handleConfirmOrder}
-                className="w-full min-h-[56px] py-4 px-5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black text-base sm:text-lg rounded-2xl shadow-xl shadow-emerald-950/20 transition-all flex items-center justify-center gap-3 active:scale-98 tracking-wide"
+                className="w-full min-h-[56px] py-4 px-5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black text-base sm:text-lg rounded-2xl shadow-xl shadow-emerald-950/20 transition-all flex flex-col sm:flex-row items-center justify-center gap-2 active:scale-98 tracking-wide"
               >
-                <CheckCircle2 className="w-6 h-6 stroke-[3]" />
-                <span>
-                  {isSubmitting
-                    ? "ENVIANDO PEDIDO..."
-                    : !isMinimumMet
-                    ? `FALTAN ${priceService.formatCurrency(customer.minOrderAmount - cartTotal)} PARA EL MÍNIMO`
-                    : "ENVIAR PEDIDO A LA DISTRIBUIDORA"}
-                </span>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-6 h-6 animate-spin stroke-[2.5]" />
+                    <span>ENVIANDO PEDIDO A PLANTA...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-6 h-6 stroke-[3]" />
+                    <div className="text-center sm:text-left">
+                      <span>CONFIRMAR Y ENVIAR PEDIDO</span>
+                      {!isMinimumMet && (
+                        <span className="block text-[10px] font-medium opacity-90 tracking-normal">
+                          (Sujeto a consolidación logística)
+                        </span>
+                      )}
+                    </div>
+                  </>
+                )}
               </button>
             </div>
           )}
