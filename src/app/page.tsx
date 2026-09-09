@@ -9,6 +9,7 @@ import { RepeatOrderModal } from "@/components/catalog/RepeatOrderModal";
 import { BrandSwitcher } from "@/components/layout/BrandSwitcher";
 import { BrandMascotBanner } from "@/components/common/BrandMascotBanner";
 import { TrustBadgesBar } from "@/components/common/TrustBadgesBar";
+import { PromotionsBoard } from "@/components/promotions/PromotionsBoard";
 import { RepeatOrderValidationResult, Product } from "@/types";
 import {
   RotateCcw,
@@ -203,6 +204,9 @@ export default function HomePage() {
 
       {/* Los 4 Sellos Dorados de Garantía y Calidad */}
       <TrustBadgesBar />
+
+      {/* Tablero Oficial de Anuncios de Promociones Diarias, Semanales y Mensuales */}
+      <PromotionsBoard />
 
       {/* 2. Onboarding Banner para Cliente Nuevo */}
       {isNewCustomer && (

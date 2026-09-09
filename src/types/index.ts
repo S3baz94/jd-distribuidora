@@ -8,6 +8,29 @@ export type ProductCategory =
 
 export type BrandType = "jd_distribuidora" | "gourmet_ahumados";
 
+export type PromotionPeriod = "diaria" | "semanal" | "mensual";
+
+export interface Promotion {
+  id: string;
+  period: PromotionPeriod; // "diaria" | "semanal" | "mensual"
+  brand: BrandType | "todas";
+  title: string;
+  subtitle: string;
+  badge: string; // ej. "⚡ OFERTA DEL DÍA", "📅 SEMANA DE AHORRO", "🏆 BENEFICIO MENSUAL"
+  validityText: string; // ej. "Válido hoy hasta las 6:00 PM"
+  description: string;
+  discountPercentage?: number;
+  specialPricePerKg?: number;
+  regularPricePerKg?: number;
+  productId?: string;
+  productName?: string;
+  minKgRequirement?: number;
+  giftText?: string;
+  themeColor: "gold" | "fire" | "emerald" | "blue";
+  iconType?: "flame" | "calendar" | "trophy" | "sparkles" | "truck" | "percent";
+  active: boolean;
+}
+
 export type OrderStatus =
   | "pending" // Pedido recibido
   | "confirmed" // Confirmado por la distribuidora
