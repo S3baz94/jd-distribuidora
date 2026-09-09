@@ -4,24 +4,15 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { priceService } from "@/services/priceService";
-import { QuantityStepper } from "@/components/common/QuantityStepper";
 import { RepeatOrderModal } from "@/components/catalog/RepeatOrderModal";
-import { BrandSwitcher } from "@/components/layout/BrandSwitcher";
 import { BrandMascotBanner } from "@/components/common/BrandMascotBanner";
 import { TrustBadgesBar } from "@/components/common/TrustBadgesBar";
 import { PromotionsBoard } from "@/components/promotions/PromotionsBoard";
-import { RepeatOrderValidationResult, Product } from "@/types";
+import { RepeatOrderValidationResult } from "@/types";
 import {
   RotateCcw,
-  ShoppingBag,
-  Plus,
-  Check,
-  Search,
   MessageCircle,
-  MapPin,
-  Flame,
   Layers,
-  Truck,
   ArrowRight,
   Package,
   Heart,
@@ -49,31 +40,11 @@ export default function HomePage() {
     showToast,
   } = useApp();
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [validationResult, setValidationResult] = useState<RepeatOrderValidationResult | null>(null);
   const [isRepeatModalOpen, setIsRepeatModalOpen] = useState(false);
   const [isRepeating, setIsRepeating] = useState(false);
-  const [quickQtys, setQuickQtys] = useState<Record<string, number>>({});
 
   const isNewCustomer = customer?.id === "cust-nuevo";
-
-  // Filter products by selected brand and search query
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-      const matchesBrand = p.brand === selectedBrand;
-      const matchesSearch =
-        searchQuery === "" ||
-        (p.name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-        (p.cutType?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-        (p.description?.toLowerCase() || "").includes(searchQuery.toLowerCase());
-      return matchesBrand && matchesSearch;
-    });
-  }, [products, selectedBrand, searchQuery]);
-
-  const handleAdd = (product: Product) => {
-    const qty = quickQtys[product.id] || product.minimumQuantity;
-    addToCart(product, qty);
-  };
 
   const handleRepeatLastOrder = async () => {
     if (!lastOrder) return;
@@ -322,309 +293,30 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 4. Selector Oficial por Logotipos: Toca el Logo para Elegir Marca */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-black uppercase text-gold-400 tracking-wider">
-            Elige la Marca tocando su Logotipo:
-          </span>
-          <span className="text-[11px] font-medium text-slate-400">
-            Catálogo al instante
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* LOGO BOTÓN 1: JD Comercializadora */}
-          <button
-            type="button"
-            onClick={() => setSelectedBrand("jd_distribuidora")}
-            className={`relative p-3.5 sm:p-4 rounded-3xl text-left transition-all duration-300 border-2 overflow-hidden group active:scale-[0.98] cartoon-card ${
-              selectedBrand === "jd_distribuidora"
-                ? "cartoon-card-jd border-gold-500 ring-4 ring-gold-500/30 shadow-2xl shadow-jdblue-950/80"
-                : "bg-slate-950/80 border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100"
-            }`}
-          >
-            {selectedBrand === "jd_distribuidora" && (
-              <div className="absolute -top-8 -right-8 w-32 h-32 bg-gold-500/15 rounded-full blur-2xl pointer-events-none" />
-            )}
-
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="h-14 sm:h-16 flex items-center p-2 bg-black/40 rounded-2xl border border-white/5 shadow-md">
-                  <img
-                    src="/images/branding/logo-jd-comercializadora.png"
-                    alt="Logo Oficial JD Comercializadora"
-                    className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(245,158,11,0.35)] group-hover:scale-105 transition-transform"
-                  />
-                </div>
-              </div>
-
-              <div className="text-right">
-                <span
-                  className={`text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 ${
-                    selectedBrand === "jd_distribuidora"
-                      ? "bg-gold-500 text-slate-950 font-extrabold shadow-md shadow-gold-500/30"
-                      : "bg-slate-900 text-slate-500 border border-slate-800"
-                  }`}
-                >
-                  {selectedBrand === "jd_distribuidora" ? "✓ Catálogo Activo" : "Tocar para Ver"}
-                </span>
-                <p className="text-[11px] font-mono text-slate-400 mt-1">
-                  {products.filter((p) => p.brand === "jd_distribuidora").length} cortes de cerdo
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
-              <div>
-                <h3 className="font-bebas text-lg sm:text-xl text-white tracking-wider leading-none">
-                  JD COMERCIALIZADORA
-                </h3>
-                <p className="font-caveat text-sm sm:text-base text-gold-400 font-bold leading-tight">
-                  Cortes 100% Despostados
-                </p>
-              </div>
-              <span className="text-xs font-bold text-gold-300">
-                🥩 Crudos
-              </span>
-            </div>
-          </button>
-
-          {/* LOGO BOTÓN 2: Ahumados Gourmet */}
-          <button
-            type="button"
-            onClick={() => setSelectedBrand("gourmet_ahumados")}
-            className={`relative p-3.5 sm:p-4 rounded-3xl text-left transition-all duration-300 border-2 overflow-hidden group active:scale-[0.98] cartoon-card ${
-              selectedBrand === "gourmet_ahumados"
-                ? "cartoon-card-gourmet border-fire-500 ring-4 ring-fire-500/30 shadow-2xl shadow-fire-950/80"
-                : "bg-slate-950/80 border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100"
-            }`}
-          >
-            {selectedBrand === "gourmet_ahumados" && (
-              <div className="absolute -top-8 -right-8 w-32 h-32 bg-fire-500/15 rounded-full blur-2xl pointer-events-none" />
-            )}
-
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="h-14 sm:h-16 flex items-center p-2 bg-black/40 rounded-2xl border border-white/5 shadow-md">
-                  <img
-                    src="/images/branding/logo-ahumados-gourmet-oficial.png"
-                    alt="Logo Oficial Ahumados Gourmet"
-                    className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_4px_10px_rgba(220,38,38,0.35)] group-hover:scale-105 transition-transform"
-                  />
-                </div>
-              </div>
-
-              <div className="text-right">
-                <span
-                  className={`text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 ${
-                    selectedBrand === "gourmet_ahumados"
-                      ? "bg-fire-600 text-white font-extrabold shadow-md shadow-fire-600/30"
-                      : "bg-slate-900 text-slate-500 border border-slate-800"
-                  }`}
-                >
-                  {selectedBrand === "gourmet_ahumados" ? "✓ Catálogo Activo" : "Tocar para Ver"}
-                </span>
-                <p className="text-[11px] font-mono text-slate-400 mt-1">
-                  {products.filter((p) => p.brand === "gourmet_ahumados").length} productos al leño
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
-              <div>
-                <h3 className="font-bebas text-lg sm:text-xl text-white tracking-wider leading-none">
-                  AHUMADOS GOURMET
-                </h3>
-                <p className="font-caveat text-sm sm:text-base text-fire-400 font-bold leading-tight">
-                  Costillas & Carnes al Leño
-                </p>
-              </div>
-              <span className="text-xs font-bold text-fire-300">
-                🪵 Ahumados
-              </span>
-            </div>
-          </button>
-        </div>
-
-        {/* Buscador Dinámico */}
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={`Buscar en catálogo oficial de ${selectedBrand === "gourmet_ahumados" ? "Ahumados Gourmet" : "JD Comercializadora"}...`}
-            className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-950/90 border border-slate-800 text-white text-xs sm:text-sm placeholder:text-slate-500 focus:outline-none focus:border-gold-500 transition-colors shadow-inner"
-          />
-        </div>
-      </div>
-
-      {/* 5. Catálogo de Cortes por Kilos con Cerdito Chef Presentando Bandeja */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 p-3 sm:p-4 rounded-3xl border border-slate-800 relative overflow-hidden">
-          <div className="flex items-center gap-3">
-            {/* Cerdito con bandeja (JD) o Cerdito Gourmet con delantal rojo (Gourmet) */}
-            <div className="w-12 sm:w-14 h-16 sm:h-20 flex-shrink-0 relative">
-              <img
-                src={
-                  selectedBrand === "gourmet_ahumados"
-                    ? "/images/branding/cerdito-gourmet-ahumados.png"
-                    : "/images/branding/cerdito-bandeja-carnes.png"
-                }
-                alt={
-                  selectedBrand === "gourmet_ahumados"
-                    ? "El Cerdito Gourmet con Delantal Rojo"
-                    : "El Cerdito JD con Bandeja de Carnes"
-                }
-                className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
-              />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-bebas text-xl sm:text-2xl md:text-3xl text-white tracking-wider uppercase break-words">
-                  {selectedBrand === "gourmet_ahumados" ? "🪵 LÍNEA AHUMADOS AL LEÑO" : "🥩 CORTES 100% DESPOSTADOS"}
-                </span>
-              </div>
-              <p className="font-caveat text-xs sm:text-base text-gold-400 font-bold leading-none mt-0.5">
-                {selectedBrand === "gourmet_ahumados" ? "Ahumado artesanal con madera de guayabo" : "Cortes frescos seleccionados de cerdo"}
-              </p>
-            </div>
+      {/* Acceso Directo al Catálogo Completo para Cortes Regulares */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border-2 border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-2xl flex-shrink-0">
+            🥩
           </div>
-
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <span className="font-mono text-xs bg-slate-900 text-gold-300 font-bold px-3 py-1 rounded-full border border-slate-700">
-              {filteredProducts.length} productos
-            </span>
-            <span className="font-caveat text-sm sm:text-base text-gold-400 font-bold hidden md:inline">
-              ¡Precios por kilo exacto!
-            </span>
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-white">
+              ¿Buscas cortes adicionales fuera de promoción?
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-300 font-medium mt-0.5">
+              Explora todo nuestro inventario en frío de lomos, bondiolas, pancetas, solomitos y costillas al leño.
+            </p>
           </div>
         </div>
 
-        {/* Lista Vertical de Productos */}
-        <div className="space-y-3">
-          {filteredProducts.map((product) => {
-            const unitPrice = getProductPrice(product.id);
-            const availKg = getProductStock(product.id)?.availableQuantity || 0;
-            const isOutOfStock = availKg <= 0;
-            const currentQty = quickQtys[product.id] || product.minimumQuantity || 10;
-            const itemInCart = cart.find((i) => i.product.id === product.id);
-
-            return (
-              <div
-                key={product.id}
-                className={`p-4 rounded-3xl bg-slate-950/90 border-2 transition-all cartoon-card ${
-                  itemInCart
-                    ? "border-gold-500 ring-2 ring-gold-500/40 gold-glow-card scale-[1.01]"
-                    : isOutOfStock
-                    ? "border-white/5 opacity-60 bg-slate-950"
-                    : "border-slate-800/90 hover:border-slate-700"
-                }`}
-              >
-                <div className="flex gap-3.5">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-20 h-20 rounded-2xl object-cover border border-slate-800 flex-shrink-0 shadow-md"
-                  />
-
-                  <div className="flex-1 min-w-0">
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider font-mono ${
-                      product.brand === "gourmet_ahumados"
-                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                        : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                    }`}>
-                      {product.brand === "gourmet_ahumados" ? "🪵 Gourmet Ahumados" : "🥩 Cerdo Crudo JD"}
-                    </span>
-
-                    <h4 className="font-bebas text-xl sm:text-2xl text-white tracking-wide mt-1 truncate">
-                      {product.name}
-                    </h4>
-
-                    <p className="font-bebas text-2xl sm:text-3xl text-gold-400 mt-0.5 tracking-wider">
-                      {priceService.formatCurrency(unitPrice)}{" "}
-                      <span className="font-sans text-xs font-normal text-slate-400">/ kilo</span>
-                    </p>
-
-                    <p className="text-xs text-slate-400 mt-0.5 font-mono">
-                      {isOutOfStock ? (
-                        <span className="text-rose-400 font-bold">🔴 Agotado por hoy</span>
-                      ) : (
-                        <span className="text-emerald-400 font-bold">
-                          🟢 {availKg} kg en frío
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Controles de Selección de Kilos & Agregar */}
-                {!isOutOfStock ? (
-                  <div className="space-y-2 pt-2 border-t border-white/10">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-400">Kilos rápidos:</span>
-                      <div className="flex items-center gap-1">
-                        {[10, 25, 50].map((quickVal) => (
-                          <button
-                            key={quickVal}
-                            type="button"
-                            onClick={() => setQuickQtys((prev) => ({ ...prev, [product.id]: quickVal }))}
-                            className={`px-2 py-0.5 rounded-lg text-[11px] font-mono font-black border transition-colors ${
-                              currentQty === quickVal
-                                ? "bg-[#4edea3] text-slate-950 border-[#4edea3]"
-                                : "bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800"
-                            }`}
-                          >
-                            {quickVal}k
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <QuantityStepper
-                          value={currentQty}
-                          min={product.minimumQuantity || 5}
-                          step={product.quantityStep || 5}
-                          max={availKg || 500}
-                          unit="kg"
-                          size="sm"
-                          onChange={(newVal) =>
-                            setQuickQtys((prev) => ({ ...prev, [product.id]: newVal }))
-                          }
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleAdd(product)}
-                        className={`px-4 py-2.5 rounded-2xl font-bebas text-base tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 flex-shrink-0 ${
-                          itemInCart
-                            ? "bg-gold-500 text-slate-950 border border-gold-300 shadow-md"
-                            : "bg-gradient-to-r from-fire-600 via-fire-500 to-amber-600 hover:from-fire-500 hover:to-amber-500 text-white shadow-fire-950/60"
-                        }`}
-                      >
-                        {itemInCart ? (
-                          <>
-                            <Check className="w-4 h-4 stroke-[3]" />
-                            <span>AGREGADO</span>
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="w-4 h-4 stroke-[3]" />
-                            <span>+ AGREGAR</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
+        <Link
+          href="/comprar"
+          className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-gold-500 via-amber-500 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-950/40 transition-all active:scale-95 flex items-center justify-center gap-2 flex-shrink-0"
+        >
+          <Layers className="w-4 h-4 text-slate-950" />
+          <span>VER CATÁLOGO COMPLETO</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
       {/* 6. Soporte por WhatsApp Directo */}
