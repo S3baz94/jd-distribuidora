@@ -124,50 +124,47 @@ export default function AdminInventoryPage() {
               <Boxes className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white">
-                Control de Inventario & Lotes en Frío
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-black text-white">
+                  Administración de Cantidades & Stock
+                </h1>
+                <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                  SOLO ADMINISTRACIÓN
+                </span>
+              </div>
               <p className="text-xs sm:text-sm text-slate-400">
-                Inventario de cortes 100% despostados y porcionados, pesaje en báscula digital, reservas y stock para venta
+                Supervisión gerencial de cantidades, reservas para pedidos y precios. Las modificaciones físicas de inventario y lotes se gestionan desde la <strong>Herramienta del Operador</strong>.
               </p>
             </div>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+          <a
+            href="/operacion"
+            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
+            title="Ir a la estación de planta para modificar inventario físico, pesaje y lotes"
+          >
+            <Scale className="w-4 h-4 stroke-[2.5]" />
+            <span>Ir a Operación de Planta & Lotes</span>
+          </a>
+
           <button
             type="button"
             onClick={() => setIsProductionReadyOpen(true)}
             className="px-4 py-2.5 rounded-2xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-black text-xs flex items-center gap-2 border border-cyan-500/30 transition-all active:scale-95 shadow-lg shadow-cyan-950/30"
           >
             <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>Puesta en Marcha (Datos Reales)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsNewProductOpen(true)}
-            className="px-4 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-950/40 transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Crear Corte / Producto</span>
+            <span>Puesta en Marcha (Cantidades)</span>
           </button>
 
           <button
             onClick={handleExportCSV}
             className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs flex items-center gap-2 border border-slate-700 transition-all"
-            title="Descargar inventario para Excel"
+            title="Descargar libro de inventario para Excel"
           >
             <Download className="w-4 h-4 text-slate-400" />
             <span>Descargar (.CSV)</span>
-          </button>
-
-          <button
-            onClick={() => handleOpenBatchForProduct(undefined)}
-            className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
-          >
-            <PlusCircle className="w-4 h-4 stroke-[2.5]" />
-            <span>Ingresar Lote Báscula</span>
           </button>
         </div>
       </div>
@@ -474,47 +471,34 @@ export default function AdminInventoryPage() {
                 )}
               </div>
 
-              {/* Quick Action Buttons (Add Kilos with 1 tap) */}
+              {/* Control de Cantidades en Administración */}
               <div className="space-y-2 pt-2 border-t border-slate-800">
-                <p className="text-[10px] uppercase font-bold text-slate-400">
-                  Ingreso Rápido de Báscula (+kg):
-                </p>
-                <div className="grid grid-cols-3 gap-1.5">
-                  <button
-                    onClick={() => handleQuickAddKg(product.id, 25, product.name)}
-                    className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-black text-xs rounded-xl border border-slate-700 transition-colors"
-                  >
-                    +25 kg
-                  </button>
-                  <button
-                    onClick={() => handleQuickAddKg(product.id, 50, product.name)}
-                    className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-black text-xs rounded-xl border border-slate-700 transition-colors"
-                  >
-                    +50 kg
-                  </button>
-                  <button
-                    onClick={() => handleQuickAddKg(product.id, 100, product.name)}
-                    className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-black text-xs rounded-xl border border-slate-700 transition-colors"
-                  >
-                    +100 kg
-                  </button>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] uppercase font-bold text-slate-400">
+                    Administración de Cantidades:
+                  </p>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    (Físico + Disp.)
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-2 pt-1">
-                  <button
-                    onClick={() => handleOpenBatchForProduct(product.id)}
-                    className="flex-1 py-2 px-3 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 font-extrabold text-xs rounded-xl border border-emerald-500/30 transition-colors flex items-center justify-center gap-1"
-                  >
-                    <Scale className="w-3.5 h-3.5" />
-                    <span>Ingresar con Lote</span>
-                  </button>
-
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleStartEdit(product.id)}
-                    className="py-2 px-3 bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold text-xs rounded-xl border border-slate-700 transition-colors"
+                    className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                   >
-                    Editar
+                    <Boxes className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Ajustar Cantidades</span>
                   </button>
+
+                  <a
+                    href="/operacion"
+                    className="py-2 px-3 bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-300 font-extrabold text-xs rounded-xl border border-emerald-500/30 transition-colors flex items-center justify-center gap-1"
+                    title="Pesar o ingresar lote físico en la báscula de la estación de operador"
+                  >
+                    <Scale className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Pesar en Operador</span>
+                  </a>
                 </div>
               </div>
             </div>

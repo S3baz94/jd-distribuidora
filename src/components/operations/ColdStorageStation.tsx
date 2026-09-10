@@ -18,13 +18,24 @@ import {
   Flame,
   ShieldCheck,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { NewBatchModal } from "@/components/admin/NewBatchModal";
+import { NewProductModal } from "@/components/admin/NewProductModal";
 
 export const ColdStorageStation: React.FC = () => {
-  const { products, inventory, addInventoryBatch, updateInventoryStock, showToast } = useApp();
+  const {
+    products,
+    inventory,
+    addInventoryBatch,
+    updateInventoryStock,
+    createProduct,
+    deleteProduct,
+    showToast,
+  } = useApp();
 
   const [isNewBatchOpen, setIsNewBatchOpen] = useState(false);
+  const [isNewProductOpen, setIsNewProductOpen] = useState(false);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
   const [auditProductMap, setAuditProductMap] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -95,6 +106,16 @@ export const ColdStorageStation: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setIsNewProductOpen(true)}
+              className="px-3.5 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs flex items-center gap-1.5 shadow-md shadow-amber-950/40 active:scale-95 transition-all"
+              title="Crear un nuevo corte o producto en el catálogo oficial"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>➕ Crear Corte</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setIsAuditModalOpen(true)}
@@ -261,17 +282,33 @@ export const ColdStorageStation: React.FC = () => {
                     <h4 className="font-bold text-white text-sm mt-1">{prod.name}</h4>
                   </div>
 
-                  <span
-                    className={`text-xs font-black px-2.5 py-1 rounded-xl font-mono ${
-                      isOut
-                        ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                        : isLow
-                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                        : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                    }`}
-                  >
-                    {inv.availableQuantity.toFixed(1)} kg disp.
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span
+                      className={`text-xs font-black px-2.5 py-1 rounded-xl font-mono ${
+                        isOut
+                          ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                          : isLow
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                          : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                      }`}
+                    >
+                      {inv.availableQuantity.toFixed(1)} kg disp.
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`¿Eliminar corte "${prod.name}" del inventario de cava?`)) {
+                          deleteProduct(prod.id);
+                          showToast(`✓ Corte "${prod.name}" eliminado del inventario`, "info");
+                        }
+                      }}
+                      className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
+                      title="Eliminar corte de inventario"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Stock Stats Grid */}
@@ -487,6 +524,16 @@ export const ColdStorageStation: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Creación de Nuevos Cortes para el Operador */}
+      <NewProductModal
+        isOpen={isNewProductOpen}
+        onClose={() => setIsNewProductOpen(false)}
+        onSave={(newProd, initialStock, initialPrice) => {
+          createProduct(newProd, initialStock, initialPrice);
+          showToast(`✓ Nuevo corte "${newProd.name}" registrado en inventario por el operador`, "success");
+        }}
+      />
     </div>
   );
 };
