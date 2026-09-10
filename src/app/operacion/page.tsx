@@ -48,10 +48,12 @@ import {
   Share2,
   Wifi,
   WifiOff,
+  ClipboardList,
 } from "lucide-react";
 import { PlantPackingStation } from "@/components/operations/PlantPackingStation";
 import { ColdStorageStation } from "@/components/operations/ColdStorageStation";
 import { CratesTareScaleModal } from "@/components/operations/CratesTareScaleModal";
+import { CratesInventoryManager } from "@/components/operations/CratesInventoryManager";
 
 export default function OperacionPage() {
   const {
@@ -76,12 +78,24 @@ export default function OperacionPage() {
   const [isSubmittingDelivery, setIsSubmittingDelivery] = useState(false);
   const [isSubmittingExpense, setIsSubmittingExpense] = useState(false);
 
-  // Active operations authenticated user: Operador vs Domiciliario
-  const [currentUser, setCurrentUser] = useState<OperationsUserProfile | null>(null);
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  // Active operations authenticated user: Operador por defecto sin requerir contraseña
+  const [currentUser, setCurrentUser] = useState<OperationsUserProfile | null>(() => {
+    const session = OperationsAuthService.getCurrentSession();
+    if (session) return session;
+    // Acceso directo y universal sin contraseña para operadores de planta y bodega
+    return {
+      id: "operador-01",
+      role: "operador",
+      name: "Operador de Planta & Bodega",
+      roleTitle: "Control de Cargas, Báscula, Cava & Canastillas",
+      avatar: "👷",
+      description: "Alistamiento de pedidos, pesaje en báscula digital, precintos INVIMA, inventario en frío y canastillas",
+    };
+  });
+  const [isAuthChecking, setIsAuthChecking] = useState(false);
 
-  // Active operations role mode: Domiciliario / Chofer vs Operario de Planta vs Operario de Bodega
-  const [operationsMode, setOperationsMode] = useState<"domiciliario" | "planta" | "bodega">("domiciliario");
+  // Active operations role mode: Estaciones de trabajo del operador
+  const [operationsMode, setOperationsMode] = useState<"alistamiento" | "bascula" | "inventario" | "canastas" | "domiciliario">("alistamiento");
 
   // GPS Route Map visibility in driver cab
   const [showRouteMap, setShowRouteMap] = useState(true);
@@ -92,11 +106,10 @@ export default function OperacionPage() {
 
   useEffect(() => {
     const session = OperationsAuthService.getCurrentSession();
-    if (session) {
+    if (session && session.role === "domiciliario") {
       setCurrentUser(session);
-      setOperationsMode(session.role === "operador" ? "planta" : "domiciliario");
+      setOperationsMode("domiciliario");
     }
-    setIsAuthChecking(false);
   }, []);
 
   // Active driver selection
@@ -451,7 +464,7 @@ export default function OperacionPage() {
       <OperationsAuthGate
         onAuthenticated={(user) => {
           setCurrentUser(user);
-          setOperationsMode(user.role === "operador" ? "planta" : "domiciliario");
+          setOperationsMode(user.role === "operador" ? "alistamiento" : "domiciliario");
         }}
       />
     );
@@ -500,9 +513,13 @@ export default function OperacionPage() {
                 </div>
                 <h1 className="text-xs sm:text-base font-bold text-slate-100 leading-tight mt-1 break-words">
                   {currentUser?.role === "operador"
-                    ? operationsMode === "planta"
-                      ? "Alistamiento, Báscula Digital & Precintos INVIMA"
-                      : "Kardex en Frío (1.8°C) & Recepción de Canales"
+                    ? operationsMode === "alistamiento"
+                      ? "Alistamiento de Cargas & Planilla de Desposte"
+                      : operationsMode === "bascula"
+                      ? "Báscula Digital de Canastillas & Tara (2.0 kg)"
+                      : operationsMode === "inventario"
+                      ? "Kardex en Cava (1.8°C) & Recepción de Lotes"
+                      : "Censo & Contabilidad de Canastillas JD"
                     : `${activeRoute?.driverName || "Carlos Pérez"} • Furgón ${activeRoute?.vehiclePlate || "KLP-541"}`}
                 </h1>
               </div>
@@ -524,78 +541,78 @@ export default function OperacionPage() {
             )}
           </div>
 
-          {/* Action buttons based on active role */}
-          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end">
-            {currentUser?.role === "operador" ? (
-              <div className="flex bg-slate-900 rounded-2xl p-1 border border-slate-800 flex-1 sm:flex-initial">
-                <button
-                  type="button"
-                  onClick={() => setOperationsMode("planta")}
-                  className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
-                    operationsMode === "planta"
-                      ? "bg-emerald-600 text-white shadow-md font-black"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <Scale className="w-3.5 h-3.5" />
-                  <span>Alistamiento & Báscula</span>
-                </button>
+            {/* Botones de navegación ergonómicos para las 4 estaciones del Operador */}
+            <div className="flex bg-slate-900/90 rounded-2xl p-1 border border-slate-800 flex-wrap sm:flex-nowrap gap-1">
+              {/* Estación 1: Alistamiento & Pedidos */}
+              <button
+                type="button"
+                onClick={() => setOperationsMode("alistamiento")}
+                className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all ${
+                  operationsMode === "alistamiento"
+                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Alistamiento de pedidos y planilla de desposte para furgones"
+              >
+                <ClipboardList className="w-3.5 h-3.5" />
+                <span>Alistamiento</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setOperationsMode("bodega")}
-                  className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
-                    operationsMode === "bodega"
-                      ? "bg-cyan-600 text-white shadow-md font-black"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <ThermometerSnowflake className="w-3.5 h-3.5" />
-                  <span>Bodega & Frío</span>
-                </button>
-              </div>
-            ) : (
-              <div className="hidden sm:block">
-                <select
-                  value={selectedDriverId}
-                  onChange={(e) => setSelectedDriverId(e.target.value)}
-                  className="bg-slate-900 border border-slate-800 text-xs font-bold text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
-                >
-                  {routes.map((r) => (
-                    <option key={r.driverId} value={r.driverId}>
-                      🚚 {r.driverName} ({r.vehiclePlate})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+              {/* Estación 2: Báscula Digital & Tara */}
+              <button
+                type="button"
+                onClick={() => setOperationsMode("bascula")}
+                className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all ${
+                  operationsMode === "bascula"
+                    ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-950/50"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Pesaje digital corte por corte y descuento de tara de canastillas (2.0 kg)"
+              >
+                <Scale className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Báscula & Tara</span>
+              </button>
 
-            {/* Báscula & Tara de Canastillas Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setTareScaleOrder(pendingOrders[0] || null);
-                setIsTareScaleModalOpen(true);
-              }}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md shadow-amber-950/40 active:scale-95 transition-all flex-shrink-0"
-              title="Báscula para restar tara de canastillas vacías y calcular gramaje neto de factura"
+              {/* Estación 3: Inventario & Cava Fría */}
+              <button
+                type="button"
+                onClick={() => setOperationsMode("inventario")}
+                className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all ${
+                  operationsMode === "inventario"
+                    ? "bg-cyan-600 text-white shadow-md shadow-cyan-950/50"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Kardex de cortes en cava (1.8°C), ingreso de lotes y arqueo físico"
+              >
+                <ThermometerSnowflake className="w-3.5 h-3.5" />
+                <span>Cava & Frío</span>
+              </button>
+
+              {/* Estación 4: Control de Canastas JD */}
+              <button
+                type="button"
+                onClick={() => setOperationsMode("canastas")}
+                className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all ${
+                  operationsMode === "canastas"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/50"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Censo y contabilidad de canastillas plásticas (planta, pedidos, furgones, clientes)"
+              >
+                <Boxes className="w-3.5 h-3.5" />
+                <span>Canastas JD</span>
+              </button>
+            </div>
+
+            {/* Acceso directo a Domiciliario / Cabina de Ruta */}
+            <a
+              href="/domiciliario"
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold border border-slate-700 transition-colors flex items-center gap-1.5 flex-shrink-0"
+              title="Ir a la pantalla de domiciliario y furgón en ruta"
             >
-              <Scale className="w-4 h-4 stroke-[2.5]" />
-              <span className="hidden sm:inline">Báscula Tara</span>
-              <span className="sm:hidden">Tara</span>
-            </button>
-
-            {/* Logout / Switch Role button */}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 text-xs font-bold border border-slate-800 hover:border-rose-700/60 transition-colors flex items-center gap-1.5 flex-shrink-0"
-              title="Cerrar turno o cambiar a otro perfil de operación"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Cerrar Turno</span>
-            </button>
-          </div>
+              <Truck className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Modo Domiciliario</span>
+            </a>
         </div>
       </div>
 
@@ -1232,7 +1249,7 @@ export default function OperacionPage() {
           )}
         </div>
       </div>
-      ) : operationsMode === "planta" ? (
+      ) : operationsMode === "alistamiento" ? (
         <div className="max-w-4xl mx-auto px-4 py-4">
           <PlantPackingStation
             selectedRouteId={activeRoute?.id}
@@ -1242,9 +1259,97 @@ export default function OperacionPage() {
             }}
           />
         </div>
-      ) : (
+      ) : operationsMode === "bascula" ? (
+        <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+          {/* Tarjeta de bienvenida a la estación de báscula digital */}
+          <div className="bg-gradient-to-r from-amber-500/10 via-slate-900 to-slate-950 border border-amber-500/30 rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 text-xl font-bold flex-shrink-0 shadow-md">
+                <Scale className="w-6 h-6 stroke-[2.5]" />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                  ESTACIÓN DE PESAJE DIGITAL & CONTROL DE TARAS
+                </span>
+                <h2 className="text-lg font-black text-white mt-1">
+                  Báscula Digital de Canastillas & Liquidación de Gramaje Neto
+                </h2>
+                <p className="text-xs text-slate-300">
+                  Descuenta automáticamente 2.0 kg por canastilla plástica JD y calcula el peso exacto a facturar.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setTareScaleOrder(pendingOrders[0] || null);
+                setIsTareScaleModalOpen(true);
+              }}
+              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-amber-950/40 active:scale-95 transition-all flex-shrink-0"
+            >
+              <Scale className="w-5 h-5 stroke-[2.5]" />
+              <span>ABRIR BÁSCULA CON TARA</span>
+            </button>
+          </div>
+
+          {/* Listado rápido de pedidos en cola para pesaje en báscula */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Pedidos Pendientes de Pesaje ({pendingOrders.length})</span>
+              </h3>
+              <span className="text-xs text-slate-400 font-medium">Selecciona un pedido para pesarlo en báscula</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {pendingOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-slate-950 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 transition-all flex flex-col justify-between gap-3 shadow-md"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-mono text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                        {order.orderNumber}
+                      </span>
+                      <h4 className="font-black text-white text-sm mt-1">{order.customerName}</h4>
+                      <p className="text-xs text-slate-400 truncate">{order.deliveryAddress}</p>
+                    </div>
+                    <span className="text-xs font-mono font-black text-emerald-400">
+                      {priceService.formatCurrency(order.realTotal || order.total)}
+                    </span>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                    <span className="text-slate-400">
+                      {order.items.length} cortes • ~{order.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0).toFixed(1)} kg est.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTareScaleOrder(order);
+                        setIsTareScaleModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1 shadow-md active:scale-95 transition-all"
+                    >
+                      <Scale className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Pesar en Báscula</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : operationsMode === "inventario" ? (
         <div className="max-w-4xl mx-auto px-4 py-4">
           <ColdStorageStation />
+        </div>
+      ) : (
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <CratesInventoryManager />
         </div>
       )}
 

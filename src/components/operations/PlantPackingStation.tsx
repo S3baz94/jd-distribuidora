@@ -47,6 +47,9 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
   const [isTareScaleOpen, setIsTareScaleOpen] = useState(false);
   const [tareScaleOrder, setTareScaleOrder] = useState<Order | null>(null);
 
+  // Filtro de fase operativa: todas, por_alistar, en_bascula, precintado, en_ruta
+  const [activePhaseFilter, setActivePhaseFilter] = useState<"todas" | "por_alistar" | "en_bascula" | "precintado" | "en_ruta">("todas");
+
   const currentRoute = routes.find((r) => r.id === activeRouteId) || routes[0];
 
   const routeOrders = allOrders.filter(
@@ -241,16 +244,76 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
 
       {/* Customer Orders Breakdown & Digital Scale Adjustments */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
-            <PackageCheck className="w-5 h-5 text-cyan-400" />
-            <span>Cargas por Cliente & Pesaje en Báscula ({routeOrders.length})</span>
-          </h3>
-          <span className="text-xs text-slate-400">Toca &quot;Pesar en Báscula&quot; para ajustar kilos reales</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
+              <PackageCheck className="w-5 h-5 text-cyan-400" />
+              <span>Organización Operativa de Pedidos ({routeOrders.length})</span>
+            </h3>
+            <span className="text-xs text-slate-400">Control de flujo de trabajo: alistamiento ➔ pesaje ➔ precintado ➔ despacho</span>
+          </div>
+
+          {/* Filtro interactivo de las 4 fases de trabajo */}
+          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 overflow-x-auto text-[11px] font-bold">
+            <button
+              type="button"
+              onClick={() => setActivePhaseFilter("todas")}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                activePhaseFilter === "todas" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Todas ({routeOrders.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActivePhaseFilter("por_alistar")}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                activePhaseFilter === "por_alistar" ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              1. Por Alistar ({routeOrders.filter((o) => o.status === "pending").length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActivePhaseFilter("en_bascula")}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                activePhaseFilter === "en_bascula" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              2. En Báscula ({routeOrders.filter((o) => o.status === "confirmed" && !o.weightAdjusted).length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActivePhaseFilter("precintado")}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                activePhaseFilter === "precintado" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              3. Listos / Precintados ({routeOrders.filter((o) => o.status === "confirmed" && o.weightAdjusted).length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActivePhaseFilter("en_ruta")}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                activePhaseFilter === "en_ruta" ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              4. En Furgón ({routeOrders.filter((o) => o.status === "dispatched" || o.status === "delivered").length})
+            </button>
+          </div>
         </div>
 
         <div className="space-y-3">
-          {routeOrders.map((order, idx) => {
+          {routeOrders
+            .filter((order) => {
+              if (activePhaseFilter === "todas") return true;
+              if (activePhaseFilter === "por_alistar") return order.status === "pending";
+              if (activePhaseFilter === "en_bascula") return order.status === "confirmed" && !order.weightAdjusted;
+              if (activePhaseFilter === "precintado") return order.status === "confirmed" && order.weightAdjusted;
+              if (activePhaseFilter === "en_ruta") return order.status === "dispatched" || order.status === "delivered";
+              return true;
+            })
+            .map((order, idx) => {
             const orderKg = order.items.reduce(
               (sum, i) => sum + (i.realQuantity || i.quantity),
               0

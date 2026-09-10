@@ -25,6 +25,8 @@ export const ColdStorageStation: React.FC = () => {
   const { products, inventory, addInventoryBatch, updateInventoryStock, showToast } = useApp();
 
   const [isNewBatchOpen, setIsNewBatchOpen] = useState(false);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  const [auditProductMap, setAuditProductMap] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBrandTab, setSelectedBrandTab] = useState<BrandType | "all">("all");
   const [tempReading, setTempReading] = useState<string>("1.8");
@@ -92,14 +94,26 @@ export const ColdStorageStation: React.FC = () => {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsNewBatchOpen(true)}
-            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all self-start sm:self-auto"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>➕ Ingreso de Lote Despostado</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setIsAuditModalOpen(true)}
+              className="px-3.5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs flex items-center gap-1.5 border border-amber-500/40 shadow-md active:scale-95 transition-all"
+              title="Comparar inventario en sistema vs pesaje físico en báscula"
+            >
+              <Scale className="w-4 h-4 text-amber-400" />
+              <span>⚖️ Arqueo Físico de Cava</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsNewBatchOpen(true)}
+              className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>➕ Ingreso de Lote Despostado</span>
+            </button>
+          </div>
         </div>
 
         {/* Cold Storage Metrics */}
@@ -341,6 +355,138 @@ export const ColdStorageStation: React.FC = () => {
         onClose={() => setIsNewBatchOpen(false)}
         onSave={addInventoryBatch}
       />
+
+      {/* Modal de Arqueo Físico de Cava & Mermas */}
+      {isAuditModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 sm:p-6 max-w-2xl w-full shadow-2xl space-y-4 animate-in zoom-in-95 text-white max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                  <Scale className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    AUDITORÍA OPERATIVA EN BÁSCULA
+                  </span>
+                  <h3 className="font-black text-lg text-white mt-0.5">
+                    Arqueo Físico de Cava & Cuadre de Mermas
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAuditModalOpen(false)}
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Registra los kilos reales pesados en báscula para cada corte. El sistema calculará la variación contra el saldo teórico y actualizará el inventario físico con total trazabilidad.
+            </p>
+
+            <div className="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
+              {products.slice(0, 8).map((prod) => {
+                const inv = inventory.find((i) => i.productId === prod.id) || {
+                  physicalQuantity: 0,
+                  availableQuantity: 0,
+                  reservedQuantity: 0,
+                };
+                const physicalInput = auditProductMap[prod.id] ?? inv.availableQuantity;
+                const diff = physicalInput - inv.availableQuantity;
+
+                return (
+                  <div
+                    key={prod.id}
+                    className="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[10px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                          {prod.sku}
+                        </span>
+                        <h4 className="font-bold text-white text-sm">{prod.name}</h4>
+                      </div>
+                      <p className="text-slate-400 text-[11px] mt-0.5">
+                        Stock teórico: <strong className="text-slate-200">{inv.availableQuantity.toFixed(1)} kg</strong>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 self-end sm:self-center">
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-[11px] text-slate-400 font-bold">Pesaje:</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={physicalInput}
+                          onChange={(e) =>
+                            setAuditProductMap({
+                              ...auditProductMap,
+                              [prod.id]: parseFloat(e.target.value) || 0,
+                            })
+                          }
+                          className="w-24 bg-slate-800 border border-slate-700 rounded-xl p-1.5 text-right font-mono font-bold text-white text-xs focus:outline-none focus:border-amber-500"
+                        />
+                        <span className="text-slate-400 font-bold">kg</span>
+                      </div>
+
+                      <div className="w-24 text-right">
+                        <span
+                          className={`font-mono font-black text-xs block ${
+                            diff === 0
+                              ? "text-slate-400"
+                              : diff > 0
+                              ? "text-emerald-400"
+                              : "text-rose-400"
+                          }`}
+                        >
+                          {diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)} kg
+                        </span>
+                        <span className="text-[9px] uppercase font-bold text-slate-500">
+                          {diff === 0 ? "Exacto" : diff > 0 ? "Sobrante" : "Merma"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsAuditModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  Object.entries(auditProductMap).forEach(([pid, newQty]) => {
+                    const inv = inventory.find((i) => i.productId === pid);
+                    if (inv) {
+                      updateInventoryStock(pid, {
+                        physicalQuantity: newQty + inv.reservedQuantity,
+                        availableQuantity: newQty,
+                      });
+                    }
+                  });
+                  showToast("✓ Arqueo físico de cava aplicado exitosamente", "success");
+                  setIsAuditModalOpen(false);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Guardar Arqueo & Cuadrar Cava</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
