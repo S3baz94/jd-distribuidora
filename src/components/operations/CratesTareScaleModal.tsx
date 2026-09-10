@@ -629,61 +629,61 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
             </div>
 
             {/* Arithmetic Formula Layout */}
-            <div className="grid grid-cols-3 gap-2.5 text-center">
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 text-center">
+              <div className="bg-slate-950 p-2.5 sm:p-3 rounded-2xl border border-slate-800 min-w-0">
+                <span className="text-[9px] sm:text-[10px] font-mono uppercase font-bold text-slate-400 block truncate">
                   Peso Bruto
                 </span>
-                <span className="text-base sm:text-lg font-mono font-black text-rose-300">
-                  {totalGrossKg.toFixed(2)} <span className="text-xs">kg</span>
+                <span className="text-sm sm:text-base md:text-lg font-mono font-black text-rose-300 block truncate">
+                  {totalGrossKg.toFixed(2)} <span className="text-[10px] sm:text-xs">kg</span>
                 </span>
               </div>
 
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block">
+              <div className="bg-slate-950 p-2.5 sm:p-3 rounded-2xl border border-slate-800 min-w-0">
+                <span className="text-[9px] sm:text-[10px] font-mono uppercase font-bold text-slate-400 block truncate">
                   (-) Tara Vacías
                 </span>
-                <span className="text-base sm:text-lg font-mono font-black text-cyan-300">
-                  -{totalTareKg.toFixed(2)} <span className="text-xs">kg</span>
+                <span className="text-sm sm:text-base md:text-lg font-mono font-black text-cyan-300 block truncate">
+                  -{totalTareKg.toFixed(2)} <span className="text-[10px] sm:text-xs">kg</span>
                 </span>
               </div>
 
-              <div className="bg-emerald-950/90 p-3 rounded-2xl border-2 border-[#4edea3] shadow-inner">
-                <span className="text-[10px] font-mono uppercase font-black text-emerald-300 block">
-                  (=) NETO A FACTURAR
+              <div className="bg-emerald-950/90 p-2.5 sm:p-3 rounded-2xl border-2 border-[#4edea3] shadow-inner min-w-0">
+                <span className="text-[9px] sm:text-[10px] font-mono uppercase font-black text-emerald-300 block truncate">
+                  (=) NETO FACTURA
                 </span>
-                <span className="text-xl sm:text-2xl font-mono font-black text-[#4edea3]">
-                  {netGrammageKg.toFixed(2)} <span className="text-xs">kg</span>
+                <span className="text-base sm:text-xl md:text-2xl font-mono font-black text-[#4edea3] block truncate">
+                  {netGrammageKg.toFixed(2)} <span className="text-[10px] sm:text-xs">kg</span>
                 </span>
               </div>
             </div>
 
             {/* Giant Glowing Digital Readout */}
-            <div className="py-2 text-center bg-slate-950/80 rounded-2xl border border-slate-800/80 p-4">
-              <span className="text-[11px] font-mono font-extrabold uppercase tracking-widest text-[#4edea3] block mb-1">
+            <div className="py-2 text-center bg-slate-950/80 rounded-2xl border border-slate-800/80 p-3 sm:p-4">
+              <span className="text-[10px] sm:text-[11px] font-mono font-extrabold uppercase tracking-widest text-[#4edea3] block mb-1 truncate">
                 ⚖️ DISPLAY DIGITAL DE BÁSCULA
               </span>
-              <div className="text-4xl sm:text-6xl font-mono font-black text-[#4edea3] tracking-tight drop-shadow-[0_0_20px_rgba(78,222,163,0.5)]">
-                {netGrammageKg.toFixed(2)} <span className="text-2xl font-bold text-emerald-300">kg</span>
+              <div className="text-3xl sm:text-5xl md:text-6xl font-mono font-black text-[#4edea3] tracking-tight drop-shadow-[0_0_20px_rgba(78,222,163,0.5)] truncate">
+                {netGrammageKg.toFixed(2)} <span className="text-xl sm:text-2xl font-bold text-emerald-300">kg</span>
               </div>
             </div>
 
             {/* Price Calculation for Invoice */}
-            <div className="bg-slate-950 rounded-2xl p-4 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="bg-slate-950 rounded-2xl p-3.5 sm:p-4 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
               <div>
-                <span className="text-slate-400 block text-[11px] font-mono">
+                <span className="text-slate-400 block text-[10px] sm:text-[11px] font-mono">
                   Tarifa Oficial de Desposte:
                 </span>
-                <strong className="text-white font-mono font-black text-sm">
+                <strong className="text-white font-mono font-black text-xs sm:text-sm">
                   {priceService.formatCurrency(currentWeighing.unitPrice)} / kg
                 </strong>
               </div>
 
               <div className="text-left sm:text-right">
-                <span className="text-[#4edea3] block text-[11px] font-mono font-bold uppercase">
+                <span className="text-[#4edea3] block text-[10px] sm:text-[11px] font-mono font-bold uppercase">
                   Valor Total Liquidado:
                 </span>
-                <strong className="text-2xl sm:text-3xl font-mono font-black text-[#4edea3]">
+                <strong className="text-xl sm:text-2xl md:text-3xl font-mono font-black text-[#4edea3] break-words block">
                   {priceService.formatCurrency(totalAmountCOP)} COP
                 </strong>
               </div>
@@ -691,7 +691,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
 
             {/* Theoretical Deviation notice if order exists */}
             {currentItem.orderedQty > 0 && (
-              <div className="text-[11px] font-mono text-slate-400 flex items-center justify-between pt-1 border-t border-slate-800">
+              <div className="text-[10px] sm:text-[11px] font-mono text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 border-t border-slate-800">
                 <span>Pedido teórico: {currentItem.orderedQty} kg</span>
                 <span
                   className={`font-bold ${
@@ -707,7 +707,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
         </div>
 
         {/* Footer Actions matching Stitch */}
-        <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
+        <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 flex-shrink-0">
           <button
             type="button"
             onClick={handleCopyTicket}
@@ -721,7 +721,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 sm:flex-none px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-xs transition-colors"
+              className="flex-1 sm:flex-none px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-xs transition-colors text-center"
             >
               Cerrar
             </button>
@@ -730,10 +730,10 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
               <button
                 type="button"
                 onClick={handleApplyToOrder}
-                className="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl glow-master-btn active:scale-95 transition-all"
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl glow-master-btn active:scale-95 transition-all text-center leading-tight"
               >
-                <Receipt className="w-4 h-4 text-slate-950" />
-                <span>Aplicar Gramaje Neto a Factura</span>
+                <Receipt className="w-4 h-4 text-slate-950 flex-shrink-0" />
+                <span className="truncate sm:overflow-visible">Aplicar Gramaje a Factura</span>
               </button>
             )}
           </div>

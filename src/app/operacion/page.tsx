@@ -488,30 +488,30 @@ export default function OperacionPage() {
                   className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform"
                 />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <span
-                    className={`font-bebas text-xs sm:text-sm md:text-base uppercase px-2 sm:px-2.5 py-0.5 rounded border tracking-wider truncate ${
+                    className={`font-bebas text-[11px] sm:text-xs md:text-sm uppercase px-2 py-0.5 rounded border tracking-wider leading-tight ${
                       currentUser?.role === "operador"
                         ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
                         : "text-amber-400 bg-amber-500/10 border-amber-500/20"
                     }`}
                   >
                     {currentUser?.role === "operador"
-                      ? "PANTALLA DE OPERADOR DE PLANTA"
-                      : "PANTALLA DE DOMICILIARIO / CONDUCTOR"}
+                      ? "OPERADOR DE PLANTA"
+                      : "DOMICILIARIO / CONDUCTOR"}
                   </span>
                   {isOnline ? (
-                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 flex-shrink-0">
+                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 flex-shrink-0">
                       <Wifi className="w-2.5 h-2.5" /> En línea
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 animate-pulse flex-shrink-0">
+                    <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 animate-pulse flex-shrink-0">
                       <WifiOff className="w-2.5 h-2.5" /> Sin conexión
                     </span>
                   )}
                 </div>
-                <h1 className="text-xs sm:text-base font-bold text-slate-100 leading-tight mt-1 break-words">
+                <h1 className="text-xs sm:text-sm md:text-base font-bold text-slate-100 leading-snug mt-1 break-words">
                   {currentUser?.role === "operador"
                     ? operationsMode === "alistamiento"
                       ? "Alistamiento de Cargas & Planilla de Desposte"
@@ -542,65 +542,65 @@ export default function OperacionPage() {
           </div>
 
             {/* Botones de navegación ergonómicos para las 4 estaciones del Operador */}
-            <div className="flex bg-slate-900/90 rounded-2xl p-1 border border-slate-800 flex-wrap sm:flex-nowrap gap-1">
+            <div className="grid grid-cols-2 sm:flex sm:flex-nowrap w-full sm:w-auto bg-slate-900/90 rounded-2xl p-1 border border-slate-800 gap-1">
               {/* Estación 1: Alistamiento & Pedidos */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("alistamiento")}
-                className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all ${
+                className={`px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl font-black text-xs flex items-center justify-center sm:justify-start gap-1.5 transition-all truncate ${
                   operationsMode === "alistamiento"
                     ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
                     : "text-slate-400 hover:text-white"
                 }`}
                 title="Alistamiento de pedidos y planilla de desposte para furgones"
               >
-                <ClipboardList className="w-3.5 h-3.5" />
-                <span>Alistamiento</span>
+                <ClipboardList className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Alistamiento</span>
               </button>
 
               {/* Estación 2: Báscula Digital & Tara */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("bascula")}
-                className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all ${
+                className={`px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl font-black text-xs flex items-center justify-center sm:justify-start gap-1.5 transition-all truncate ${
                   operationsMode === "bascula"
                     ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-950/50"
                     : "text-slate-400 hover:text-white"
                 }`}
                 title="Pesaje digital corte por corte y descuento de tara de canastillas (2.0 kg)"
               >
-                <Scale className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Báscula & Tara</span>
+                <Scale className="w-3.5 h-3.5 stroke-[2.5] flex-shrink-0" />
+                <span className="truncate">Báscula & Tara</span>
               </button>
 
               {/* Estación 3: Inventario & Cava Fría */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("inventario")}
-                className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all ${
+                className={`px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl font-black text-xs flex items-center justify-center sm:justify-start gap-1.5 transition-all truncate ${
                   operationsMode === "inventario"
                     ? "bg-cyan-600 text-white shadow-md shadow-cyan-950/50"
                     : "text-slate-400 hover:text-white"
                 }`}
                 title="Kardex de cortes en cava (1.8°C), ingreso de lotes y arqueo físico"
               >
-                <ThermometerSnowflake className="w-3.5 h-3.5" />
-                <span>Cava & Frío</span>
+                <ThermometerSnowflake className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Cava & Frío</span>
               </button>
 
               {/* Estación 4: Control de Canastas JD */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("canastas")}
-                className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all ${
+                className={`px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl font-black text-xs flex items-center justify-center sm:justify-start gap-1.5 transition-all truncate ${
                   operationsMode === "canastas"
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-950/50"
                     : "text-slate-400 hover:text-white"
                 }`}
                 title="Censo y contabilidad de canastillas plásticas (planta, pedidos, furgones, clientes)"
               >
-                <Boxes className="w-3.5 h-3.5" />
-                <span>Canastas JD</span>
+                <Boxes className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Canastas JD</span>
               </button>
             </div>
         </div>
@@ -692,17 +692,33 @@ export default function OperacionPage() {
                 href={getFullGoogleMapsRouteUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`w-full min-h-[54px] py-4 px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xl transition-all active:scale-98 text-center border-2 ${
+                className={`w-full min-h-[54px] py-3.5 px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xl transition-all active:scale-98 text-center border-2 leading-tight ${
                   pendingOrders.length > 0
                     ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 glow-master-btn border-emerald-300"
                     : "bg-emerald-700/80 text-white border-emerald-500/60 shadow-emerald-950/50"
                 }`}
               >
                 <Navigation className={`w-5 h-5 flex-shrink-0 ${pendingOrders.length > 0 ? "text-slate-950 fill-current animate-bounce" : "text-white"}`} />
-                <span>
-                  {pendingOrders.length > 0
-                    ? `🗺️ ABRIR RECORRIDO ACTUALIZADO EN GOOGLE MAPS GPS (${pendingOrders.length} PARADAS RESTANTES)`
-                    : `🏁 RUTA 100% COMPLETADA (${completedOrders.length}/${routeOrders.length} PARADAS ENTREGADAS)`}
+                <span className="break-words">
+                  {pendingOrders.length > 0 ? (
+                    <>
+                      <span className="inline sm:hidden">
+                        🗺️ ABRIR RUTA GPS ({pendingOrders.length} PARADAS)
+                      </span>
+                      <span className="hidden sm:inline">
+                        🗺️ ABRIR RECORRIDO EN GOOGLE MAPS GPS ({pendingOrders.length} PARADAS RESTANTES)
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="inline sm:hidden">
+                        🏁 RUTA COMPLETADA ({completedOrders.length}/{routeOrders.length})
+                      </span>
+                      <span className="hidden sm:inline">
+                        🏁 RUTA 100% COMPLETADA ({completedOrders.length}/{routeOrders.length} PARADAS ENTREGADAS)
+                      </span>
+                    </>
+                  )}
                 </span>
               </a>
             </div>
@@ -1252,19 +1268,19 @@ export default function OperacionPage() {
       ) : operationsMode === "bascula" ? (
         <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
           {/* Tarjeta de bienvenida a la estación de báscula digital */}
-          <div className="bg-gradient-to-r from-amber-500/10 via-slate-900 to-slate-950 border border-amber-500/30 rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+          <div className="bg-gradient-to-r from-amber-500/10 via-slate-900 to-slate-950 border border-amber-500/30 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 text-xl font-bold flex-shrink-0 shadow-md">
                 <Scale className="w-6 h-6 stroke-[2.5]" />
               </div>
-              <div>
-                <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 inline-block">
                   ESTACIÓN DE PESAJE DIGITAL & CONTROL DE TARAS
                 </span>
-                <h2 className="text-lg font-black text-white mt-1">
+                <h2 className="text-base sm:text-lg font-black text-white mt-1 break-words leading-snug">
                   Báscula Digital de Canastillas & Liquidación de Gramaje Neto
                 </h2>
-                <p className="text-xs text-slate-300">
+                <p className="text-xs text-slate-300 mt-0.5">
                   Descuenta automáticamente 2.0 kg por canastilla plástica JD y calcula el peso exacto a facturar.
                 </p>
               </div>
@@ -1276,7 +1292,7 @@ export default function OperacionPage() {
                 setTareScaleOrder(pendingOrders[0] || null);
                 setIsTareScaleModalOpen(true);
               }}
-              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-amber-950/40 active:scale-95 transition-all flex-shrink-0"
+              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-amber-950/40 active:scale-95 transition-all flex-shrink-0 text-center"
             >
               <Scale className="w-5 h-5 stroke-[2.5]" />
               <span>ABRIR BÁSCULA CON TARA</span>
@@ -1284,10 +1300,10 @@ export default function OperacionPage() {
           </div>
 
           {/* Listado rápido de pedidos en cola para pesaje en báscula */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-4 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-800 pb-3">
               <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                 <span>Pedidos Pendientes de Pesaje ({pendingOrders.length})</span>
               </h3>
               <span className="text-xs text-slate-400 font-medium">Selecciona un pedido para pesarlo en báscula</span>

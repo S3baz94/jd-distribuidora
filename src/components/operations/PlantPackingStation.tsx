@@ -133,26 +133,26 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 font-bold flex-shrink-0">
               <Scale className="w-5 h-5" />
             </div>
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 inline-block">
                 PLANTA & SALA DE DESPOSTE
               </span>
-              <h2 className="text-lg font-black text-white">Organización de Cargas & Báscula</h2>
+              <h2 className="text-base sm:text-lg font-black text-white truncate">Organización de Cargas & Báscula</h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-bold hidden sm:inline">Furgón:</span>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-xs text-slate-400 font-bold hidden sm:inline flex-shrink-0">Furgón:</span>
             <select
               value={activeRouteId}
               onChange={(e) => {
                 setActiveRouteId(e.target.value);
                 if (onRouteChange) onRouteChange(e.target.value);
               }}
-              className="bg-slate-950 border border-slate-700 text-white font-bold text-xs rounded-xl px-3.5 py-2 focus:outline-none focus:border-amber-500"
+              className="w-full sm:w-auto bg-slate-950 border border-slate-700 text-white font-bold text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 truncate"
             >
               {routes.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -164,31 +164,31 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
         </div>
 
         {/* Route Load KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Kilos en Furgón:</span>
-            <strong className="text-xl font-black text-emerald-400 font-mono">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
+          <div className="bg-slate-950 p-3 sm:p-3.5 rounded-2xl border border-slate-800 min-w-0">
+            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Total Kilos Furgón:</span>
+            <strong className="text-lg sm:text-xl font-black text-emerald-400 font-mono block truncate">
               {totalRouteKg.toFixed(1)} <span className="text-xs font-semibold text-slate-400">kg</span>
             </strong>
           </div>
 
-          <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Paradas Asignadas:</span>
-            <strong className="text-xl font-black text-white font-mono">
-              {routeOrders.length} <span className="text-xs font-semibold text-slate-400">clientes</span>
+          <div className="bg-slate-950 p-3 sm:p-3.5 rounded-2xl border border-slate-800 min-w-0">
+            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Paradas Asignadas:</span>
+            <strong className="text-lg sm:text-xl font-black text-white font-mono block truncate">
+              {routeOrders.length} <span className="text-xs font-semibold text-slate-400">pedidos</span>
             </strong>
           </div>
 
-          <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Estado de Cargue:</span>
-            <strong className="text-xl font-black text-amber-400 font-mono">
+          <div className="bg-slate-950 p-3 sm:p-3.5 rounded-2xl border border-slate-800 min-w-0">
+            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Estado de Cargue:</span>
+            <strong className="text-lg sm:text-xl font-black text-amber-400 font-mono block truncate">
               {readyOrdersCount}/{routeOrders.length} <span className="text-xs font-semibold text-slate-400">listos</span>
             </strong>
           </div>
 
-          <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Cava Frigorífica:</span>
-            <strong className="text-xl font-black text-cyan-400 font-mono">
+          <div className="bg-slate-950 p-3 sm:p-3.5 rounded-2xl border border-slate-800 min-w-0">
+            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Cava Frigorífica:</span>
+            <strong className="text-lg sm:text-xl font-black text-cyan-400 font-mono block truncate">
               1.8°C <span className="text-xs font-semibold text-emerald-400">Óptimo</span>
             </strong>
           </div>
@@ -196,17 +196,17 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
       </div>
 
       {/* Planilla de Desposte Consolidada (Consolidated Cuts Required) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-lg">
-        <div className="flex items-center justify-between">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-emerald-400" />
+            <ClipboardList className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <h3 className="font-extrabold text-sm text-white">
               Planilla de Desposte Consolidada para este Furgón
             </h3>
           </div>
           <button
             onClick={() => window.print()}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700"
+            className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700"
           >
             <Printer className="w-3.5 h-3.5 text-amber-400" />
             <span>Imprimir Planilla</span>
@@ -221,15 +221,15 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
           {consolidatedCuts.map((cut) => (
             <div
               key={cut.sku}
-              className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs"
+              className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs min-w-0"
             >
-              <div>
-                <p className="font-bold text-white truncate max-w-[160px]">{cut.name}</p>
-                <p className="text-[10px] text-slate-400 font-mono">
+              <div className="min-w-0 flex-1 pr-2">
+                <p className="font-bold text-white truncate">{cut.name}</p>
+                <p className="text-[10px] text-slate-400 font-mono truncate">
                   {cut.sku} • {cut.ordersCount} pedidos
                 </p>
               </div>
-              <div className="text-right">
+              <div className="text-right flex-shrink-0">
                 <strong className="text-emerald-400 font-black text-sm font-mono block">
                   {cut.totalKg.toFixed(1)} kg
                 </strong>
@@ -244,21 +244,21 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
 
       {/* Customer Orders Breakdown & Digital Scale Adjustments */}
       <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="min-w-0">
             <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
-              <PackageCheck className="w-5 h-5 text-cyan-400" />
+              <PackageCheck className="w-5 h-5 text-cyan-400 flex-shrink-0" />
               <span>Organización Operativa de Pedidos ({routeOrders.length})</span>
             </h3>
-            <span className="text-xs text-slate-400">Control de flujo de trabajo: alistamiento ➔ pesaje ➔ precintado ➔ despacho</span>
+            <span className="text-xs text-slate-400 block mt-0.5">Control de flujo de trabajo: alistamiento ➔ pesaje ➔ precintado ➔ despacho</span>
           </div>
 
-          {/* Filtro interactivo de las 4 fases de trabajo */}
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 overflow-x-auto text-[11px] font-bold">
+          {/* Filtro interactivo de las 4 fases de trabajo con scroll horizontal fluido */}
+          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 overflow-x-auto no-scrollbar text-[11px] font-bold max-w-full">
             <button
               type="button"
               onClick={() => setActivePhaseFilter("todas")}
-              className={`px-2.5 py-1 rounded-lg transition-all ${
+              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                 activePhaseFilter === "todas" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
               }`}
             >
@@ -267,38 +267,38 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
             <button
               type="button"
               onClick={() => setActivePhaseFilter("por_alistar")}
-              className={`px-2.5 py-1 rounded-lg transition-all ${
+              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                 activePhaseFilter === "por_alistar" ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "text-slate-400 hover:text-white"
               }`}
             >
-              1. Por Alistar ({routeOrders.filter((o) => o.status === "pending").length})
+              <span className="hidden sm:inline">1. </span>Por Alistar ({routeOrders.filter((o) => o.status === "pending").length})
             </button>
             <button
               type="button"
               onClick={() => setActivePhaseFilter("en_bascula")}
-              className={`px-2.5 py-1 rounded-lg transition-all ${
+              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                 activePhaseFilter === "en_bascula" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "text-slate-400 hover:text-white"
               }`}
             >
-              2. En Báscula ({routeOrders.filter((o) => o.status === "confirmed" && !o.weightAdjusted).length})
+              <span className="hidden sm:inline">2. </span>En Báscula ({routeOrders.filter((o) => o.status === "confirmed" && !o.weightAdjusted).length})
             </button>
             <button
               type="button"
               onClick={() => setActivePhaseFilter("precintado")}
-              className={`px-2.5 py-1 rounded-lg transition-all ${
+              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                 activePhaseFilter === "precintado" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "text-slate-400 hover:text-white"
               }`}
             >
-              3. Listos / Precintados ({routeOrders.filter((o) => o.status === "confirmed" && o.weightAdjusted).length})
+              <span className="hidden sm:inline">3. </span>Precintados ({routeOrders.filter((o) => o.status === "confirmed" && o.weightAdjusted).length})
             </button>
             <button
               type="button"
               onClick={() => setActivePhaseFilter("en_ruta")}
-              className={`px-2.5 py-1 rounded-lg transition-all ${
+              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                 activePhaseFilter === "en_ruta" ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "text-slate-400 hover:text-white"
               }`}
             >
-              4. En Furgón ({routeOrders.filter((o) => o.status === "dispatched" || o.status === "delivered").length})
+              <span className="hidden sm:inline">4. </span>En Furgón ({routeOrders.filter((o) => o.status === "dispatched" || o.status === "delivered").length})
             </button>
           </div>
         </div>
@@ -329,14 +329,14 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
                     : "bg-slate-900 border-slate-800 hover:border-slate-700"
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-black text-white bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-800 pb-3">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <span className="text-xs font-mono font-black text-white bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 flex-shrink-0">
                         #{idx + 1} • {order.orderNumber}
                       </span>
                       <span
-                        className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${
+                        className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border flex-shrink-0 ${
                           isReady
                             ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
                             : "bg-amber-500/20 text-amber-300 border-amber-500/30"
@@ -345,35 +345,35 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
                         {isReady ? "✓ Pesado & Cargado" : "Pendiente de Pesaje"}
                       </span>
                       {order.weightAdjusted && (
-                        <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
+                        <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 flex-shrink-0">
                           Báscula Ajustada
                         </span>
                       )}
                     </div>
-                    <h4 className="text-base font-black text-white">{order.customerName}</h4>
-                    <p className="text-xs text-slate-400">{order.deliveryAddress}</p>
+                    <h4 className="text-base font-black text-white break-words">{order.customerName}</h4>
+                    <p className="text-xs text-slate-400 break-words">{order.deliveryAddress}</p>
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto self-start sm:self-center">
                     <button
                       type="button"
                       onClick={() => {
                         setTareScaleOrder(order);
                         setIsTareScaleOpen(true);
                       }}
-                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                      className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all text-center"
                       title="Pesar canastillas con producto y restar tara de canastillas vacías"
                     >
-                      <Scale className="w-4 h-4 stroke-[2.5]" />
+                      <Scale className="w-4 h-4 stroke-[2.5] flex-shrink-0" />
                       <span>Báscula Tara</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleOpenScaleModal(order)}
-                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-700 active:scale-95 transition-all"
+                      className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 active:scale-95 transition-all text-center"
                     >
-                      <Scale className="w-4 h-4 text-amber-400" />
+                      <Scale className="w-4 h-4 text-amber-400 flex-shrink-0" />
                       <span>Pesaje Rápido</span>
                     </button>
 
@@ -381,9 +381,9 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
                       <button
                         type="button"
                         onClick={() => handleQuickMarkReady(order.id, order.customerName)}
-                        className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                        className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all text-center"
                       >
-                        <Check className="w-4 h-4" />
+                        <Check className="w-4 h-4 flex-shrink-0" />
                         <span>Cargar al Furgón</span>
                       </button>
                     )}
@@ -398,19 +398,19 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
                       return (
                         <div
                           key={item.productId}
-                          className="p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between"
+                          className="p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between min-w-0"
                         >
-                          <div>
-                            <p className="font-bold text-slate-200">{item.productName}</p>
-                            <span className="text-[10px] text-slate-400 font-mono">
+                          <div className="min-w-0 flex-1 pr-2">
+                            <p className="font-bold text-slate-200 truncate">{item.productName}</p>
+                            <span className="text-[10px] text-slate-400 font-mono block truncate">
                               Solicitado: {item.quantity} kg
                             </span>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right flex-shrink-0">
                             <strong className="text-emerald-400 font-black text-sm font-mono block">
                               {displayQty.toFixed(1)} kg
                             </strong>
-                            <span className="text-[10px] text-slate-400">
+                            <span className="text-[10px] text-slate-400 block">
                               {priceService.formatCurrency(displayQty * item.unitPrice)}
                             </span>
                           </div>
@@ -419,8 +419,8 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
                     })}
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
-                    <span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-2 border-t border-slate-800 text-xs text-slate-400">
+                    <span className="break-words">
                       Total Carga: <strong className="text-white font-mono">{orderKg.toFixed(1)} kg</strong> (~{Math.ceil(orderKg / 25)} canastillas)
                     </span>
                     <span className="font-black text-white">

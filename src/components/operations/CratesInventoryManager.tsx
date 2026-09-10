@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -89,143 +89,143 @@ export const CratesInventoryManager: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 flex-shrink-0 shadow-md">
               <Boxes className="w-6 h-6" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-500/30 inline-block">
                   CONTROL LOGÍSTICO & EMBALAJE
                 </span>
                 <span className="text-[10px] font-mono text-slate-400">
                   Tara estándar: 2.00 kg c/u
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
+              <h2 className="text-lg sm:text-2xl font-black text-white mt-1 truncate">
                 Contabilidad & Censo de Canastillas JD
               </h2>
               <p className="text-xs text-slate-300">
-                Seguimiento en tiempo real de las canastillas plásticas en planta, en alistamiento, en furgones y en clientes.
+                Seguimiento en tiempo real de las canastillas plásticas en planta, pedidos, furgones y clientes.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
             <button
               type="button"
               onClick={() => handleOpenModal("lavado")}
-              className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all"
+              className="flex-1 sm:flex-none px-3.5 py-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all text-center"
             >
-              <ArrowDownToLine className="w-4 h-4" />
+              <ArrowDownToLine className="w-4 h-4 flex-shrink-0" />
               <span>+ Canastillas Lavadas</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleOpenModal("retorno")}
-              className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs flex items-center gap-1.5 shadow-lg shadow-blue-950/40 active:scale-95 transition-all"
+              className="flex-1 sm:flex-none px-3.5 py-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-blue-950/40 active:scale-95 transition-all text-center"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-4 h-4 flex-shrink-0" />
               <span>Descargar Retorno</span>
             </button>
           </div>
         </div>
 
         {/* Las 4 Tarjetas Métricas Clave */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
           {/* 1. En Planta Limpias */}
-          <div className="bg-slate-950/90 rounded-2xl p-3.5 border-2 border-emerald-500/40 shadow-md flex flex-col justify-between">
+          <div className="bg-slate-950/90 rounded-2xl p-3 sm:p-3.5 border-2 border-emerald-500/40 shadow-md flex flex-col justify-between min-w-0">
             <div className="flex items-center justify-between text-xs text-emerald-400 font-bold">
-              <span className="flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5" /> En Planta
+              <span className="flex items-center gap-1 truncate">
+                <Building2 className="w-3.5 h-3.5 flex-shrink-0" /> En Planta
               </span>
-              <span className="text-[10px] bg-emerald-500/20 px-1.5 py-0.5 rounded font-mono">
+              <span className="text-[10px] bg-emerald-500/20 px-1.5 py-0.5 rounded font-mono flex-shrink-0">
                 {pctClean}%
               </span>
             </div>
             <div className="my-2">
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+              <span className="text-xl sm:text-3xl font-black text-white font-mono block truncate">
                 {cratesState.inPlantClean}
               </span>
-              <span className="text-xs text-slate-400 block font-medium">Canastillas limpias</span>
+              <span className="text-[11px] sm:text-xs text-slate-400 block font-medium truncate">Canastillas limpias</span>
             </div>
-            <span className="text-[10px] text-emerald-300 font-semibold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">
+            <span className="text-[9px] sm:text-[10px] text-emerald-300 font-semibold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40 block truncate text-center">
               Listas para empaque
             </span>
           </div>
 
           {/* 2. En Alistamiento (Con carne) */}
-          <div className="bg-slate-950/90 rounded-2xl p-3.5 border-2 border-amber-500/40 shadow-md flex flex-col justify-between">
+          <div className="bg-slate-950/90 rounded-2xl p-3 sm:p-3.5 border-2 border-amber-500/40 shadow-md flex flex-col justify-between min-w-0">
             <div className="flex items-center justify-between text-xs text-amber-400 font-bold">
-              <span className="flex items-center gap-1">
-                <Boxes className="w-3.5 h-3.5" /> En Pedidos
+              <span className="flex items-center gap-1 truncate">
+                <Boxes className="w-3.5 h-3.5 flex-shrink-0" /> En Pedidos
               </span>
-              <span className="text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded font-mono">
+              <span className="text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded font-mono flex-shrink-0">
                 {pctPacking}%
               </span>
             </div>
             <div className="my-2">
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+              <span className="text-xl sm:text-3xl font-black text-white font-mono block truncate">
                 {cratesState.inPacking}
               </span>
-              <span className="text-xs text-slate-400 block font-medium">Con carne pesada</span>
+              <span className="text-[11px] sm:text-xs text-slate-400 block font-medium truncate">Con carne pesada</span>
             </div>
-            <span className="text-[10px] text-amber-300 font-semibold bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40">
+            <span className="text-[9px] sm:text-[10px] text-amber-300 font-semibold bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40 block truncate text-center">
               En sala de pesaje
             </span>
           </div>
 
           {/* 3. En Furgones (En Tránsito) */}
-          <div className="bg-slate-950/90 rounded-2xl p-3.5 border-2 border-blue-500/40 shadow-md flex flex-col justify-between">
+          <div className="bg-slate-950/90 rounded-2xl p-3 sm:p-3.5 border-2 border-blue-500/40 shadow-md flex flex-col justify-between min-w-0">
             <div className="flex items-center justify-between text-xs text-blue-400 font-bold">
-              <span className="flex items-center gap-1">
-                <Truck className="w-3.5 h-3.5" /> En Furgones
+              <span className="flex items-center gap-1 truncate">
+                <Truck className="w-3.5 h-3.5 flex-shrink-0" /> En Furgones
               </span>
-              <span className="text-[10px] bg-blue-500/20 px-1.5 py-0.5 rounded font-mono">
+              <span className="text-[10px] bg-blue-500/20 px-1.5 py-0.5 rounded font-mono flex-shrink-0">
                 {pctTransit}%
               </span>
             </div>
             <div className="my-2">
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+              <span className="text-xl sm:text-3xl font-black text-white font-mono block truncate">
                 {cratesState.inTransit}
               </span>
-              <span className="text-xs text-slate-400 block font-medium">En ruta de frío</span>
+              <span className="text-[11px] sm:text-xs text-slate-400 block font-medium truncate">En ruta de frío</span>
             </div>
-            <span className="text-[10px] text-blue-300 font-semibold bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/40">
-              Vehículos NQR y KLP
+            <span className="text-[9px] sm:text-[10px] text-blue-300 font-semibold bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/40 block truncate text-center">
+              Vehículos en ruta
             </span>
           </div>
 
           {/* 4. En Clientes (En Calle) */}
-          <div className="bg-slate-950/90 rounded-2xl p-3.5 border-2 border-rose-500/40 shadow-md flex flex-col justify-between">
+          <div className="bg-slate-950/90 rounded-2xl p-3 sm:p-3.5 border-2 border-rose-500/40 shadow-md flex flex-col justify-between min-w-0">
             <div className="flex items-center justify-between text-xs text-rose-400 font-bold">
-              <span className="flex items-center gap-1">
-                <Store className="w-3.5 h-3.5" /> En Clientes
+              <span className="flex items-center gap-1 truncate">
+                <Store className="w-3.5 h-3.5 flex-shrink-0" /> En Clientes
               </span>
-              <span className="text-[10px] bg-rose-500/20 px-1.5 py-0.5 rounded font-mono">
+              <span className="text-[10px] bg-rose-500/20 px-1.5 py-0.5 rounded font-mono flex-shrink-0">
                 {pctCust}%
               </span>
             </div>
             <div className="my-2">
-              <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+              <span className="text-xl sm:text-3xl font-black text-white font-mono block truncate">
                 {cratesState.withCustomers}
               </span>
-              <span className="text-xs text-slate-400 block font-medium">En locales comerciales</span>
+              <span className="text-[11px] sm:text-xs text-slate-400 block font-medium truncate">En locales</span>
             </div>
-            <span className="text-[10px] text-rose-300 font-semibold bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800/40">
+            <span className="text-[9px] sm:text-[10px] text-rose-300 font-semibold bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800/40 block truncate text-center">
               Por recolectar en ruta
             </span>
           </div>
         </div>
 
         {/* Barra Visual de Balance de Flota */}
-        <div className="space-y-1.5 bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
-          <div className="flex items-center justify-between text-xs">
+        <div className="space-y-2 bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
             <span className="text-slate-300 font-bold flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <ShieldCheck className="w-4 h-4 text-amber-400 flex-shrink-0" />
               <span>Balance Total de la Flota: <strong className="text-white font-mono">{total} canastillas</strong></span>
             </span>
             <button
               type="button"
               onClick={() => handleOpenModal("ajuste")}
-              className="text-[11px] text-amber-400 hover:text-amber-300 underline font-bold"
+              className="text-[11px] text-amber-400 hover:text-amber-300 underline font-bold self-start sm:self-auto"
             >
               Ajustar Inventario Físico
             </button>
@@ -238,18 +238,18 @@ export const CratesInventoryManager: React.FC = () => {
             <div style={{ width: `${pctCust}%` }} className="bg-rose-500 h-full" title={`En Clientes: ${cratesState.withCustomers}`} />
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-slate-400 flex-wrap gap-2 pt-0.5">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Planta ({cratesState.inPlantClean})
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between text-[10px] text-slate-400 gap-1.5 pt-0.5">
+            <span className="flex items-center gap-1 truncate">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" /> Planta ({cratesState.inPlantClean})
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-amber-500" /> Pedidos ({cratesState.inPacking})
+            <span className="flex items-center gap-1 truncate">
+              <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" /> Pedidos ({cratesState.inPacking})
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-500" /> Furgones ({cratesState.inTransit})
+            <span className="flex items-center gap-1 truncate">
+              <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" /> Furgones ({cratesState.inTransit})
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-rose-500" /> Clientes ({cratesState.withCustomers})
+            <span className="flex items-center gap-1 truncate">
+              <span className="w-2 h-2 rounded-full bg-rose-500 flex-shrink-0" /> Clientes ({cratesState.withCustomers})
             </span>
           </div>
         </div>
