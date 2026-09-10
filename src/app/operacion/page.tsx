@@ -603,16 +603,6 @@ export default function OperacionPage() {
                 <span>Canastas JD</span>
               </button>
             </div>
-
-            {/* Acceso directo a Domiciliario / Cabina de Ruta */}
-            <a
-              href="/domiciliario"
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold border border-slate-700 transition-colors flex items-center gap-1.5 flex-shrink-0"
-              title="Ir a la pantalla de domiciliario y furgón en ruta"
-            >
-              <Truck className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Modo Domiciliario</span>
-            </a>
         </div>
       </div>
 

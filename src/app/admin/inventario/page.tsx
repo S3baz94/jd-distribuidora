@@ -140,15 +140,6 @@ export default function AdminInventoryPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
-          <a
-            href="/operacion"
-            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
-            title="Ir a la estación de planta para modificar inventario físico, pesaje y lotes"
-          >
-            <Scale className="w-4 h-4 stroke-[2.5]" />
-            <span>Ir a Operación de Planta & Lotes</span>
-          </a>
-
           <button
             type="button"
             onClick={() => setIsProductionReadyOpen(true)}
@@ -485,20 +476,11 @@ export default function AdminInventoryPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleStartEdit(product.id)}
-                    className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                    className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <Boxes className="w-3.5 h-3.5 text-amber-400" />
                     <span>Ajustar Cantidades</span>
                   </button>
-
-                  <a
-                    href="/operacion"
-                    className="py-2 px-3 bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-300 font-extrabold text-xs rounded-xl border border-emerald-500/30 transition-colors flex items-center justify-center gap-1"
-                    title="Pesar o ingresar lote físico en la báscula de la estación de operador"
-                  >
-                    <Scale className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Pesar en Operador</span>
-                  </a>
                 </div>
               </div>
             </div>
