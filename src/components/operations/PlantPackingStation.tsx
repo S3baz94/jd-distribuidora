@@ -1,431 +1,498 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { priceService } from "@/services/priceService";
-import { Order, DeliveryRoute } from "@/types";
+import { BrandType, Product } from "@/types";
 import {
-  Scale,
-  PackageCheck,
-  Truck,
-  CheckCircle2,
-  AlertCircle,
-  Printer,
-  Edit3,
-  Check,
-  X,
-  Layers,
-  ShieldCheck,
+  Boxes,
   ThermometerSnowflake,
-  ClipboardList,
+  PlusCircle,
+  AlertTriangle,
+  CheckCircle2,
+  Scale,
+  Search,
+  Plus,
+  Minus,
   Save,
+  Flame,
+  ShieldCheck,
+  RefreshCw,
+  Trash2,
+  ClipboardList,
+  Check,
+  Eye,
+  Edit3,
 } from "lucide-react";
-import { CratesTareScaleModal } from "@/components/operations/CratesTareScaleModal";
+import { NewBatchModal } from "@/components/admin/NewBatchModal";
+import { NewProductModal } from "@/components/admin/NewProductModal";
 
 interface PlantPackingStationProps {
   selectedRouteId?: string;
   onRouteChange?: (routeId: string) => void;
 }
 
-export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
-  selectedRouteId,
-  onRouteChange,
-}) => {
-  const { routes, allOrders, products, updateOrderStatus, adjustOrderRealWeight, showToast } = useApp();
+export const PlantPackingStation: React.FC<PlantPackingStationProps> = () => {
+  const {
+    products,
+    inventory,
+    addInventoryBatch,
+    updateInventoryStock,
+    createProduct,
+    deleteProduct,
+    showToast,
+  } = useApp();
 
-  const [activeRouteId, setActiveRouteId] = useState<string>(
-    selectedRouteId || routes[0]?.id || "route-001"
-  );
+  // Estados para modales de modificación de inventario
+  const [isNewBatchOpen, setIsNewBatchOpen] = useState(false);
+  const [isNewProductOpen, setIsNewProductOpen] = useState(false);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  const [auditProductMap, setAuditProductMap] = useState<Record<string, number>>({});
 
-  // Modal for editing scale weight of a specific order
-  const [editingOrderWeight, setEditingOrderWeight] = useState<Order | null>(null);
-  const [weightsMap, setWeightsMap] = useState<{ [productId: string]: number }>({});
-  const [basketCount, setBasketCount] = useState<number>(2);
-  const [sealNumber, setSealNumber] = useState<string>("PREC-JD-8821");
+  // Filtros y búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBrandTab, setSelectedBrandTab] = useState<BrandType | "all">("all");
 
-  // Báscula Digital de Canastillas & Tara
-  const [isTareScaleOpen, setIsTareScaleOpen] = useState(false);
-  const [tareScaleOrder, setTareScaleOrder] = useState<Order | null>(null);
+  // Telemetría de cava
+  const [tempReading, setTempReading] = useState<string>("1.8");
+  const [lastCheckTime, setLastCheckTime] = useState<string>("Hace 15 min");
 
-  // Filtro de fase operativa: todas, por_alistar, en_bascula, precintado, en_ruta
-  const [activePhaseFilter, setActivePhaseFilter] = useState<"todas" | "por_alistar" | "en_bascula" | "precintado" | "en_ruta">("todas");
+  // Modificación rápida directa de stock
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editQty, setEditQty] = useState<number>(0);
 
-  const currentRoute = routes.find((r) => r.id === activeRouteId) || routes[0];
+  // 1. CÁLCULO DEL RESUMEN DE INVENTARIO
+  const totalPhysicalKg = inventory.reduce((sum, i) => sum + (i.physicalQuantity || 0), 0);
+  const totalReservedKg = inventory.reduce((sum, i) => sum + (i.reservedQuantity || 0), 0);
+  const totalAvailableKg = inventory.reduce((sum, i) => sum + (i.availableQuantity || 0), 0);
+  const lowStockCount = inventory.filter((i) => i.availableQuantity <= 15).length;
+  const outOfStockCount = inventory.filter((i) => i.availableQuantity <= 0).length;
 
-  const routeOrders = allOrders.filter(
-    (o) => o.routeId === currentRoute?.id || currentRoute?.orderIds.includes(o.id)
-  );
+  // 2. FILTRADO PARA MIRAR EL INVENTARIO
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      const matchBrand = selectedBrandTab === "all" || p.brand === selectedBrandTab;
+      if (!matchBrand) return false;
+      if (!searchTerm) return true;
+      const q = searchTerm.toLowerCase();
+      return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q);
+    });
+  }, [products, selectedBrandTab, searchTerm]);
 
-  // Consolidated cuts required for this route (Planilla de Desposte)
-  const consolidatedCuts = React.useMemo(() => {
-    const map = new Map<string, { name: string; sku: string; brand: string; totalKg: number; ordersCount: number }>();
+  // 3. FUNCIONES PARA MODIFICAR EL INVENTARIO
+  const handleQuickAdd = (productId: string, addedKg: number, name: string) => {
+    addInventoryBatch(productId, addedKg, `Ajuste de báscula en alistamiento (+${addedKg} kg)`);
+    showToast(`⚖️ +${addedKg} kg agregados al stock de ${name}`, "success");
+  };
 
-    routeOrders.forEach((order) => {
-      order.items.forEach((item) => {
-        const existing = map.get(item.productId);
-        const qty = item.realQuantity || item.quantity;
-        if (existing) {
-          existing.totalKg += qty;
-          existing.ordersCount += 1;
-        } else {
-          map.set(item.productId, {
-            name: item.productName,
-            sku: item.sku,
-            brand: item.brand || "jd_distribuidora",
-            totalKg: qty,
-            ordersCount: 1,
-          });
-        }
+  const handleQuickSubtract = (productId: string, subKg: number, name: string) => {
+    const inv = inventory.find((i) => i.productId === productId);
+    if (!inv) return;
+    const currentAvailable = inv.availableQuantity;
+    const newAvailable = Math.max(0, currentAvailable - subKg);
+    const newPhysical = Math.max(0, inv.physicalQuantity - subKg);
+
+    updateInventoryStock(productId, {
+      physicalQuantity: newPhysical,
+      availableQuantity: newAvailable,
+    });
+    showToast(`⚖️ -${subKg} kg descontados del stock de ${name}`, "info");
+  };
+
+  const handleStartQuickEdit = (productId: string, currentAvailable: number) => {
+    setEditingProductId(productId);
+    setEditQty(currentAvailable);
+  };
+
+  const handleSaveQuickEdit = (productId: string) => {
+    const inv = inventory.find((i) => i.productId === productId);
+    if (inv) {
+      updateInventoryStock(productId, {
+        physicalQuantity: editQty + inv.reservedQuantity,
+        availableQuantity: editQty,
       });
-    });
-
-    return Array.from(map.values());
-  }, [routeOrders]);
-
-  const totalRouteKg = routeOrders.reduce(
-    (sum, o) => sum + o.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0),
-    0
-  );
-
-  const readyOrdersCount = routeOrders.filter(
-    (o) => o.status === "confirmed" || o.status === "ready" || o.status === "dispatched" || o.status === "delivered"
-  ).length;
-
-  const handleOpenScaleModal = (order: Order) => {
-    setEditingOrderWeight(order);
-    const initialWeights: { [productId: string]: number } = {};
-    order.items.forEach((item) => {
-      initialWeights[item.productId] = item.realQuantity || item.quantity;
-    });
-    const totalOrderKg = order.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0);
-    setBasketCount(Math.ceil(totalOrderKg / 25) || 1);
-    setSealNumber(`PREC-JD-${Math.floor(1000 + Math.random() * 9000)}`);
+      showToast("✓ Stock físico y disponible actualizado exitosamente", "success");
+    }
+    setEditingProductId(null);
   };
 
-  const handleSaveScaleWeight = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingOrderWeight) return;
-
-    // Update items with real weight from physical scale
-    const realQuantities = editingOrderWeight.items.map((item) => ({
-      productId: item.productId,
-      realQuantity: weightsMap[item.productId] ?? (item.realQuantity || item.quantity),
-    }));
-
-    adjustOrderRealWeight(editingOrderWeight.id, realQuantities);
-    updateOrderStatus(editingOrderWeight.id, "confirmed");
-
-    showToast(
-      `⚖️ Pesaje de báscula guardado para ${editingOrderWeight.customerName}. Kilos reales liquidados.`,
-      "success"
-    );
-    setEditingOrderWeight(null);
-  };
-
-  const handleQuickMarkReady = (orderId: string, customerName: string) => {
-    updateOrderStatus(orderId, "confirmed");
-    showToast(`✅ Pedido de ${customerName} marcado como pesado y cargado al furgón`, "success");
+  const handleRecordTemp = () => {
+    setLastCheckTime("Justo ahora");
+    showToast(`🌡️ Registro de temperatura de cava guardado: ${tempReading}°C (Norma INVIMA)`, "success");
   };
 
   return (
     <div className="space-y-5">
-      {/* Route & Vehicle Selector */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+      {/* SECCIÓN 1: CABECERA & ACCIONES DE MODIFICACIÓN */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 font-bold flex-shrink-0">
-              <Scale className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 font-bold flex-shrink-0 shadow-md">
+              <ClipboardList className="w-6 h-6 stroke-[2.5]" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 inline-block">
-                PLANTA & SALA DE DESPOSTE
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 inline-block">
+                ESTACIÓN DE ALISTAMIENTO & CONTROL DE CAVA
               </span>
-              <h2 className="text-base sm:text-lg font-black text-white truncate">Organización de Cargas & Báscula</h2>
+              <h2 className="text-base sm:text-lg font-black text-white truncate mt-0.5">
+                Inventario en Frío, Modificación & Resumen de Stock
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5 hidden sm:block">
+                Visualización en tiempo real de cortes, ajuste directo de pesaje y control de lotes.
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-xs text-slate-400 font-bold hidden sm:inline flex-shrink-0">Furgón:</span>
-            <select
-              value={activeRouteId}
-              onChange={(e) => {
-                setActiveRouteId(e.target.value);
-                if (onRouteChange) onRouteChange(e.target.value);
-              }}
-              className="w-full sm:w-auto bg-slate-950 border border-slate-700 text-white font-bold text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 truncate"
+          {/* Botones principales para MODIFICAR EL INVENTARIO */}
+          <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setIsNewProductOpen(true)}
+              className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-950/40 active:scale-95 transition-all text-center"
+              title="Crear un nuevo corte o producto cárnico en el inventario"
             >
-              {routes.map((r) => (
-                <option key={r.id} value={r.id}>
-                  🚛 {r.vehiclePlate} • {r.driverName} ({r.name})
-                </option>
-              ))}
-            </select>
+              <Plus className="w-4 h-4 stroke-[3] flex-shrink-0" />
+              <span>➕ Crear Corte</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const initialMap: Record<string, number> = {};
+                products.forEach((p) => {
+                  const inv = inventory.find((i) => i.productId === p.id);
+                  initialMap[p.id] = inv ? inv.availableQuantity : 0;
+                });
+                setAuditProductMap(initialMap);
+                setIsAuditModalOpen(true);
+              }}
+              className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs flex items-center justify-center gap-1.5 border border-amber-500/40 shadow-md active:scale-95 transition-all text-center"
+              title="Comparar inventario en sistema contra pesaje físico de báscula"
+            >
+              <Scale className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <span>⚖️ Arqueo Físico</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsNewBatchOpen(true)}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all text-center"
+              title="Ingresar un nuevo lote despostado pesado en báscula"
+            >
+              <PlusCircle className="w-4 h-4 flex-shrink-0" />
+              <span>➕ Ingreso de Lote Despostado</span>
+            </button>
           </div>
         </div>
 
-        {/* Route Load KPIs */}
+        {/* SECCIÓN 2: VER EL RESUMEN (TARJETAS DE MÉTRICAS CONSOLIDADAS) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
           <div className="bg-slate-950 p-3 sm:p-3.5 rounded-2xl border border-slate-800 min-w-0">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Total Kilos Furgón:</span>
-            <strong className="text-lg sm:text-xl font-black text-emerald-400 font-mono block truncate">
-              {totalRouteKg.toFixed(1)} <span className="text-xs font-semibold text-slate-400">kg</span>
-            </strong>
-          </div>
-
-          <div className="bg-slate-950 p-3 sm:p-3.5 rounded-2xl border border-slate-800 min-w-0">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Paradas Asignadas:</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Total Físico en Cava:</span>
             <strong className="text-lg sm:text-xl font-black text-white font-mono block truncate">
-              {routeOrders.length} <span className="text-xs font-semibold text-slate-400">pedidos</span>
+              {totalPhysicalKg.toFixed(1)} <span className="text-xs font-semibold text-slate-400">kg</span>
             </strong>
+            <span className="text-[9px] text-slate-500 font-semibold block truncate mt-0.5">
+              Stock total pesado en cava
+            </span>
           </div>
 
           <div className="bg-slate-950 p-3 sm:p-3.5 rounded-2xl border border-slate-800 min-w-0">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Estado de Cargue:</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Disponible para Venta:</span>
+            <strong className="text-lg sm:text-xl font-black text-emerald-400 font-mono block truncate">
+              {totalAvailableKg.toFixed(1)} <span className="text-xs font-semibold text-slate-400">kg</span>
+            </strong>
+            <span className="text-[9px] text-emerald-500/80 font-semibold block truncate mt-0.5">
+              Listo para facturar
+            </span>
+          </div>
+
+          <div className="bg-slate-950 p-3 sm:p-3.5 rounded-2xl border border-slate-800 min-w-0">
+            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Comprometido en Pedidos:</span>
             <strong className="text-lg sm:text-xl font-black text-amber-400 font-mono block truncate">
-              {readyOrdersCount}/{routeOrders.length} <span className="text-xs font-semibold text-slate-400">listos</span>
+              {totalReservedKg.toFixed(1)} <span className="text-xs font-semibold text-slate-400">kg</span>
             </strong>
+            <span className="text-[9px] text-amber-500/80 font-semibold block truncate mt-0.5">
+              Reservado para entrega
+            </span>
           </div>
 
           <div className="bg-slate-950 p-3 sm:p-3.5 rounded-2xl border border-slate-800 min-w-0">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Cava Frigorífica:</span>
-            <strong className="text-lg sm:text-xl font-black text-cyan-400 font-mono block truncate">
-              1.8°C <span className="text-xs font-semibold text-emerald-400">Óptimo</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-bold truncate">Alertas de Stock:</span>
+            <strong className="text-lg sm:text-xl font-black text-rose-400 font-mono block truncate">
+              {lowStockCount} <span className="text-xs font-semibold text-slate-400">cortes</span>
             </strong>
+            <span className="text-[9px] text-rose-500/80 font-semibold block truncate mt-0.5">
+              {outOfStockCount > 0 ? `${outOfStockCount} agotados` : "Existencias bajo umbral"}
+            </span>
+          </div>
+        </div>
+
+        {/* Barra de Monitoreo Térmico de Cava */}
+        <div className="bg-slate-950/80 p-3 sm:p-3.5 rounded-2xl border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse flex-shrink-0" />
+            <span className="text-slate-300 font-bold break-words">
+              Temperatura Cava Frigorífica: <strong className="text-emerald-400 font-mono text-sm">{tempReading}°C</strong> ({lastCheckTime})
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <input
+              type="number"
+              step="0.1"
+              value={tempReading}
+              onChange={(e) => setTempReading(e.target.value)}
+              className="w-16 bg-slate-800 border border-slate-700 rounded-xl p-1 text-center text-white font-mono font-bold text-xs"
+            />
+            <span className="text-slate-400 font-bold">°C</span>
+            <button
+              onClick={handleRecordTemp}
+              className="px-3 py-1 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition-colors"
+            >
+              Registrar INVIMA
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Planilla de Desposte Consolidada (Consolidated Cuts Required) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3 shadow-lg">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      {/* SECCIÓN 3: MIRAR EL INVENTARIO & CONTROLES DE MODIFICACIÓN */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            <Boxes className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <h3 className="font-extrabold text-sm text-white">
-              Planilla de Desposte Consolidada para este Furgón
+              Cortes de Cerdo en Cava ({filteredProducts.length} referencias)
             </h3>
           </div>
-          <button
-            onClick={() => window.print()}
-            className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700"
-          >
-            <Printer className="w-3.5 h-3.5 text-amber-400" />
-            <span>Imprimir Planilla</span>
-          </button>
-        </div>
 
-        <p className="text-xs text-slate-400">
-          Kilos totales por corte que los operarios deben sacar del cuarto frío y alistar para el furgón {currentRoute?.vehiclePlate}:
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
-          {consolidatedCuts.map((cut) => (
-            <div
-              key={cut.sku}
-              className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs min-w-0"
-            >
-              <div className="min-w-0 flex-1 pr-2">
-                <p className="font-bold text-white truncate">{cut.name}</p>
-                <p className="text-[10px] text-slate-400 font-mono truncate">
-                  {cut.sku} • {cut.ordersCount} pedidos
-                </p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <strong className="text-emerald-400 font-black text-sm font-mono block">
-                  {cut.totalKg.toFixed(1)} kg
-                </strong>
-                <span className="text-[9px] uppercase font-bold text-slate-500">
-                  {cut.brand === "gourmet_ahumados" ? "Ahumado" : "Crudo"}
-                </span>
-              </div>
+          {/* Barra de búsqueda y selector de marcas */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Buscar corte o SKU..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 w-full sm:w-48"
+              />
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Customer Orders Breakdown & Digital Scale Adjustments */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="min-w-0">
-            <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
-              <PackageCheck className="w-5 h-5 text-cyan-400 flex-shrink-0" />
-              <span>Organización Operativa de Pedidos ({routeOrders.length})</span>
-            </h3>
-            <span className="text-xs text-slate-400 block mt-0.5">Control de flujo de trabajo: alistamiento ➔ pesaje ➔ precintado ➔ despacho</span>
-          </div>
-
-          {/* Filtro interactivo de las 4 fases de trabajo con scroll horizontal fluido */}
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 overflow-x-auto no-scrollbar text-[11px] font-bold max-w-full">
-            <button
-              type="button"
-              onClick={() => setActivePhaseFilter("todas")}
-              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
-                activePhaseFilter === "todas" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              Todas ({routeOrders.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActivePhaseFilter("por_alistar")}
-              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
-                activePhaseFilter === "por_alistar" ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <span className="hidden sm:inline">1. </span>Por Alistar ({routeOrders.filter((o) => o.status === "pending").length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActivePhaseFilter("en_bascula")}
-              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
-                activePhaseFilter === "en_bascula" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <span className="hidden sm:inline">2. </span>En Báscula ({routeOrders.filter((o) => o.status === "confirmed" && !o.weightAdjusted).length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActivePhaseFilter("precintado")}
-              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
-                activePhaseFilter === "precintado" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <span className="hidden sm:inline">3. </span>Precintados ({routeOrders.filter((o) => o.status === "confirmed" && o.weightAdjusted).length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActivePhaseFilter("en_ruta")}
-              className={`px-2.5 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
-                activePhaseFilter === "en_ruta" ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <span className="hidden sm:inline">4. </span>En Furgón ({routeOrders.filter((o) => o.status === "dispatched" || o.status === "delivered").length})
-            </button>
+            <div className="flex bg-slate-950 rounded-xl p-1 border border-slate-800 text-[11px] font-bold flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedBrandTab("all")}
+                className={`px-2.5 py-1 rounded-lg transition-colors ${
+                  selectedBrandTab === "all" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Todos
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedBrandTab("jd_distribuidora")}
+                className={`px-2.5 py-1 rounded-lg transition-colors ${
+                  selectedBrandTab === "jd_distribuidora" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Crudos (JD)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedBrandTab("gourmet_ahumados")}
+                className={`px-2.5 py-1 rounded-lg transition-colors ${
+                  selectedBrandTab === "gourmet_ahumados" ? "bg-amber-600 text-white" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Ahumados
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-3">
-          {routeOrders
-            .filter((order) => {
-              if (activePhaseFilter === "todas") return true;
-              if (activePhaseFilter === "por_alistar") return order.status === "pending";
-              if (activePhaseFilter === "en_bascula") return order.status === "confirmed" && !order.weightAdjusted;
-              if (activePhaseFilter === "precintado") return order.status === "confirmed" && order.weightAdjusted;
-              if (activePhaseFilter === "en_ruta") return order.status === "dispatched" || order.status === "delivered";
-              return true;
-            })
-            .map((order, idx) => {
-            const orderKg = order.items.reduce(
-              (sum, i) => sum + (i.realQuantity || i.quantity),
-              0
-            );
-            const isReady = order.status === "confirmed" || order.status === "ready" || order.status === "dispatched" || order.status === "delivered";
+        {/* LISTADO DE CORTES CÁRNICOS CON OPCIONES DE MODIFICACIÓN DIRECTA */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {filteredProducts.map((prod) => {
+            const inv = inventory.find((i) => i.productId === prod.id) || {
+              physicalQuantity: 0,
+              availableQuantity: 0,
+              reservedQuantity: 0,
+            };
+
+            const isOut = inv.availableQuantity <= 0;
+            const isLow = inv.availableQuantity > 0 && inv.availableQuantity <= 15;
+            const isEditing = editingProductId === prod.id;
 
             return (
               <div
-                key={order.id}
-                className={`p-4 sm:p-5 rounded-3xl border transition-all ${
-                  isReady
-                    ? "bg-slate-900/80 border-emerald-500/40 shadow-emerald-950/20"
-                    : "bg-slate-900 border-slate-800 hover:border-slate-700"
-                }`}
+                key={prod.id}
+                className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 min-w-0 shadow-md"
               >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-800 pb-3">
-                  <div className="space-y-1 min-w-0 flex-1">
+                {/* Cabecera del corte */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1 pr-1">
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                      <span className="text-xs font-mono font-black text-white bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 flex-shrink-0">
-                        #{idx + 1} • {order.orderNumber}
+                      <span className="text-[10px] font-mono text-slate-400 font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800 flex-shrink-0">
+                        {prod.sku}
                       </span>
                       <span
-                        className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border flex-shrink-0 ${
-                          isReady
-                            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                            : "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                        className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${
+                          prod.brand === "gourmet_ahumados"
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                            : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                         }`}
                       >
-                        {isReady ? "✓ Pesado & Cargado" : "Pendiente de Pesaje"}
+                        {prod.brand === "gourmet_ahumados" ? "Ahumado al Leño" : "Corte Crudo"}
                       </span>
-                      {order.weightAdjusted && (
-                        <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 flex-shrink-0">
-                          Báscula Ajustada
-                        </span>
-                      )}
                     </div>
-                    <h4 className="text-base font-black text-white break-words">{order.customerName}</h4>
-                    <p className="text-xs text-slate-400 break-words">{order.deliveryAddress}</p>
+                    <h4 className="font-bold text-white text-sm mt-1 break-words">{prod.name}</h4>
                   </div>
 
-                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto self-start sm:self-center">
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span
+                      className={`text-xs font-black px-2.5 py-1 rounded-xl font-mono ${
+                        isOut
+                          ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                          : isLow
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                          : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                      }`}
+                    >
+                      {inv.availableQuantity.toFixed(1)} kg disp.
+                    </span>
+
                     <button
                       type="button"
                       onClick={() => {
-                        setTareScaleOrder(order);
-                        setIsTareScaleOpen(true);
+                        if (confirm(`¿Eliminar corte "${prod.name}" del inventario de cava?`)) {
+                          deleteProduct(prod.id);
+                          showToast(`✓ Corte "${prod.name}" eliminado del inventario`, "info");
+                        }
                       }}
-                      className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all text-center"
-                      title="Pesar canastillas con producto y restar tara de canastillas vacías"
+                      className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
+                      title="Eliminar corte del inventario"
                     >
-                      <Scale className="w-4 h-4 stroke-[2.5] flex-shrink-0" />
-                      <span>Báscula Tara</span>
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenScaleModal(order)}
-                      className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 active:scale-95 transition-all text-center"
-                    >
-                      <Scale className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                      <span>Pesaje Rápido</span>
-                    </button>
-
-                    {!isReady && (
-                      <button
-                        type="button"
-                        onClick={() => handleQuickMarkReady(order.id, order.customerName)}
-                        className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all text-center"
-                      >
-                        <Check className="w-4 h-4 flex-shrink-0" />
-                        <span>Cargar al Furgón</span>
-                      </button>
-                    )}
                   </div>
                 </div>
 
-                {/* Items in this order */}
-                <div className="pt-3 space-y-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    {order.items.map((item) => {
-                      const displayQty = item.realQuantity || item.quantity;
-                      return (
-                        <div
-                          key={item.productId}
-                          className="p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between min-w-0"
-                        >
-                          <div className="min-w-0 flex-1 pr-2">
-                            <p className="font-bold text-slate-200 truncate">{item.productName}</p>
-                            <span className="text-[10px] text-slate-400 font-mono block truncate">
-                              Solicitado: {item.quantity} kg
-                            </span>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <strong className="text-emerald-400 font-black text-sm font-mono block">
-                              {displayQty.toFixed(1)} kg
-                            </strong>
-                            <span className="text-[10px] text-slate-400 block">
-                              {priceService.formatCurrency(displayQty * item.unitPrice)}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                {/* Métricas de Stock por Corte */}
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 text-[10px] sm:text-[11px] text-center">
+                  <div className="min-w-0">
+                    <span className="text-slate-500 block text-[9px] uppercase font-bold truncate">Físico Cava:</span>
+                    <strong className="text-white font-mono font-bold block truncate">
+                      {inv.physicalQuantity.toFixed(1)} kg
+                    </strong>
                   </div>
+                  <div className="min-w-0">
+                    <span className="text-slate-500 block text-[9px] uppercase font-bold truncate">En Pedidos:</span>
+                    <strong className="text-amber-400 font-mono font-bold block truncate">
+                      {inv.reservedQuantity.toFixed(1)} kg
+                    </strong>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-slate-500 block text-[9px] uppercase font-bold truncate">Precio / KG:</span>
+                    <strong className="text-slate-300 font-mono font-bold block truncate">
+                      {priceService.formatCurrency(priceService.getPriceForCustomer("list-famas-a", prod.id))}
+                    </strong>
+                  </div>
+                </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-2 border-t border-slate-800 text-xs text-slate-400">
-                    <span className="break-words">
-                      Total Carga: <strong className="text-white font-mono">{orderKg.toFixed(1)} kg</strong> (~{Math.ceil(orderKg / 25)} canastillas)
-                    </span>
-                    <span className="font-black text-white">
-                      Liquidación: {priceService.formatCurrency(order.realTotal || order.total)}
-                    </span>
+                {/* CONTROLES PARA MODIFICAR EL INVENTARIO DE ESTE CORTE */}
+                <div className="space-y-2 pt-1 border-t border-slate-800/90">
+                  {/* Fila A: Edición directa del stock disponible */}
+                  {isEditing ? (
+                    <div className="flex items-center gap-2 w-full bg-slate-900 p-2 rounded-xl border border-slate-700">
+                      <span className="text-[10px] text-slate-400 font-bold flex-shrink-0">Nuevo Disponible:</span>
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={editQty}
+                        onChange={(e) => setEditQty(parseFloat(e.target.value) || 0)}
+                        className="flex-1 bg-slate-950 border border-slate-600 rounded-lg p-1 text-white font-mono font-bold text-xs"
+                      />
+                      <span className="text-xs text-slate-400 font-bold">kg</span>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveQuickEdit(prod.id)}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        <span>Guardar</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingProductId(null)}
+                        className="px-2 py-1 rounded-lg bg-slate-800 text-slate-400 text-xs font-bold"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] text-slate-400 font-bold">Ajuste de Báscula:</span>
+                      <button
+                        type="button"
+                        onClick={() => handleStartQuickEdit(prod.id, inv.availableQuantity)}
+                        className="text-[11px] text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Editar Kilos Directo</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Fila B: Botones táctiles de adición y resta rápida de pesaje */}
+                  <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase">Restar:</span>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickSubtract(prod.id, 10, prod.name)}
+                        className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-rose-950/40 text-slate-300 hover:text-rose-400 text-[10px] font-bold border border-slate-800 transition-colors"
+                        title="Descontar 10 kg de stock"
+                      >
+                        -10 kg
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickSubtract(prod.id, 25, prod.name)}
+                        className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-rose-950/40 text-slate-300 hover:text-rose-400 text-[10px] font-bold border border-slate-800 transition-colors"
+                        title="Descontar 25 kg de stock"
+                      >
+                        -25 kg
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase">Sumar Báscula:</span>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickAdd(prod.id, 10, prod.name)}
+                        className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-emerald-950/40 text-slate-300 hover:text-emerald-400 text-[10px] font-bold border border-slate-800 transition-colors"
+                        title="Agregar 10 kg por pesaje"
+                      >
+                        +10 kg
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickAdd(prod.id, 25, prod.name)}
+                        className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-emerald-950/40 text-slate-300 hover:text-emerald-400 text-[10px] font-bold border border-slate-800 transition-colors"
+                        title="Agregar 25 kg (1 canastilla completa aprox.)"
+                      >
+                        +25 kg
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickAdd(prod.id, 50, prod.name)}
+                        className="px-2 py-1 rounded-lg bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-300 text-[10px] font-bold border border-emerald-800/40 transition-colors"
+                        title="Agregar 50 kg (2 canastillas completas)"
+                      >
+                        +50 kg
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -434,154 +501,150 @@ export const PlantPackingStation: React.FC<PlantPackingStationProps> = ({
         </div>
       </div>
 
-      {/* Modal for adjusting scale weight */}
-      {editingOrderWeight && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl animate-in zoom-in-95">
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-                  <Scale className="w-5 h-5" />
-                </div>
+      {/* MODAL 1: INGRESO DE NUEVO LOTE DESPOSTADO (MODIFICAR INVENTARIO) */}
+      <NewBatchModal
+        isOpen={isNewBatchOpen}
+        onClose={() => setIsNewBatchOpen(false)}
+        products={products}
+        onSave={(productId, qty, notes) => {
+          addInventoryBatch(productId, qty, notes);
+          showToast(`✓ Lote despostado de ${qty} kg ingresado con éxito al inventario`, "success");
+        }}
+      />
+
+      {/* MODAL 2: CREACIÓN DE NUEVO CORTE / PRODUCTO (MODIFICAR INVENTARIO) */}
+      <NewProductModal
+        isOpen={isNewProductOpen}
+        onClose={() => setIsNewProductOpen(false)}
+        onSave={(newProd, initialStock, initialPrice) => {
+          createProduct(newProd, initialStock, initialPrice);
+          showToast(`✓ Nuevo corte "${newProd.name}" registrado en inventario por el operador`, "success");
+        }}
+      />
+
+      {/* MODAL 3: ARQUEO FÍSICO DE INVENTARIO CON BÁSCULA */}
+      {isAuditModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 sm:p-6 max-w-2xl w-full shadow-2xl space-y-4 animate-in zoom-in-95 text-white max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <Scale className="w-5 h-5 text-amber-400" />
                 <div>
-                  <h3 className="font-black text-base text-white">
-                    Pesaje de Báscula Física
-                  </h3>
+                  <h3 className="font-extrabold text-base text-white">Arqueo Físico de Inventario en Cava</h3>
                   <p className="text-xs text-slate-400">
-                    {editingOrderWeight.customerName} ({editingOrderWeight.orderNumber})
+                    Compara el stock teórico contra el pesaje físico real de báscula.
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => setEditingOrderWeight(null)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
+                type="button"
+                onClick={() => setIsAuditModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
               >
-                <X className="w-5 h-5" />
+                ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveScaleWeight} className="p-5 space-y-4 max-h-[70vh] overflow-y-auto text-xs">
+            <div className="space-y-3">
+              {products.map((prod) => {
+                const inv = inventory.find((i) => i.productId === prod.id) || {
+                  physicalQuantity: 0,
+                  availableQuantity: 0,
+                  reservedQuantity: 0,
+                };
+                const physicalInput = auditProductMap[prod.id] ?? inv.availableQuantity;
+                const diff = physicalInput - inv.availableQuantity;
+
+                return (
+                  <div
+                    key={prod.id}
+                    className="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[10px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                          {prod.sku}
+                        </span>
+                        <h4 className="font-bold text-white text-sm">{prod.name}</h4>
+                      </div>
+                      <p className="text-slate-400 text-[11px] mt-0.5">
+                        Stock registrado: <strong className="text-slate-200">{inv.availableQuantity.toFixed(1)} kg</strong>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 self-end sm:self-center">
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-[11px] text-slate-400 font-bold">Pesaje Físico:</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={physicalInput}
+                          onChange={(e) =>
+                            setAuditProductMap({
+                              ...auditProductMap,
+                              [prod.id]: parseFloat(e.target.value) || 0,
+                            })
+                          }
+                          className="w-24 bg-slate-800 border border-slate-700 rounded-xl p-1.5 text-right font-mono font-bold text-white text-xs focus:outline-none focus:border-amber-500"
+                        />
+                        <span className="text-slate-400 font-bold">kg</span>
+                      </div>
+
+                      <div className="w-24 text-right">
+                        <span
+                          className={`font-mono font-black text-xs block ${
+                            diff === 0
+                              ? "text-slate-400"
+                              : diff > 0
+                              ? "text-emerald-400"
+                              : "text-rose-400"
+                          }`}
+                        >
+                          {diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)} kg
+                        </span>
+                        <span className="text-[9px] uppercase font-bold text-slate-500">
+                          {diff === 0 ? "Exacto" : diff > 0 ? "Sobrante" : "Merma"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsAuditModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+              >
+                Cancelar
+              </button>
               <button
                 type="button"
                 onClick={() => {
-                  setTareScaleOrder(editingOrderWeight);
-                  setIsTareScaleOpen(true);
-                  setEditingOrderWeight(null);
+                  Object.entries(auditProductMap).forEach(([pid, newQty]) => {
+                    const inv = inventory.find((i) => i.productId === pid);
+                    if (inv) {
+                      updateInventoryStock(pid, {
+                        physicalQuantity: newQty + inv.reservedQuantity,
+                        availableQuantity: newQty,
+                      });
+                    }
+                  });
+                  showToast("✓ Arqueo físico de cava aplicado exitosamente", "success");
+                  setIsAuditModalOpen(false);
                 }}
-                className="w-full py-2.5 px-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-black text-xs flex items-center justify-center gap-2 border border-amber-500/40 transition-all shadow-md active:scale-95"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all"
               >
-                <Scale className="w-4 h-4 text-amber-400" />
-                <span>⚖️ Abrir Báscula Digital: Restar Tara de Canastillas</span>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Guardar Arqueo & Cuadrar Cava</span>
               </button>
-
-              <p className="text-slate-300">
-                O digita directamente los kilos para cada corte antes de montarlo al furgón:
-              </p>
-
-              <div className="space-y-3">
-                {editingOrderWeight.items.map((item) => (
-                  <div
-                    key={item.productId}
-                    className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-bold text-white text-sm">{item.productName}</p>
-                        <p className="text-[11px] text-slate-400">
-                          Pedido por el cliente: <strong className="text-slate-300">{item.quantity} kg</strong>
-                        </p>
-                      </div>
-                      <span className="text-xs font-mono font-bold text-amber-400">
-                        ${item.unitPrice.toLocaleString()}/kg
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-1">
-                      <label className="text-slate-400 font-bold text-xs whitespace-nowrap">
-                        ⚖️ Kilos Reales en Báscula:
-                      </label>
-                      <input
-                        type="number"
-                        step="0.05"
-                        min="0.1"
-                        required
-                        value={weightsMap[item.productId] ?? item.quantity}
-                        onChange={(e) =>
-                          setWeightsMap({
-                            ...weightsMap,
-                            [item.productId]: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-white font-mono font-black text-sm text-right focus:outline-none focus:border-amber-500"
-                      />
-                      <span className="font-bold text-slate-400">kg</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Basket count and Precinto */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">
-                    📦 Canastillas Asignadas:
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={basketCount}
-                    onChange={(e) => setBasketCount(parseInt(e.target.value) || 1)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">
-                    🔒 Precinto de Seguridad:
-                  </label>
-                  <input
-                    type="text"
-                    value={sealNumber}
-                    onChange={(e) => setSealNumber(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white font-mono font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingOrderWeight(null)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black shadow-lg flex items-center gap-1.5"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>Guardar Pesaje & Liquidar</span>
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
-
-      {/* Modal: Báscula Digital de Canastillas & Tara de Cortes */}
-      <CratesTareScaleModal
-        isOpen={isTareScaleOpen}
-        onClose={() => {
-          setIsTareScaleOpen(false);
-          setTareScaleOrder(null);
-        }}
-        order={tareScaleOrder}
-        products={products}
-        onApplyWeights={(orderId, realQuantities, tareDetails) => {
-          adjustOrderRealWeight(orderId, realQuantities, tareDetails);
-          updateOrderStatus(orderId, "confirmed");
-        }}
-      />
     </div>
   );
 };

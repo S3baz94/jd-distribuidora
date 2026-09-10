@@ -514,7 +514,7 @@ export default function OperacionPage() {
                 <h1 className="text-xs sm:text-sm md:text-base font-bold text-slate-100 leading-snug mt-1 break-words">
                   {currentUser?.role === "operador"
                     ? operationsMode === "alistamiento"
-                      ? "Alistamiento de Cargas & Planilla de Desposte"
+                      ? "Alistamiento: Control de Inventario & Resumen de Cava"
                       : operationsMode === "bascula"
                       ? "Báscula Digital de Canastillas & Tara (2.0 kg)"
                       : operationsMode === "inventario"
@@ -543,7 +543,7 @@ export default function OperacionPage() {
 
             {/* Botones de navegación ergonómicos para las 4 estaciones del Operador */}
             <div className="grid grid-cols-2 sm:flex sm:flex-nowrap w-full sm:w-auto bg-slate-900/90 rounded-2xl p-1 border border-slate-800 gap-1">
-              {/* Estación 1: Alistamiento & Pedidos */}
+              {/* Estación 1: Alistamiento & Inventario */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("alistamiento")}
@@ -552,7 +552,7 @@ export default function OperacionPage() {
                     ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
                     : "text-slate-400 hover:text-white"
                 }`}
-                title="Alistamiento de pedidos y planilla de desposte para furgones"
+                title="Alistamiento: mirar inventario, modificarlo y ver el resumen de stock"
               >
                 <ClipboardList className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate">Alistamiento</span>
