@@ -153,6 +153,7 @@ export interface Order {
   deliveredBasketsLeft?: number;
   emptyBasketsCollected?: number;
   invoicePhoto?: string; // Foto de la factura de venta / remisión firmada
+  scalePhoto?: string; // Fotografía de la báscula física real tomada por el operador
   customerSignature?: string;
   returnDetails?: {
     hasReturn: boolean;

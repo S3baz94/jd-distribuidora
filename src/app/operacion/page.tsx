@@ -521,7 +521,7 @@ export default function OperacionPage() {
                     ? operationsMode === "alistamiento"
                       ? "Alistamiento: Control de Inventario & Resumen de Cava"
                       : operationsMode === "bascula"
-                      ? "Báscula Digital de Canastillas & Tara (2.0 kg)"
+                      ? "Pesaje Manual de Pedidos & Foto de Báscula"
                       : operationsMode === "inventario"
                       ? "Kardex en Cava (1.8°C) & Recepción de Lotes"
                       : "Censo & Contabilidad de Canastillas JD"
@@ -563,7 +563,7 @@ export default function OperacionPage() {
                 <span className="truncate">Alistamiento</span>
               </button>
 
-              {/* Estación 2: Báscula Digital & Tara */}
+              {/* Estación 2: Pesaje Manual & Foto de Báscula */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("bascula")}
@@ -572,10 +572,10 @@ export default function OperacionPage() {
                     ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-950/50"
                     : "text-slate-400 hover:text-white"
                 }`}
-                title="Pesaje digital corte por corte y descuento de tara de canastillas (2.0 kg)"
+                title="Pesaje manual de pedidos o captura de foto a la pantalla de la báscula física"
               >
                 <Scale className="w-3.5 h-3.5 stroke-[2.5] flex-shrink-0" />
-                <span className="truncate">Báscula & Tara</span>
+                <span className="truncate">Pesaje Manual</span>
               </button>
 
               {/* Estación 3: Inventario & Cava Fría */}
@@ -1280,13 +1280,13 @@ export default function OperacionPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 inline-block">
-                  ESTACIÓN DE PESAJE DIGITAL & CONTROL DE TARAS
+                  ESTACIÓN DE PESAJE MANUAL & FOTO DE BÁSCULA
                 </span>
                 <h2 className="text-base sm:text-lg font-black text-white mt-1 break-words leading-snug">
-                  Báscula Digital de Canastillas & Liquidación de Gramaje Neto
+                  Pesaje Manual de Pedidos & Soporte Fotográfico
                 </h2>
                 <p className="text-xs text-slate-300 mt-0.5">
-                  Descuenta automáticamente 2.0 kg por canastilla plástica JD y calcula el peso exacto a facturar.
+                  Digita los kilos pesados en la báscula física o toma fotografía a la pantalla como soporte legal.
                 </p>
               </div>
             </div>
@@ -1300,7 +1300,7 @@ export default function OperacionPage() {
               className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-amber-950/40 active:scale-95 transition-all flex-shrink-0 text-center"
             >
               <Scale className="w-5 h-5 stroke-[2.5]" />
-              <span>ABRIR BÁSCULA CON TARA</span>
+              <span>INGRESAR PESOS / TOMAR FOTO</span>
             </button>
           </div>
 

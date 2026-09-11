@@ -114,7 +114,7 @@ interface AppContextType {
   adjustOrderRealWeight: (
     orderId: string,
     realQuantities: { productId: string; realQuantity: number }[],
-    tareDetails?: { tareNote?: string; totalGrossKg?: number; totalTareKg?: number; totalNetKg?: number }
+    tareDetails?: { tareNote?: string; totalGrossKg?: number; totalTareKg?: number; totalNetKg?: number; scalePhoto?: string }
   ) => void;
   updateOrderDispatch: (
     orderId: string,
@@ -972,15 +972,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const adjustOrderRealWeight = (
     orderId: string,
     realQuantities: { productId: string; realQuantity: number }[],
-    tareDetails?: { tareNote?: string; totalGrossKg?: number; totalTareKg?: number; totalNetKg?: number }
+    tareDetails?: { tareNote?: string; totalGrossKg?: number; totalTareKg?: number; totalNetKg?: number; scalePhoto?: string }
   ) => {
     const updated = orderService.adjustRealWeight(orderId, realQuantities);
     if (updated) {
-      if (tareDetails?.tareNote) {
-        updated.notes = `${updated.notes || ""}\n[Báscula Tara Canastillas]: ${tareDetails.tareNote}`.trim();
-        const currentList = orderService.getAllOrders().map((o) => (o.id === updated.id ? updated : o));
-        orderService.saveOrders(currentList);
+      if (tareDetails?.scalePhoto) {
+        updated.scalePhoto = tareDetails.scalePhoto;
       }
+      if (tareDetails?.tareNote) {
+        updated.notes = `${updated.notes || ""}\n[Pesaje Báscula]: ${tareDetails.tareNote}`.trim();
+      }
+      const currentList = orderService.getAllOrders().map((o) => (o.id === updated.id ? updated : o));
+      orderService.saveOrders(currentList);
 
       // Si el pedido ya tiene factura emitida, actualizar los ítems, kilos y total de la factura
       const existingInvoice = getOrderInvoice(updated);
