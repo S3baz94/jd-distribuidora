@@ -220,6 +220,11 @@ export default function OperacionPage() {
   const pendingOrders = routeOrders.filter(
     (o) => o.status !== "delivered" && o.status !== "cancelled"
   );
+
+  // Pedidos pendientes de planta completos para la estación de báscula digital
+  const plantPendingOrders = useMemo(() => {
+    return allOrders.filter((o) => o.status !== "delivered" && o.status !== "cancelled");
+  }, [allOrders]);
   const totalKg = routeOrders.reduce(
     (sum, o) => sum + o.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0),
     0
@@ -1289,7 +1294,7 @@ export default function OperacionPage() {
             <button
               type="button"
               onClick={() => {
-                setTareScaleOrder(pendingOrders[0] || null);
+                setTareScaleOrder(plantPendingOrders[0] || null);
                 setIsTareScaleModalOpen(true);
               }}
               className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-amber-950/40 active:scale-95 transition-all flex-shrink-0 text-center"
@@ -1304,49 +1309,70 @@ export default function OperacionPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-800 pb-3">
               <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span>Pedidos Pendientes de Pesaje ({pendingOrders.length})</span>
+                <span>Pedidos Pendientes de Pesaje ({plantPendingOrders.length})</span>
               </h3>
               <span className="text-xs text-slate-400 font-medium">Selecciona un pedido para pesarlo en báscula</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {pendingOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="bg-slate-950 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 transition-all flex flex-col justify-between gap-3 shadow-md"
+            {plantPendingOrders.length === 0 ? (
+              <div className="p-8 text-center bg-slate-950/60 rounded-2xl border border-slate-800 space-y-3">
+                <Scale className="w-10 h-10 text-amber-400 mx-auto opacity-70" />
+                <p className="text-white font-bold text-sm">No hay pedidos pendientes de pesaje en este momento</p>
+                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                  Todos los pedidos actuales ya fueron pesados o despachados. Puedes abrir la báscula de forma independiente para pesar lotes libres.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTareScaleOrder(null);
+                    setIsTareScaleModalOpen(true);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs inline-flex items-center gap-2 shadow-md active:scale-95 transition-all"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] font-mono text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                        {order.orderNumber}
+                  <Scale className="w-4 h-4 stroke-[2.5]" />
+                  <span>Abrir Báscula para Pesaje Libre</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {plantPendingOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="bg-slate-950 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 transition-all flex flex-col justify-between gap-3 shadow-md"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-mono text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                          {order.orderNumber}
+                        </span>
+                        <h4 className="font-black text-white text-sm mt-1">{order.customerName}</h4>
+                        <p className="text-xs text-slate-400 truncate">{order.deliveryAddress}</p>
+                      </div>
+                      <span className="text-xs font-mono font-black text-emerald-400">
+                        {priceService.formatCurrency(order.realTotal || order.total)}
                       </span>
-                      <h4 className="font-black text-white text-sm mt-1">{order.customerName}</h4>
-                      <p className="text-xs text-slate-400 truncate">{order.deliveryAddress}</p>
                     </div>
-                    <span className="text-xs font-mono font-black text-emerald-400">
-                      {priceService.formatCurrency(order.realTotal || order.total)}
-                    </span>
-                  </div>
 
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                    <span className="text-slate-400">
-                      {order.items.length} cortes • ~{order.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0).toFixed(1)} kg est.
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTareScaleOrder(order);
-                        setIsTareScaleModalOpen(true);
-                      }}
-                      className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1 shadow-md active:scale-95 transition-all"
-                    >
-                      <Scale className="w-3.5 h-3.5 stroke-[2.5]" />
-                      <span>Pesar en Báscula</span>
-                    </button>
+                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                      <span className="text-slate-400">
+                        {order.items.length} cortes • ~{order.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0).toFixed(1)} kg est.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTareScaleOrder(order);
+                          setIsTareScaleModalOpen(true);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1 shadow-md active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Scale className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Pesar en Báscula</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       ) : operationsMode === "inventario" ? (
@@ -2169,9 +2195,13 @@ export default function OperacionPage() {
           setTareScaleOrder(null);
         }}
         order={tareScaleOrder}
+        availableOrders={plantPendingOrders}
+        onSelectOrder={(ord) => setTareScaleOrder(ord)}
         products={products}
         onApplyWeights={(orderId, realQuantities, tareDetails) => {
           adjustOrderRealWeight(orderId, realQuantities, tareDetails);
+          updateOrderStatus(orderId, "confirmed");
+          showToast(`⚖️ Pesaje guardado: Gramaje neto liquidado en factura y pedido`, "success");
           // Si el modal de entrega estaba abierto para este pedido, refrescar los datos
           if (deliveryModalOrder && deliveryModalOrder.id === orderId) {
             const fresh = allOrders.find((o) => o.id === orderId);

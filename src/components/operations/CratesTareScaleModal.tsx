@@ -1,27 +1,27 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Order, OrderItem, Product } from "@/types";
+import React, { useState, useMemo, useEffect } from "react";
+import { Order, Product } from "@/types";
 import { priceService } from "@/services/priceService";
 import {
   Scale,
   X,
   Plus,
   Trash2,
-  CheckCircle2,
-  AlertTriangle,
   Receipt,
   Copy,
   Check,
   Boxes,
-  RotateCcw,
-  Sparkles,
+  AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 
 export interface CratesTareScaleModalProps {
   isOpen: boolean;
   onClose: () => void;
   order?: Order | null;
+  availableOrders?: Order[];
+  onSelectOrder?: (order: Order) => void;
   products?: Product[];
   onApplyWeights?: (
     orderId: string,
@@ -46,30 +46,38 @@ interface ProductWeighingState {
   productId: string;
   productName: string;
   unitPrice: number;
-  grossWeights: number[]; // e.g. [28.5, 27.2]
+  grossWeights: number[];
   tareMode: "individual" | "standard";
-  individualTares: number[]; // e.g. [2.1, 2.05]
-  standardTarePerCrate: number; // e.g. 2.0 kg
+  individualTares: number[];
+  standardTarePerCrate: number;
 }
 
 export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
   isOpen,
   onClose,
   order,
+  availableOrders = [],
+  onSelectOrder,
   products = [],
   onApplyWeights,
 }) => {
-  // Available selectable items
-  const itemsToWeigh: { productId: string; productName: string; unitPrice: number; orderedQty: number }[] = useMemo(() => {
-    if (order && order.items.length > 0) {
-      return order.items.map((it) => ({
+  // Pedido activo en el modal (puede ser el que vino por props o uno seleccionado del desplegable)
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(order || null);
+
+  useEffect(() => {
+    setCurrentOrder(order || null);
+  }, [order]);
+
+  // Cortes a pesar calculados según el pedido activo o catálogo
+  const itemsToWeigh = useMemo(() => {
+    if (currentOrder && currentOrder.items && currentOrder.items.length > 0) {
+      return currentOrder.items.map((it) => ({
         productId: it.productId,
         productName: it.productName,
         unitPrice: it.unitPrice,
         orderedQty: it.realQuantity || it.quantity,
       }));
     }
-    // Standalone fallback
     if (products.length > 0) {
       return products.slice(0, 10).map((p) => ({
         productId: p.id,
@@ -84,44 +92,61 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
       { productId: "prod-lomo", productName: "Lomo fino magro", unitPrice: 24000, orderedQty: 30 },
       { productId: "prod-bondiola", productName: "Bondiola de cerdo fresca", unitPrice: 25000, orderedQty: 25 },
     ];
-  }, [order, products]);
+  }, [currentOrder, products]);
 
-  const [activeProductId, setActiveProductId] = useState<string>(() => itemsToWeigh[0]?.productId || "prod-chuleta");
+  const [activeProductId, setActiveProductId] = useState<string>(
+    () => itemsToWeigh[0]?.productId || "prod-chuleta"
+  );
 
-  // Multi-product weighing state dictionary
-  const [weighingMap, setWeighingMap] = useState<Record<string, ProductWeighingState>>(() => {
+  const [weighingMap, setWeighingMap] = useState<Record<string, ProductWeighingState>>({});
+  const [isCopied, setIsCopied] = useState(false);
+
+  // Sincronizar estado de pesaje cada vez que se abre el modal o cambia el pedido
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (itemsToWeigh.length > 0) {
+      setActiveProductId(itemsToWeigh[0].productId);
+    }
+
     const map: Record<string, ProductWeighingState> = {};
     itemsToWeigh.forEach((item) => {
-      // Default: 1 crate of ~27 kg with product, 1 empty tare of 2.0 kg
+      const baseQty = item.orderedQty > 0 ? item.orderedQty : 25;
       map[item.productId] = {
         productId: item.productId,
         productName: item.productName,
         unitPrice: item.unitPrice,
-        grossWeights: [Number((item.orderedQty + 2.0).toFixed(1))],
-        tareMode: "individual",
+        grossWeights: [Number((baseQty + 2.0).toFixed(1))],
+        tareMode: "standard",
         individualTares: [2.0],
         standardTarePerCrate: 2.0,
       };
     });
-    return map;
-  });
-
-  const [isCopied, setIsCopied] = useState(false);
+    setWeighingMap(map);
+  }, [isOpen, currentOrder?.id, itemsToWeigh]);
 
   if (!isOpen) return null;
 
-  const currentItem = itemsToWeigh.find((i) => i.productId === activeProductId) || itemsToWeigh[0];
-  const currentWeighing: ProductWeighingState = weighingMap[currentItem?.productId] || {
-    productId: currentItem?.productId || "prod-chuleta",
-    productName: currentItem?.productName || "Chuletas",
-    unitPrice: currentItem?.unitPrice || 22000,
+  const currentItem =
+    itemsToWeigh.find((i) => i.productId === activeProductId) ||
+    itemsToWeigh[0] || {
+      productId: "prod-chuleta",
+      productName: "Chuleta de Cerdo",
+      unitPrice: 22000,
+      orderedQty: 25,
+    };
+
+  const currentWeighing: ProductWeighingState = weighingMap[currentItem.productId] || {
+    productId: currentItem.productId,
+    productName: currentItem.productName,
+    unitPrice: currentItem.unitPrice,
     grossWeights: [27.0],
-    tareMode: "individual",
+    tareMode: "standard",
     individualTares: [2.0],
     standardTarePerCrate: 2.0,
   };
 
-  // Helper updates for current product
+  // Helper para actualizar el estado del corte actual
   const updateCurrentWeighing = (updater: (prev: ProductWeighingState) => ProductWeighingState) => {
     setWeighingMap((prev) => {
       const existing = prev[currentItem.productId] || currentWeighing;
@@ -132,7 +157,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
     });
   };
 
-  // Gross crates operations
+  // Operaciones de canastillas brutas con carne
   const handleAddGrossCrate = () => {
     updateCurrentWeighing((prev) => ({
       ...prev,
@@ -154,14 +179,15 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
     updateCurrentWeighing((prev) => {
       if (prev.grossWeights.length <= 1) return prev;
       const nextGross = prev.grossWeights.filter((_, i) => i !== index);
-      const nextTares = prev.tareMode === "individual" && prev.individualTares.length > nextGross.length
-        ? prev.individualTares.slice(0, nextGross.length)
-        : prev.individualTares;
+      const nextTares =
+        prev.tareMode === "individual" && prev.individualTares.length > nextGross.length
+          ? prev.individualTares.slice(0, nextGross.length)
+          : prev.individualTares;
       return { ...prev, grossWeights: nextGross, individualTares: nextTares };
     });
   };
 
-  // Tare crates operations
+  // Operaciones de tara vacía a restar
   const handleAddEmptyTare = () => {
     updateCurrentWeighing((prev) => ({
       ...prev,
@@ -185,7 +211,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
     });
   };
 
-  // Calculations for current product
+  // Cálculos para el corte actualmente activo en pantalla
   const totalGrossKg = currentWeighing.grossWeights.reduce((s, w) => s + w, 0);
   const totalTareKg =
     currentWeighing.tareMode === "individual"
@@ -195,7 +221,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
   const netGrammageKg = Math.max(0, Number((totalGrossKg - totalTareKg).toFixed(2)));
   const totalAmountCOP = Math.round(netGrammageKg * currentWeighing.unitPrice);
 
-  // Consolidated order summary
+  // Resumen consolidado del pedido completo
   const orderConsolidated = useMemo(() => {
     const list: {
       productId: string;
@@ -209,26 +235,34 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
     }[] = [];
 
     itemsToWeigh.forEach((it) => {
-      const w = weighingMap[it.productId];
-      if (w) {
-        const gross = w.grossWeights.reduce((s, val) => s + val, 0);
-        const tare =
-          w.tareMode === "individual"
-            ? w.individualTares.reduce((s, val) => s + val, 0)
-            : w.grossWeights.length * w.standardTarePerCrate;
-        const net = Math.max(0, Number((gross - tare).toFixed(2)));
-        const amt = Math.round(net * it.unitPrice);
-        list.push({
-          productId: it.productId,
-          productName: it.productName,
-          unitPrice: it.unitPrice,
-          grossKg: Number(gross.toFixed(2)),
-          tareKg: Number(tare.toFixed(2)),
-          netKg: net,
-          amount: amt,
-          cratesCount: w.grossWeights.length,
-        });
-      }
+      const w = weighingMap[it.productId] || {
+        productId: it.productId,
+        productName: it.productName,
+        unitPrice: it.unitPrice,
+        grossWeights: [Number(((it.orderedQty || 25) + 2.0).toFixed(1))],
+        tareMode: "standard",
+        individualTares: [2.0],
+        standardTarePerCrate: 2.0,
+      };
+
+      const gross = w.grossWeights.reduce((s, val) => s + val, 0);
+      const tare =
+        w.tareMode === "individual"
+          ? w.individualTares.reduce((s, val) => s + val, 0)
+          : w.grossWeights.length * w.standardTarePerCrate;
+      const net = Math.max(0, Number((gross - tare).toFixed(2)));
+      const amt = Math.round(net * it.unitPrice);
+
+      list.push({
+        productId: it.productId,
+        productName: it.productName,
+        unitPrice: it.unitPrice,
+        grossKg: Number(gross.toFixed(2)),
+        tareKg: Number(tare.toFixed(2)),
+        netKg: net,
+        amount: amt,
+        cratesCount: w.grossWeights.length,
+      });
     });
 
     const sumGross = list.reduce((s, i) => s + i.grossKg, 0);
@@ -245,9 +279,10 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
     };
   }, [itemsToWeigh, weighingMap]);
 
-  // Apply to order & invoice
+  // Aplicar pesos netos calculados al pedido y factura
   const handleApplyToOrder = () => {
-    if (!order || !onApplyWeights) {
+    const targetOrder = currentOrder || order;
+    if (!targetOrder || !onApplyWeights) {
       onClose();
       return;
     }
@@ -260,7 +295,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
     const breakdownText = orderConsolidated.items
       .map(
         (it) =>
-          `${it.productName}: ${it.cratesCount} canastillas brutas (${it.grossKg}kg) - tara vacías (${it.tareKg}kg) = ${it.netKg}kg netos`
+          `${it.productName}: ${it.cratesCount} canastillas brutas (${it.grossKg}kg) - tara (${it.tareKg}kg) = ${it.netKg}kg netos`
       )
       .join(" | ");
 
@@ -278,14 +313,16 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
       })),
     };
 
-    onApplyWeights(order.id, payload, tareDetails);
+    onApplyWeights(targetOrder.id, payload, tareDetails);
     onClose();
   };
 
-  // Copy weighing ticket
+  // Copiar ticket de pesaje
   const handleCopyTicket = () => {
-    const text = `⚖️ TICKET DE PESAJE CON TARA - JD DISTRIBUIDORA\n` +
-      `Cliente: ${order?.customerName || "Venta en Cabina / Planta"}\n` +
+    const targetOrder = currentOrder || order;
+    const text =
+      `⚖️ TICKET DE PESAJE CON TARA - JD DISTRIBUIDORA\n` +
+      `Cliente: ${targetOrder?.customerName || "Venta en Cabina / Planta"}\n` +
       `----------------------------------------\n` +
       orderConsolidated.items
         .map(
@@ -313,57 +350,85 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in overflow-y-auto">
       <div className="bg-slate-900 border-2 border-amber-500/50 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl animate-in zoom-in-95 my-6 text-white flex flex-col max-h-[92vh]">
-        {/* Header */}
+        {/* Cabecera */}
         <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-850 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0 relative">
-              <img
-                src="/images/branding/cerdito-bascula-pesaje.png"
-                alt="El Cerdito JD en Báscula Digital"
-                className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
-              />
+            <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center flex-shrink-0 relative bg-amber-500/10 rounded-2xl border border-amber-500/30">
+              <Scale className="w-7 h-7 text-amber-400 stroke-[2.5]" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="font-black text-base sm:text-lg text-white">
-                  Báscula de Canastillas & Tara
+                  Báscula Digital de Canastillas & Tara
                 </h2>
                 <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   Gramaje Neto Legal
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                {order
-                  ? `Pedido ${order.orderNumber} • ${order.customerName}`
-                  : "Pesaje en Cabina de Furgón / Planta de Desposte"}
+              <p className="text-xs text-slate-400 mt-0.5">
+                {currentOrder
+                  ? `Pedido ${currentOrder.orderNumber} • ${currentOrder.customerName}`
+                  : "Pesaje de Lote en Planta / Venta en Cabina"}
               </p>
             </div>
           </div>
+
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors flex-shrink-0"
+            title="Cerrar báscula"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Scrollable Body */}
+        {/* Selector de Pedido si hay pedidos disponibles */}
+        {availableOrders.length > 0 && (
+          <div className="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-3 text-xs">
+            <span className="text-slate-400 font-bold flex items-center gap-1.5 flex-shrink-0">
+              <Boxes className="w-3.5 h-3.5 text-amber-400" />
+              <span>Pedido a Pesar:</span>
+            </span>
+            <div className="relative flex-1 max-w-sm">
+              <select
+                value={currentOrder?.id || ""}
+                onChange={(e) => {
+                  const found = availableOrders.find((o) => o.id === e.target.value);
+                  if (found) {
+                    setCurrentOrder(found);
+                    if (onSelectOrder) onSelectOrder(found);
+                  }
+                }}
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white font-bold appearance-none pr-8 focus:outline-none focus:border-amber-500"
+              >
+                {availableOrders.map((ord) => (
+                  <option key={ord.id} value={ord.id}>
+                    {ord.orderNumber} • {ord.customerName} ({ord.items.length} cortes)
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+        )}
+
+        {/* Cuerpo con Scroll */}
         <div className="p-4 sm:p-5 space-y-5 overflow-y-auto flex-1 text-xs">
-          {/* Explanation Banner */}
+          {/* Explicación de la fórmula */}
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex items-start gap-2.5 text-amber-200">
             <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
             <div className="space-y-0.5">
               <p className="font-bold text-white text-xs">
-                Fórmula de Pesaje Operativo:
+                Fórmula de Pesaje en Báscula:
               </p>
               <p className="text-[11px] text-amber-200/90">
-                <strong>Peso Bruto (con producto)</strong> menos el <strong>Peso de Canastillas Vacías (Tara)</strong> genera el gramaje neto exacto que se liquida en la factura comercial.
+                <strong>Peso Bruto (con producto)</strong> menos la <strong>Tara (Canastillas vacías)</strong> calcula los kilos netos exactos que se cobran en factura.
               </p>
             </div>
           </div>
 
-          {/* Product Tabs (If order has multiple cuts e.g. Chuletas, Costillas, etc.) */}
+          {/* Pestañas de Cortes cárnicos a pesar */}
           {itemsToWeigh.length > 1 && (
             <div>
               <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
@@ -412,9 +477,9 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
             </div>
           )}
 
-          {/* Dual Weighing Section: Peso Bruto con Carne (Left) vs Tara Canastillas Vacías (Right) */}
+          {/* Sección de Pesaje: 1. Peso Bruto vs 2. Tara Vacías */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Section 1: Pesaje de Canastillas con Producto (PESO BRUTO) */}
+            {/* 1. Canastillas con Carne (Peso Bruto) */}
             <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
                 <div>
@@ -425,21 +490,21 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
                     </h3>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    {currentItem.productName} en canastillas
+                    {currentItem.productName}
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleAddGrossCrate}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition-all self-start sm:self-auto"
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all self-start sm:self-auto"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4 stroke-[3]" />
                   <span>+ Canastilla</span>
                 </button>
               </div>
 
-              {/* List of Gross Crates */}
+              {/* Lista de canastillas brutas */}
               <div className="space-y-2 max-h-56 overflow-y-auto pr-1 no-scrollbar">
                 {currentWeighing.grossWeights.map((weight, idx) => (
                   <div
@@ -482,7 +547,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
                 ))}
               </div>
 
-              {/* Gross Subtotal Pill */}
+              {/* Subtotal Bruto */}
               <div className="flex items-center justify-between pt-1 text-xs border-t border-slate-850">
                 <span className="text-slate-400">
                   {currentWeighing.grossWeights.length} canastilla(s) brutas:
@@ -493,14 +558,14 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
               </div>
             </div>
 
-            {/* Section 2: Pesaje de Canastillas Vacías (TARA) */}
+            {/* 2. Canastillas Vacías (Tara a Restar) */}
             <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3.5 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
                     <h3 className="font-extrabold text-sm text-white">
-                      2. Canastillas Vacías (Tara a Restar)
+                      2. Canastillas Vacías (Tara)
                     </h3>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-0.5">
@@ -508,29 +573,29 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
                   </p>
                 </div>
 
-                {/* Mode Toggle */}
+                {/* Selector de modo tara */}
                 <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-700 self-start sm:self-auto">
                   <button
                     type="button"
-                    onClick={() => updateCurrentWeighing((prev) => ({ ...prev, tareMode: "individual" }))}
-                    className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                      currentWeighing.tareMode === "individual"
-                        ? "bg-cyan-600 text-white shadow-sm"
-                        : "text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Individual
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => updateCurrentWeighing((prev) => ({ ...prev, tareMode: "standard" }))}
-                    className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all ${
                       currentWeighing.tareMode === "standard"
-                        ? "bg-cyan-600 text-white shadow-sm"
+                        ? "bg-cyan-500 text-slate-950 shadow-md"
                         : "text-slate-400 hover:text-white"
                     }`}
                   >
                     Estándar 2kg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateCurrentWeighing((prev) => ({ ...prev, tareMode: "individual" }))}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all ${
+                      currentWeighing.tareMode === "individual"
+                        ? "bg-cyan-500 text-slate-950 shadow-md"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Individual
                   </button>
                 </div>
               </div>
@@ -581,7 +646,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
                   <button
                     type="button"
                     onClick={handleAddEmptyTare}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs flex items-center gap-1.5 border border-slate-700"
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-cyan-300 font-bold text-xs flex items-center gap-1.5 border border-slate-700"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>+ Canastilla vacía</span>
@@ -604,7 +669,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
                 </div>
               )}
 
-              {/* Tare Subtotal Pill */}
+              {/* Subtotal Tara */}
               <div className="flex items-center justify-between pt-1 text-xs border-t border-slate-850">
                 <span className="text-slate-400">Total Tara Canastillas Vacías:</span>
                 <span className="font-mono font-extrabold text-cyan-300 bg-cyan-950/50 px-2.5 py-1 rounded-xl border border-cyan-800/50">
@@ -614,8 +679,8 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
             </div>
           </div>
 
-          {/* Section 3: Pantalla Digital de Báscula (Resultado & Liquidación) matching Stitch */}
-          <div className="bg-[#0b1326] border-2 border-emerald-500 rounded-3xl p-6 shadow-2xl space-y-4 glow-emerald industrial-inset">
+          {/* Pantalla Digital de Báscula Industrial */}
+          <div className="bg-[#0b1326] border-2 border-emerald-500 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 glow-emerald">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-[#4edea3] animate-ping" />
@@ -628,7 +693,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
               </span>
             </div>
 
-            {/* Arithmetic Formula Layout */}
+            {/* Fórmula Aritmética de 3 Columnas */}
             <div className="grid grid-cols-3 gap-2 sm:gap-2.5 text-center">
               <div className="bg-slate-950 p-2.5 sm:p-3 rounded-2xl border border-slate-800 min-w-0">
                 <span className="text-[9px] sm:text-[10px] font-mono uppercase font-bold text-slate-400 block truncate">
@@ -658,7 +723,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
               </div>
             </div>
 
-            {/* Giant Glowing Digital Readout */}
+            {/* Display Gigante */}
             <div className="py-2 text-center bg-slate-950/80 rounded-2xl border border-slate-800/80 p-3 sm:p-4">
               <span className="text-[10px] sm:text-[11px] font-mono font-extrabold uppercase tracking-widest text-[#4edea3] block mb-1 truncate">
                 ⚖️ DISPLAY DIGITAL DE BÁSCULA
@@ -668,7 +733,7 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
               </div>
             </div>
 
-            {/* Price Calculation for Invoice */}
+            {/* Liquidación de Valor */}
             <div className="bg-slate-950 rounded-2xl p-3.5 sm:p-4 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
               <div>
                 <span className="text-slate-400 block text-[10px] sm:text-[11px] font-mono">
@@ -688,30 +753,15 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
                 </strong>
               </div>
             </div>
-
-            {/* Theoretical Deviation notice if order exists */}
-            {currentItem.orderedQty > 0 && (
-              <div className="text-[10px] sm:text-[11px] font-mono text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 border-t border-slate-800">
-                <span>Pedido teórico: {currentItem.orderedQty} kg</span>
-                <span
-                  className={`font-bold ${
-                    netGrammageKg >= currentItem.orderedQty ? "text-[#4edea3]" : "text-amber-400"
-                  }`}
-                >
-                  Diferencia real: {(netGrammageKg - currentItem.orderedQty).toFixed(2)} kg (
-                  {((netGrammageKg / (currentItem.orderedQty || 1) - 1) * 100).toFixed(1)}%)
-                </span>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Footer Actions matching Stitch */}
+        {/* Footer con Botones de Acción */}
         <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 flex-shrink-0">
           <button
             type="button"
             onClick={handleCopyTicket}
-            className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
+            className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
           >
             {isCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
             <span>{isCopied ? "¡Copiado al Portapapeles!" : "Copiar Ticket de Pesaje"}</span>
@@ -721,19 +771,28 @@ export const CratesTareScaleModal: React.FC<CratesTareScaleModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 sm:flex-none px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-xs transition-colors text-center"
+              className="flex-1 sm:flex-none px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-white font-bold text-xs transition-colors text-center"
             >
               Cerrar
             </button>
 
-            {order && onApplyWeights && (
+            {(currentOrder || order) && onApplyWeights ? (
               <button
                 type="button"
                 onClick={handleApplyToOrder}
-                className="flex-1 sm:flex-none px-4 sm:px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl glow-master-btn active:scale-95 transition-all text-center leading-tight"
+                className="flex-1 sm:flex-none px-5 sm:px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl active:scale-95 transition-all text-center leading-tight cursor-pointer"
               >
                 <Receipt className="w-4 h-4 text-slate-950 flex-shrink-0" />
-                <span className="truncate sm:overflow-visible">Aplicar Gramaje a Factura</span>
+                <span>Aplicar Gramaje a Factura</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleCopyTicket}
+                className="flex-1 sm:flex-none px-5 sm:px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl active:scale-95 transition-all text-center leading-tight"
+              >
+                <Check className="w-4 h-4 text-slate-950 flex-shrink-0" />
+                <span>Pesaje Listo (Copiar)</span>
               </button>
             )}
           </div>
