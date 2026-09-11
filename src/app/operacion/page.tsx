@@ -41,7 +41,6 @@ import {
   Layers,
   CornerDownRight,
   Scale,
-  ThermometerSnowflake,
   Boxes,
   LogOut,
   UserCheck,
@@ -51,7 +50,6 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { PlantPackingStation } from "@/components/operations/PlantPackingStation";
-import { ColdStorageStation } from "@/components/operations/ColdStorageStation";
 import { CratesTareScaleModal } from "@/components/operations/CratesTareScaleModal";
 import { CratesInventoryManager } from "@/components/operations/CratesInventoryManager";
 
@@ -95,7 +93,7 @@ export default function OperacionPage() {
   const [isAuthChecking, setIsAuthChecking] = useState(false);
 
   // Active operations role mode: Estaciones de trabajo del operador
-  const [operationsMode, setOperationsMode] = useState<"alistamiento" | "bascula" | "inventario" | "canastas" | "domiciliario">("alistamiento");
+  const [operationsMode, setOperationsMode] = useState<"alistamiento" | "bascula" | "canastas" | "domiciliario">("alistamiento");
 
   // GPS Route Map visibility in driver cab
   const [showRouteMap, setShowRouteMap] = useState(true);
@@ -522,8 +520,6 @@ export default function OperacionPage() {
                       ? "Alistamiento: Control de Inventario & Resumen de Cava"
                       : operationsMode === "bascula"
                       ? "Pesaje Manual de Pedidos & Foto de Báscula"
-                      : operationsMode === "inventario"
-                      ? "Kardex en Cava (1.8°C) & Recepción de Lotes"
                       : "Censo & Contabilidad de Canastillas JD"
                     : `${activeRoute?.driverName || "Carlos Pérez"} • Furgón ${activeRoute?.vehiclePlate || "KLP-541"}`}
                 </h1>
@@ -546,8 +542,8 @@ export default function OperacionPage() {
             )}
           </div>
 
-            {/* Botones de navegación ergonómicos para las 4 estaciones del Operador */}
-            <div className="grid grid-cols-2 sm:flex sm:flex-nowrap w-full sm:w-auto bg-slate-900/90 rounded-2xl p-1 border border-slate-800 gap-1">
+            {/* Botones de navegación ergonómicos para las 3 estaciones del Operador */}
+            <div className="grid grid-cols-3 sm:flex sm:flex-nowrap w-full sm:w-auto bg-slate-900/90 rounded-2xl p-1 border border-slate-800 gap-1">
               {/* Estación 1: Alistamiento & Inventario */}
               <button
                 type="button"
@@ -578,22 +574,7 @@ export default function OperacionPage() {
                 <span className="truncate">Pesaje Manual</span>
               </button>
 
-              {/* Estación 3: Inventario & Cava Fría */}
-              <button
-                type="button"
-                onClick={() => setOperationsMode("inventario")}
-                className={`px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl font-black text-xs flex items-center justify-center sm:justify-start gap-1.5 transition-all truncate ${
-                  operationsMode === "inventario"
-                    ? "bg-cyan-600 text-white shadow-md shadow-cyan-950/50"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="Kardex de cortes en cava (1.8°C), ingreso de lotes y arqueo físico"
-              >
-                <ThermometerSnowflake className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="truncate">Cava & Frío</span>
-              </button>
-
-              {/* Estación 4: Control de Canastas JD */}
+              {/* Estación 3: Control de Canastas JD */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("canastas")}
@@ -1374,10 +1355,6 @@ export default function OperacionPage() {
               </div>
             )}
           </div>
-        </div>
-      ) : operationsMode === "inventario" ? (
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <ColdStorageStation />
         </div>
       ) : (
         <div className="max-w-4xl mx-auto px-4 py-4">
