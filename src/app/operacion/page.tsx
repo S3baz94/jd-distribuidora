@@ -50,6 +50,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { PlantPackingStation } from "@/components/operations/PlantPackingStation";
+import { PlantInventoryStation } from "@/components/operations/PlantInventoryStation";
 import { CratesTareScaleModal } from "@/components/operations/CratesTareScaleModal";
 import { CratesInventoryManager } from "@/components/operations/CratesInventoryManager";
 
@@ -93,7 +94,7 @@ export default function OperacionPage() {
   const [isAuthChecking, setIsAuthChecking] = useState(false);
 
   // Active operations role mode: Estaciones de trabajo del operador
-  const [operationsMode, setOperationsMode] = useState<"alistamiento" | "bascula" | "canastas" | "domiciliario">("alistamiento");
+  const [operationsMode, setOperationsMode] = useState<"alistamiento" | "inventario" | "bascula" | "canastas" | "domiciliario">("alistamiento");
 
   // GPS Route Map visibility in driver cab
   const [showRouteMap, setShowRouteMap] = useState(true);
@@ -517,7 +518,9 @@ export default function OperacionPage() {
                 <h1 className="text-xs sm:text-sm md:text-base font-bold text-slate-100 leading-snug mt-1 break-words">
                   {currentUser?.role === "operador"
                     ? operationsMode === "alistamiento"
-                      ? "Alistamiento: Control de Inventario & Resumen de Cava"
+                      ? "Alistamiento de Pedidos (Desde App de Ventas)"
+                      : operationsMode === "inventario"
+                      ? "Administración de Inventario & Kilos en Planta"
                       : operationsMode === "bascula"
                       ? "Pesaje Manual de Pedidos & Foto de Báscula"
                       : "Censo & Contabilidad de Canastillas JD"
@@ -542,9 +545,9 @@ export default function OperacionPage() {
             )}
           </div>
 
-            {/* Botones de navegación ergonómicos para las 3 estaciones del Operador */}
-            <div className="grid grid-cols-3 sm:flex sm:flex-nowrap w-full sm:w-auto bg-slate-900/90 rounded-2xl p-1 border border-slate-800 gap-1">
-              {/* Estación 1: Alistamiento & Inventario */}
+            {/* Botones de navegación ergonómicos para las 4 estaciones del Operador */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 sm:flex sm:flex-nowrap w-full sm:w-auto bg-slate-900/90 rounded-2xl p-1 border border-slate-800 gap-1">
+              {/* Estación 1: Alistamiento de Pedidos de Ventas */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("alistamiento")}
@@ -553,13 +556,28 @@ export default function OperacionPage() {
                     ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/50"
                     : "text-slate-400 hover:text-white"
                 }`}
-                title="Alistamiento: mirar inventario, modificarlo y ver el resumen de stock"
+                title="Alistamiento de pedidos que nacen en la app de ventas y consolidado de desposte"
               >
                 <ClipboardList className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate">Alistamiento</span>
               </button>
 
-              {/* Estación 2: Pesaje Manual & Foto de Báscula */}
+              {/* Estación 2: Inventario & Stock en Planta */}
+              <button
+                type="button"
+                onClick={() => setOperationsMode("inventario")}
+                className={`px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl font-black text-xs flex items-center justify-center sm:justify-start gap-1.5 transition-all truncate ${
+                  operationsMode === "inventario"
+                    ? "bg-cyan-600 text-white shadow-md shadow-cyan-950/50"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Administración de inventario: consultar stock, modificar kilos, lotes y ver resumen"
+              >
+                <Boxes className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Inventario</span>
+              </button>
+
+              {/* Estación 3: Pesaje Manual & Foto de Báscula */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("bascula")}
@@ -574,7 +592,7 @@ export default function OperacionPage() {
                 <span className="truncate">Pesaje Manual</span>
               </button>
 
-              {/* Estación 3: Control de Canastas JD */}
+              {/* Estación 4: Control de Canastas JD */}
               <button
                 type="button"
                 onClick={() => setOperationsMode("canastas")}
@@ -1250,6 +1268,10 @@ export default function OperacionPage() {
               if (r) setSelectedDriverId(r.driverId);
             }}
           />
+        </div>
+      ) : operationsMode === "inventario" ? (
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <PlantInventoryStation />
         </div>
       ) : operationsMode === "bascula" ? (
         <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
