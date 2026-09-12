@@ -30,6 +30,7 @@ import {
   X,
   Send,
   Zap,
+  Scale,
 } from "lucide-react";
 
 export default function DomiciliarioView() {
@@ -38,6 +39,7 @@ export default function DomiciliarioView() {
     allOrders,
     expenses,
     confirmDelivery,
+    adjustOrderRealWeight,
     updateRouteStatus,
     addDriverExpense,
     showToast,
@@ -148,15 +150,36 @@ export default function DomiciliarioView() {
   const [showArqueoModal, setShowArqueoModal] = useState<boolean>(false);
   const [showExpenseModal, setShowExpenseModal] = useState<boolean>(false);
 
-  // Formulario de Entrega
+  // Formulario de Entrega & Pesaje de Productos
   const [deliveryPaymentMethod, setDeliveryPaymentMethod] = useState<"efectivo" | "banco" | "credito">("efectivo");
   const [receivedByName, setReceivedByName] = useState<string>("");
   const [deliveredBaskets, setDeliveredBaskets] = useState<number>(2);
   const [returnedBaskets, setReturnedBaskets] = useState<number>(2);
   const [deliveryInvoicePhoto, setDeliveryInvoicePhoto] = useState<string>("");
+  const [deliveryScalePhoto, setDeliveryScalePhoto] = useState<string>("");
   const [hasSignature, setHasSignature] = useState<boolean>(false);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Mapa de pesos por producto al momento de la entrega
+  const [deliveryWeights, setDeliveryWeights] = useState<Record<string, number>>({});
+
+  // Cálculo en tiempo real del valor a cobrar y kilos netos entregados
+  const currentDeliveryTotal = useMemo(() => {
+    if (!deliveryModalOrder) return 0;
+    return deliveryModalOrder.items.reduce((sum, item) => {
+      const qty = deliveryWeights[item.productId] ?? (item.realQuantity || item.quantity);
+      return sum + qty * item.unitPrice;
+    }, 0);
+  }, [deliveryModalOrder, deliveryWeights]);
+
+  const currentDeliveryKg = useMemo(() => {
+    if (!deliveryModalOrder) return 0;
+    return deliveryModalOrder.items.reduce((sum, item) => {
+      const qty = deliveryWeights[item.productId] ?? (item.realQuantity || item.quantity);
+      return sum + qty;
+    }, 0);
+  }, [deliveryModalOrder, deliveryWeights]);
 
   // Formulario de Devolución opcional en entrega
   const [hasReturn, setHasReturn] = useState<boolean>(false);
@@ -174,18 +197,26 @@ export default function DomiciliarioView() {
   const [expenseDesc, setExpenseDesc] = useState<string>("Tanqueada ACPM Estación de Servicio");
   const [expenseReceiptPhoto, setExpenseReceiptPhoto] = useState<string>("");
 
-  // Abrir Modal de Entrega
+  // Abrir Modal de Entrega con pesos inicializados
   const handleOpenDelivery = (order: Order) => {
     setDeliveryModalOrder(order);
     setDeliveryPaymentMethod(order.paymentMethod === "credito" ? "credito" : "efectivo");
     setReceivedByName(order.customerName);
-    setDeliveredBaskets(2);
+    setDeliveredBaskets(Math.ceil((order.items.reduce((s, i) => s + (i.realQuantity || i.quantity), 0)) / 25) || 2);
     setReturnedBaskets(2);
     setDeliveryInvoicePhoto("");
+    setDeliveryScalePhoto(order.scalePhoto || "");
     setHasSignature(false);
     setHasReturn(false);
     setReturnedKg(0);
     setReturnNote("");
+
+    // Inicializar pesos de cada producto con los kilos actuales o pedidos
+    const initialWeights: Record<string, number> = {};
+    order.items.forEach((item) => {
+      initialWeights[item.productId] = Number((item.realQuantity ?? item.quantity).toFixed(2));
+    });
+    setDeliveryWeights(initialWeights);
   };
 
   // Compresión de fotos en canvas cliente
@@ -235,6 +266,16 @@ export default function DomiciliarioView() {
     compressImage(file, (base64) => {
       setDeliveryInvoicePhoto(base64);
       showToast("📸 Foto de factura firmada guardada", "success");
+    });
+  };
+
+  // Captura fotográfica de la báscula física en entrega
+  const handleScalePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    compressImage(file, (base64) => {
+      setDeliveryScalePhoto(base64);
+      showToast("⚖️ Fotografía de báscula de entrega guardada", "success");
     });
   };
 
@@ -303,6 +344,17 @@ export default function DomiciliarioView() {
 
     setIsSubmitting(true);
     try {
+      // 1. Aplicar los pesos verificados/colocados por el domiciliario al pedido y a la factura
+      const realQuantities = deliveryModalOrder.items.map((item) => ({
+        productId: item.productId,
+        realQuantity: Number((deliveryWeights[item.productId] ?? (item.realQuantity || item.quantity)).toFixed(2)),
+      }));
+
+      adjustOrderRealWeight(deliveryModalOrder.id, realQuantities, {
+        scalePhoto: deliveryScalePhoto || undefined,
+        tareNote: `Pesaje físico en entrega (${currentDeliveryKg.toFixed(2)} kg netos)`,
+      });
+
       const returnDetailsObj = hasReturn && returnedKg > 0
         ? {
             hasReturn: true,
@@ -750,19 +802,171 @@ export default function DomiciliarioView() {
 
             {/* Cuerpo del Formulario con scroll */}
             <form onSubmit={handleConfirmDelivery} className="p-4 overflow-y-auto space-y-4 text-xs">
-              {/* Resumen de cobro */}
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-white/10 flex items-center justify-between">
+              {/* Resumen de cobro recalculado en tiempo real según pesos colocados */}
+              <div className="p-3.5 rounded-2xl bg-slate-950/90 border-2 border-emerald-500/40 flex items-center justify-between shadow-lg">
                 <div>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Total Factura</p>
-                  <p className="text-lg font-black text-[#4edea3] font-mono">
-                    {priceService.formatCurrency(deliveryModalOrder.realTotal || deliveryModalOrder.total)}
+                  <span className="text-[10px] text-emerald-400 uppercase font-extrabold block tracking-wider">
+                    Total a Cobrar en Entrega:
+                  </span>
+                  <p className="text-xl font-black text-emerald-400 font-mono">
+                    {priceService.formatCurrency(currentDeliveryTotal)}
                   </p>
+                  <span className="text-[10px] text-slate-400">
+                    Factura Nº: <strong className="text-slate-200">{deliveryModalOrder.invoiceNumber || deliveryModalOrder.orderNumber}</strong>
+                  </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Factura Nº</p>
-                  <p className="text-xs font-mono font-bold text-white">
-                    {deliveryModalOrder.invoiceNumber || deliveryModalOrder.orderNumber}
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                    Kilos Netos a Entregar:
+                  </span>
+                  <p className="text-sm font-mono font-black text-white">
+                    {currentDeliveryKg.toFixed(2)} kg
                   </p>
+                  <span className="text-[10px] text-slate-400">
+                    ({deliveryModalOrder.items.length} corte{deliveryModalOrder.items.length > 1 ? "s" : ""})
+                  </span>
+                </div>
+              </div>
+
+              {/* SECCIÓN PRINCIPAL: COLOCAR LOS PESOS DEL PRODUCTO AL ENTREGARSE */}
+              <div className="p-3.5 rounded-2xl bg-slate-900 border border-amber-500/30 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 flex-shrink-0">
+                      <Scale className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-xs text-white">
+                        Pesos del Producto al Entregarse
+                      </h4>
+                      <p className="text-[10px] text-slate-400">
+                        Digita o ajusta los kilos reales pesados en la báscula del cliente
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    {currentDeliveryKg.toFixed(1)} kg total
+                  </span>
+                </div>
+
+                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  {deliveryModalOrder.items.map((item) => {
+                    const currentKg = deliveryWeights[item.productId] ?? (item.realQuantity || item.quantity);
+                    const itemSubtotal = currentKg * item.unitPrice;
+
+                    return (
+                      <div
+                        key={item.productId}
+                        className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2"
+                      >
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="min-w-0 pr-2">
+                            <p className="font-bold text-white truncate">{item.productName}</p>
+                            <span className="text-[10px] text-slate-400">
+                              Pedido: <strong className="text-slate-300">{item.quantity} kg</strong> • {priceService.formatCurrency(item.unitPrice)}/kg
+                            </span>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span className="font-mono font-black text-xs text-emerald-400 block">
+                              {priceService.formatCurrency(itemSubtotal)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Botones de ajuste táctil rápido e input numérico */}
+                        <div className="flex items-center justify-between gap-2 pt-0.5">
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newKg = Math.max(0.1, Number((currentKg - 1).toFixed(2)));
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: newKg }));
+                              }}
+                              className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all active:scale-95"
+                              title="Restar 1 kg"
+                            >
+                              -1k
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newKg = Math.max(0.05, Number((currentKg - 0.1).toFixed(2)));
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: newKg }));
+                              }}
+                              className="px-1.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all active:scale-95"
+                              title="Restar 0.1 kg"
+                            >
+                              -0.1
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newKg = Number((currentKg + 0.1).toFixed(2));
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: newKg }));
+                              }}
+                              className="px-1.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all active:scale-95"
+                              title="Sumar 0.1 kg"
+                            >
+                              +0.1
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newKg = Number((currentKg + 1).toFixed(2));
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: newKg }));
+                              }}
+                              className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all active:scale-95"
+                              title="Sumar 1 kg"
+                            >
+                              +1k
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="number"
+                              step="0.05"
+                              min="0.05"
+                              required
+                              value={currentKg}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: val }));
+                              }}
+                              className="w-20 bg-slate-900 border border-amber-500/50 rounded-xl px-2 py-1.5 text-white font-mono font-black text-sm text-right focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            />
+                            <span className="font-bold text-xs text-slate-400">kg</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Fotografía de soporte de la báscula en el local del cliente */}
+                <div className="pt-2 border-t border-slate-800">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] text-slate-300 font-bold flex items-center gap-1">
+                      <Camera className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Foto opcional de báscula en local:</span>
+                    </label>
+                    {deliveryScalePhoto && (
+                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Foto lista
+                      </span>
+                    )}
+                  </div>
+                  <label className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-950 border border-dashed border-amber-500/40 hover:bg-slate-850 text-amber-300 font-bold text-xs cursor-pointer transition-all active:scale-95">
+                    <Camera className="w-4 h-4 text-amber-400" />
+                    <span>{deliveryScalePhoto ? "Cambiar Foto de Báscula" : "Tomar Foto a Báscula del Cliente"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleScalePhoto}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
               </div>
 

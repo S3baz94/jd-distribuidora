@@ -141,6 +141,25 @@ export default function OperacionPage() {
   const [deliveryReturnNote, setDeliveryReturnNote] = useState("");
   const [deliveryReturnedKgMap, setDeliveryReturnedKgMap] = useState<{ [productId: string]: number }>({});
 
+  // Pesos del producto colocados al entregarse
+  const [deliveryWeights, setDeliveryWeights] = useState<Record<string, number>>({});
+
+  const currentDeliveryKg = useMemo(() => {
+    if (!deliveryModalOrder) return 0;
+    return deliveryModalOrder.items.reduce((sum, item) => {
+      const qty = deliveryWeights[item.productId] ?? (item.realQuantity || item.quantity);
+      return sum + qty;
+    }, 0);
+  }, [deliveryModalOrder, deliveryWeights]);
+
+  const currentDeliveryTotal = useMemo(() => {
+    if (!deliveryModalOrder) return 0;
+    return deliveryModalOrder.items.reduce((sum, item) => {
+      const qty = deliveryWeights[item.productId] ?? (item.realQuantity || item.quantity);
+      return sum + qty * item.unitPrice;
+    }, 0);
+  }, [deliveryModalOrder, deliveryWeights]);
+
   // Return calculations for modal
   const deliveryReturnSummary = useMemo(() => {
     if (!deliveryModalOrder || !hasDeliveryReturn) {
@@ -296,6 +315,13 @@ export default function OperacionPage() {
     setDeliveryReturnReason("Rechazo de calidad / Merma en pesaje");
     setDeliveryReturnNote("");
     setDeliveryReturnedKgMap({});
+
+    // Inicializar pesos de entrega por producto
+    const initialWeights: Record<string, number> = {};
+    order.items.forEach((item) => {
+      initialWeights[item.productId] = Number((item.realQuantity ?? item.quantity).toFixed(2));
+    });
+    setDeliveryWeights(initialWeights);
   };
 
   // Handle Customer Purchase Invoice Photo Capture
@@ -318,6 +344,16 @@ export default function OperacionPage() {
     setIsSubmittingDelivery(true);
 
     try {
+      // 1. Guardar pesos reales entregados al pedido y factura
+      const realQuantities = deliveryModalOrder.items.map((item) => ({
+        productId: item.productId,
+        realQuantity: Number((deliveryWeights[item.productId] ?? (item.realQuantity || item.quantity)).toFixed(2)),
+      }));
+
+      adjustOrderRealWeight(deliveryModalOrder.id, realQuantities, {
+        tareNote: `Pesaje final de entrega (${currentDeliveryKg.toFixed(2)} kg netos)`,
+      });
+
       const returnDetailsObj = hasDeliveryReturn
         ? {
             hasReturn: true,
@@ -1404,20 +1440,119 @@ export default function OperacionPage() {
                 <div>
                   <span className="text-slate-400 text-[11px] block font-bold">Total Factura de Compra:</span>
                   <strong className="text-xl font-black text-emerald-400">
-                    {priceService.formatCurrency(
-                      deliveryModalOrder.realTotal || deliveryModalOrder.total
-                    )}
+                    {priceService.formatCurrency(currentDeliveryTotal || deliveryModalOrder.realTotal || deliveryModalOrder.total)}
                   </strong>
                 </div>
                 <div className="text-right">
                   <span className="text-slate-400 text-[11px] block font-bold">Kilos a entregar:</span>
                   <strong className="text-white font-black text-sm">
-                    {deliveryModalOrder.items.reduce(
-                      (s, i) => s + (i.realQuantity || i.quantity),
-                      0
-                    )}{" "}
-                    kg
+                    {currentDeliveryKg.toFixed(2)} kg
                   </strong>
+                </div>
+              </div>
+
+              {/* SECCIÓN INTERACTIVA: COLOCAR PESOS DEL PRODUCTO AL ENTREGARSE */}
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-amber-500/40 space-y-2.5">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                      <Scale className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-xs">Pesos del Producto al Entregarse</h4>
+                      <p className="text-[10px] text-slate-400">Verifica o ajusta los kilos reales entregados al cliente</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    {currentDeliveryKg.toFixed(1)} kg
+                  </span>
+                </div>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {deliveryModalOrder.items.map((item) => {
+                    const currentKg = deliveryWeights[item.productId] ?? (item.realQuantity || item.quantity);
+                    const itemSubtotal = currentKg * item.unitPrice;
+
+                    return (
+                      <div
+                        key={item.productId}
+                        className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="min-w-0 pr-2">
+                            <p className="font-bold text-white truncate">{item.productName}</p>
+                            <span className="text-[10px] text-slate-400">
+                              Pedido: <strong className="text-slate-300">{item.quantity} kg</strong> • {priceService.formatCurrency(item.unitPrice)}/kg
+                            </span>
+                          </div>
+                          <span className="font-mono font-black text-xs text-emerald-400 flex-shrink-0">
+                            {priceService.formatCurrency(itemSubtotal)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 pt-0.5">
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newKg = Math.max(0.1, Number((currentKg - 1).toFixed(2)));
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: newKg }));
+                              }}
+                              className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold"
+                            >
+                              -1k
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newKg = Math.max(0.05, Number((currentKg - 0.1).toFixed(2)));
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: newKg }));
+                              }}
+                              className="px-1 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold"
+                            >
+                              -0.1
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newKg = Number((currentKg + 0.1).toFixed(2));
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: newKg }));
+                              }}
+                              className="px-1 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold"
+                            >
+                              +0.1
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newKg = Number((currentKg + 1).toFixed(2));
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: newKg }));
+                              }}
+                              className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold"
+                            >
+                              +1k
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              step="0.05"
+                              min="0.05"
+                              required
+                              value={currentKg}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                setDeliveryWeights((prev) => ({ ...prev, [item.productId]: val }));
+                              }}
+                              className="w-18 bg-slate-950 border border-amber-500/50 rounded-lg px-2 py-1 text-white font-mono font-black text-xs text-right focus:border-amber-400 focus:outline-none"
+                            />
+                            <span className="font-bold text-[11px] text-slate-400">kg</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
